@@ -1,189 +1,165 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Menu, X, MapPin, Clock, Phone, Mail, Search, ChevronDown, Home, Calendar, Headphones, GraduationCap, FileText, MessageCircle, Facebook, Twitter, Youtube, Star, List } from 'lucide-react'
+import { Menu, X, Search, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import Input from '../../input'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
+      setIsScrolled(window.scrollY > 50)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const menuItems = [
-    {
-      name: 'Home',
-      icon: Home,
-      href: '/',
-      hasDropdown: false
-    },
-    {
-      name: 'Manuscripts',
-      icon: FileText,
-      href: '/manuscripts',
-      hasDropdown: false
-    },
-    {
-      name: 'About',
-      icon: List,
-      href: '/about-us',
-      hasDropdown: false
-    },
-    {
-      name: 'Contact',
-      icon: MessageCircle,
-      href: '/contact',
-      hasDropdown: false
-    }
+    { name: 'Orations', href: '/orations' },
+    { name: 'Letters', href: '/letters' },
+    { name: 'Sayings', href: '/sayings' },
+    { name: 'Manuscripts', href: '/manuscripts' },
+    { name: 'About', href: '/about-us' },
   ]
 
-  const handleDropdownToggle = (itemName: string) => {
-    setActiveDropdown(activeDropdown === itemName ? null : itemName)
-  }
-
-  const closeDropdown = () => {
-    setActiveDropdown(null)
-  }
-
-  const closeMenu = () => {
-    setIsMenuOpen(false)
-    setActiveDropdown(null)
-  }
-
   return (
-    <header className="relative">
-      <div className={`sticky top-0 z-50 border-b border-gray-200 ${isScrolled
-          ? 'bg-white/95 backdrop-blur-xl'
-          : 'bg-white'
-        }`}>
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/">
-              <div className="flex items-center gap-3 cursor-pointer">
-                <div className="relative">
-                  <div className="w-16 h-14 bg-[#43896B] rounded-2xl flex items-center justify-center shadow-lg border border-[#43896B]/20">
-                    <div className="text-center leading-none font-taha">
-                      <div className="text-white font-bold text-lg mb-0.5">نهج</div>
-                      <div className="text-white font-bold text-base -mt-1">البلاغة</div>
-                    </div>
+    <header className="fixed top-0 left-0 right-0 z-50">
+      {/* Top accent line */}
+      <div className="h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent" />
+      
+      <div 
+        className={`transition-all duration-500 ${
+          isScrolled 
+            ? 'bg-white/95 backdrop-blur-md shadow-sm' 
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20 lg:h-24">
+            {/* Logo */}
+            <Link href="/" className="group flex items-center gap-4">
+              <div className="relative">
+                {/* Corner accent on hover */}
+                <div className="absolute -top-1 -left-1 w-3 h-3 border-l border-t border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-300" />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 border-r border-b border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-300" />
+                
+                <div className="relative w-14 h-14 bg-[var(--color-primary)] flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+                  <div className="text-center font-taha leading-none">
+                    <div className="text-white text-sm font-bold">نهج</div>
+                    <div className="text-white text-xs font-bold -mt-0.5">البلاغة</div>
                   </div>
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-[#43896B] leading-tight">
-                    Nahj al-Balaghah
-                  </h1>
-                  <p className="text-sm text-gray-600 font-medium mt-0.5">
-                    Way of Eloquence
-                  </p>
-                </div>
+              </div>
+              <div className="hidden sm:block">
+                <h1 
+                  className="font-display text-xl lg:text-2xl font-medium tracking-tight text-[var(--color-ink)]"
+                >
+                  Nahj al-Balaghah
+                </h1>
+                <p className="text-xs tracking-[0.2em] uppercase mt-0.5 text-[var(--color-warm-gray)]">
+                  Peak of Eloquence
+                </p>
               </div>
             </Link>
-            <nav className="hidden lg:flex items-center space-x-2">
-              {menuItems.map((item, index) => (
-                <div key={item.name} className="relative">
-                  {item.hasDropdown ? (
-                    <button
-                      className="cursor-pointer flex items-center gap-2 text-gray-700 px-4 py-2.5 font-medium rounded-xl"
-                      onClick={() => handleDropdownToggle(item.name)}
-                    >
-                      <item.icon className="w-4 h-4" />
-                      {item.name}
-                      <div>
-                        <ChevronDown className="w-4 h-4" />
-                      </div>
-                    </button>
-                  ) : (
-                    <Link href={item.href}>
-                      <div
-                        className="cursor-pointer flex items-center gap-2 text-gray-700 px-4 py-2.5 font-medium rounded-xl"
-                      >
-                        <item.icon className="w-4 h-4" />
-                        {item.name}
-                      </div>
-                    </Link>
-                  )}
-                </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="relative px-5 py-2 text-sm tracking-wide font-medium text-[var(--color-charcoal)] hover:text-[var(--color-primary)] transition-colors duration-300 group"
+                >
+                  {item.name}
+                  {/* Underline with corner accent */}
+                  <span className="absolute bottom-1 left-5 right-5 h-[1px] bg-[var(--color-accent)] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                  {/* Tiny corner on hover */}
+                  <span className="absolute bottom-0 right-4 w-2 h-2 border-r border-b border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-300" />
+                </Link>
               ))}
             </nav>
+
+            {/* Right Actions */}
             <div className="flex items-center gap-3">
-              <div className='hidden lg:block'>
-                <Input placeholder='Search sermons...' icon={<Search size={16} />} />
-              </div>
+              {/* Search Button with corner accent */}
               <button
-                className="lg:hidden p-2.5 rounded-xl border border-gray-200"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="relative p-3 hover:bg-[var(--color-stone)] transition-colors duration-300 group"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5 text-[var(--color-charcoal)]" />
+                <span className="absolute top-1 right-1 w-2 h-2 border-t border-r border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300" />
+              </button>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="lg:hidden relative p-3 hover:bg-[var(--color-stone)] transition-colors duration-300 group"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Toggle menu"
               >
                 {isMenuOpen ? (
-                  <div>
-                    <X className="w-6 h-6 text-[#43896B]" />
-                  </div>
+                  <X className="w-5 h-5 text-[var(--color-charcoal)]" />
                 ) : (
-                  <div>
-                    <Menu className="w-6 h-6 text-[#43896B]" />
-                  </div>
+                  <Menu className="w-5 h-5 text-[var(--color-charcoal)]" />
                 )}
+                <span className="absolute top-1 right-1 w-2 h-2 border-t border-r border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300" />
               </button>
             </div>
           </div>
         </div>
-        {isMenuOpen && (
-          <div className="lg:hidden bg-gradient-to-b from-white to-gray-50 border-t border-gray-100 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-3">
-              <div className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 mb-6 shadow-sm border border-gray-200">
-                <Search className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search sermons, scholars..."
-                  className="bg-transparent outline-none text-sm flex-1 placeholder-gray-500"
-                />
-              </div>
-              {menuItems.map((item, index) => (
-                <div
-                  key={item.name}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-                >
-                  {item.hasDropdown ? (
-                    <button
-                      className="flex items-center justify-between w-full text-left px-5 py-4"
-                      onClick={() => handleDropdownToggle(item.name)}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#43896B]/10 to-[#E8B873]/10 rounded-xl flex items-center justify-center">
-                          <item.icon className="w-5 h-5 text-[#43896B]" />
-                        </div>
-                        <span className="font-semibold text-gray-800">{item.name}</span>
-                      </div>
-                      <div>
-                        <ChevronDown className="w-5 h-5 text-gray-500" />
-                      </div>
-                    </button>
-                  ) : (
-                    <Link href={item.href} onClick={closeMenu}>
-                      <div className="flex items-center justify-between w-full text-left px-5 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-[#43896B]/10 to-[#E8B873]/10 rounded-xl flex items-center justify-center">
-                            <item.icon className="w-5 h-5 text-[#43896B]" />
-                          </div>
-                          <span className="font-semibold text-gray-800">{item.name}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  )}
-                </div>
-              ))}
+
+        {/* Search Overlay */}
+        <div 
+          className={`absolute top-full left-0 right-0 bg-white border-b border-[var(--color-stone)] transition-all duration-300 overflow-hidden ${
+            isSearchOpen ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <div className="max-w-3xl mx-auto px-6 py-6">
+            <div className="relative flex items-center gap-4 border-b-2 border-[var(--color-primary)] pb-2">
+              <Search className="w-5 h-5 text-[var(--color-warm-gray)]" />
+              <input
+                type="text"
+                placeholder="Search sermons, letters, sayings..."
+                className="flex-1 bg-transparent text-lg font-display placeholder:text-[var(--color-warm-gray)] focus:outline-none"
+              />
+              {/* Corner accent */}
+              <div className="absolute -bottom-1 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
             </div>
           </div>
-        )}
-        {activeDropdown && (
-          <div className="hidden lg:block fixed inset-0 z-40 bg-black/10 backdrop-blur-sm" onClick={closeDropdown} />
-        )}
+        </div>
+
+        {/* Mobile Menu */}
+        <div 
+          className={`lg:hidden absolute top-full left-0 right-0 bg-white border-b border-[var(--color-stone)] transition-all duration-500 overflow-hidden ${
+            isMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
+          <nav className="max-w-7xl mx-auto px-6 py-8">
+            {/* Corner accent on mobile menu */}
+            <div className="absolute top-4 right-4 w-8 h-8 border-t border-r border-[var(--color-accent)]/30" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b border-l border-[var(--color-accent)]/30" />
+            
+            <div className="space-y-1">
+              {menuItems.map((item, index) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center justify-between py-4 border-b border-[var(--color-stone)] group"
+                >
+                  <span className="font-display text-xl text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
+                    {item.name}
+                  </span>
+                  <div className="relative">
+                    <ChevronRight className="w-5 h-5 text-[var(--color-warm-gray)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </nav>
+        </div>
       </div>
     </header>
   )

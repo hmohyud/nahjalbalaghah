@@ -1,42 +1,33 @@
-import ExploreHero from "./sections/hero";
+import HeroSection from "./sections/hero";
+import AboutSection from "./sections/about";
 import MainCardsSection from "./sections/main-cards";
-import AboutNahjSection from "./sections/about-nahj";
+import FeaturedManuscriptsSection from "./sections/manuscripts";
 
 export const metadata = {
-  title: "Explore | Nahj al-Balaghah",
-  description: "Explore sermons, letters, sayings, and Resources in Nahj al-Balaghah. Search, read, and discover the timeless wisdom of Imam Ali (AS).",
+  title: "Nahj al-Balaghah | The Peak of Eloquence",
+  description: "A scholarly digital archive of Nahj al-Balaghah: the sermons, letters, and sayings of Imam Ali ibn Abi Talib. Explore centuries of wisdom through authenticated manuscripts and translations.",
   openGraph: {
-    title: "Explore | Nahj al-Balaghah",
-    description: "Explore sermons, letters, sayings, and Resources in Nahj al-Balaghah. Search, read, and discover the timeless wisdom of Imam Ali (AS).",
-    url: "https://nahj-al-balagha.com/explore",
+    title: "Nahj al-Balaghah | The Peak of Eloquence",
+    description: "A scholarly digital archive of Nahj al-Balaghah: the sermons, letters, and sayings of Imam Ali ibn Abi Talib.",
+    url: "https://nahj-al-balagha.com",
     images: [
       {
-        url: "/globe.svg",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Nahj al-Balaghah Logo"
-      }
-    ]
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Explore | Nahj al-Balaghah",
-    description: "Explore sermons, letters, sayings, and Resources in Nahj al-Balaghah. Search, read, and discover the timeless wisdom of Imam Ali (AS).",
-    images: [
-      {
-        url: "/globe.svg",
-        alt: "Nahj al-Balaghah Logo"
+        alt: "Nahj al-Balaghah - The Peak of Eloquence"
       }
     ]
   }
 };
 
 export default function Page() {
-    return (
-        <div>
-            <ExploreHero />
-            {/* <AboutNahjSection /> */}
-            <MainCardsSection />
-        </div>        
-    )
+  return (
+    <div>
+      <HeroSection />
+      <AboutSection />
+      <MainCardsSection />
+      <FeaturedManuscriptsSection />
+    </div>
+  );
 }

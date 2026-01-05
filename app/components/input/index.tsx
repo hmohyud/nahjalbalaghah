@@ -1,29 +1,40 @@
 import React from "react";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
+type InputProps = {
+  placeholder?: string;
+  icon?: React.ReactNode;
   className?: string;
-  icon?: any;
-}
+} & React.InputHTMLAttributes<HTMLInputElement>;
 
-const Input: React.FC<InputProps> = ({ label, error, className, icon, ...props }) => {
+const Input: React.FC<InputProps> = ({
+  placeholder,
+  icon,
+  className = "",
+  ...props
+}) => {
   return (
-    <div className="w-full text-sm">
-      {label && <label className="block font-medium text-gray-700 mb-1">{label}</label>}
-      <div className="relative" >
-        <input
-          className={`
-            w-full p-3 text-sm placeholder:text-[#5A5D72] border border-[#D7DEE9] rounded-xl outline-none transition 
-            focus:ring-2 focus:ring-[#43896B] focus:border-[#43896B]
-            ${error ? "border-red-500" : "border-gray-300"} 
-            ${className}
-          `}
-          {...props}
-        />
-        <div className="absolute top-1/2 -translate-y-1/2 right-4" >{icon}</div>
-      </div>
-      {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+    <div className="relative">
+      {icon && (
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-warm-gray)]">
+          {icon}
+        </div>
+      )}
+      <input
+        type="text"
+        placeholder={placeholder}
+        className={`
+          w-full py-3 px-4 ${icon ? 'pl-11' : 'pl-4'}
+          bg-[var(--color-parchment)] 
+          border border-[var(--color-stone)]
+          text-[var(--color-charcoal)]
+          placeholder:text-[var(--color-warm-gray)]
+          text-sm font-body
+          focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20
+          transition-all duration-300
+          ${className}
+        `}
+        {...props}
+      />
     </div>
   );
 };

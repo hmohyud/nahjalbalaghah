@@ -1,253 +1,176 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { manuscriptsApi, Manuscript, getManuscriptImageUrl, getContentTypeFromSection } from '@/api/manuscripts';
-import { Filter, Image as ImageIcon, Loader2, BookOpen, Mail, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
+'use client'
+import React, { useState, useEffect, useRef } from 'react'
+import { ArrowRight, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { manuscriptsApi, Manuscript, getManuscriptImageUrl } from '@/api/manuscripts'
 
-type FilterType = 'all' | 'oration' | 'letter' | 'saying';
+const FeaturedManuscriptsSection = () => {
+  const [isVisible, setIsVisible] = useState(false)
+  const [manuscripts, setManuscripts] = useState<Manuscript[]>([])
+  const [loading, setLoading] = useState(true)
+  const sectionRef = useRef<HTMLElement>(null)
 
-export default function ManuscriptsSection() {
-  const [manuscripts, setManuscripts] = useState<Manuscript[]>([]);
-  const [filteredManuscripts, setFilteredManuscripts] = useState<Manuscript[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const fetchManuscripts = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const response = await manuscriptsApi.getAllManuscripts(1, 100);
-        setManuscripts(response.data);
-        setFilteredManuscripts(response.data);
+        setLoading(true)
+        const response = await manuscriptsApi.getAllManuscripts(1, 6)
+        setManuscripts(response.data.slice(0, 3)) // Show only 3 featured
       } catch (err) {
-        console.error('Error fetching manuscripts:', err);
-        setError('Failed to load manuscripts');
+        console.error('Error fetching manuscripts:', err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
-
-    fetchManuscripts();
-  }, []);
-
-  useEffect(() => {
-    if (activeFilter === 'all') {
-      setFilteredManuscripts(manuscripts);
-    } else {
-      const filtered = manuscripts.filter((manuscript) => {
-        const contentType = getContentTypeFromSection(manuscript.section);
-        return contentType === activeFilter;
-      });
-      setFilteredManuscripts(filtered);
     }
-  }, [activeFilter, manuscripts]);
 
-  const getTypeLabel = (section: string): string => {
-    const type = getContentTypeFromSection(section);
-    if (type === 'oration') return 'Oration';
-    if (type === 'letter') return 'Letter';
-    if (type === 'saying') return 'Saying';
-    return 'Unknown';
-  };
-
-  const getTypeIcon = (section: string) => {
-    const type = getContentTypeFromSection(section);
-    if (type === 'oration') return <BookOpen className="w-4 h-4" />;
-    if (type === 'letter') return <Mail className="w-4 h-4" />;
-    if (type === 'saying') return <MessageSquare className="w-4 h-4" />;
-    return null;
-  };
-
-  const getTypeColor = (section: string): string => {
-    const type = getContentTypeFromSection(section);
-    if (type === 'oration') return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (type === 'letter') return 'bg-green-100 text-green-700 border-green-200';
-    if (type === 'saying') return 'bg-purple-100 text-purple-700 border-purple-200';
-    return 'bg-gray-100 text-gray-700 border-gray-200';
-  };
-
-  if (loading) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 text-[#43896B] animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Loading manuscripts...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <p className="text-red-600">{error}</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+    fetchManuscripts()
+  }, [])
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <ImageIcon className="w-6 h-6 text-[#43896B]" />
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
-              Historical Manuscripts
-            </h2>
-          </div>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Explore rare manuscripts of Nahj al-Balaghah from renowned libraries across the Islamic world
-          </p>
-        </div>
+    <section ref={sectionRef} className="relative py-24 lg:py-32 bg-[var(--color-ink)] overflow-hidden">
+      {/* Subtle pattern */}
+      <div 
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+          backgroundSize: '32px 32px'
+        }}
+      />
 
-        {/* Filters */}
-        <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filter by:</span>
+      {/* Decorative corner - top left */}
+      <div className="absolute top-12 left-12 w-32 h-32 border-l border-t border-[var(--color-accent)]/20" />
+      
+      {/* Decorative corner - bottom right */}
+      <div className="absolute bottom-12 right-12 w-32 h-32 border-r border-b border-[var(--color-accent)]/20" />
+
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-16">
+          <div>
+            <span 
+              className={`text-xs tracking-[0.25em] uppercase text-[var(--color-accent)] font-medium transition-all duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            >
+              Historical Treasures
+            </span>
+            <h2 
+              className={`font-display text-4xl lg:text-5xl font-light text-white mt-4 leading-[1.1] transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            >
+              Featured Manuscripts
+            </h2>
+            <div 
+              className={`w-24 h-[2px] bg-[var(--color-accent)] mt-6 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 w-24' : 'opacity-0 w-0'}`}
+            />
           </div>
-          <button
-            onClick={() => setActiveFilter('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === 'all'
-                ? 'bg-[#43896B] text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+          
+          <Link 
+            href="/manuscripts"
+            className={`group inline-flex items-center gap-3 text-white/60 hover:text-white transition-all duration-500 delay-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
           >
-            All ({manuscripts.length})
-          </button>
-          <button
-            onClick={() => setActiveFilter('oration')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-              activeFilter === 'oration'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            Orations ({manuscripts.filter(m => getContentTypeFromSection(m.section) === 'oration').length})
-          </button>
-          <button
-            onClick={() => setActiveFilter('letter')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-              activeFilter === 'letter'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <Mail className="w-4 h-4" />
-            Letters ({manuscripts.filter(m => getContentTypeFromSection(m.section) === 'letter').length})
-          </button>
-          <button
-            onClick={() => setActiveFilter('saying')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-              activeFilter === 'saying'
-                ? 'bg-purple-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Sayings ({manuscripts.filter(m => getContentTypeFromSection(m.section) === 'saying').length})
-          </button>
+            <span className="text-sm tracking-[0.1em] uppercase">View All Manuscripts</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+          </Link>
         </div>
 
         {/* Manuscripts Grid */}
-        {filteredManuscripts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredManuscripts.map((manuscript) => (
-              <div
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-[var(--color-accent)] animate-spin" />
+          </div>
+        ) : manuscripts.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-8">
+            {manuscripts.map((manuscript, index) => (
+              <Link 
+                href={`/manuscripts/${manuscript.id}`}
                 key={manuscript.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group"
+                className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+                style={{ transitionDelay: `${400 + index * 150}ms` }}
               >
-                {/* Manuscript Image */}
-                {manuscript.files && manuscript.files.length > 0 && (
-                  <div className="relative h-64 overflow-hidden">
-                    <img
-                      src={getManuscriptImageUrl(manuscript.files[0].url)}
-                      alt={manuscript.files[0].alternativeText || 'Manuscript'}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-3 right-3">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${getTypeColor(manuscript.section)}`}>
-                        {getTypeIcon(manuscript.section)}
-                        {getTypeLabel(manuscript.section)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Manuscript Info */}
-                <div className="p-5">
-                  <div className="mb-3">
-                    <span className="text-xs font-semibold text-[#43896B]">
-                      Section {manuscript.section}
-                    </span>
-                  </div>
-
-                  {manuscript.bookName && (
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#43896B] transition-colors">
-                      {manuscript.bookName}
-                    </h3>
-                  )}
-
-                  <div className="space-y-1.5 text-sm text-gray-600">
-                    {manuscript.siglaEnglish && (
-                      <p className="line-clamp-1">
-                        <span className="font-semibold">Sigla:</span> {manuscript.siglaEnglish}
-                      </p>
+                <div className="relative overflow-hidden">
+                  {/* Image */}
+                  <div className="relative aspect-[3/4] overflow-hidden bg-[var(--color-charcoal)]">
+                    {manuscript.files && manuscript.files.length > 0 ? (
+                      <img
+                        src={getManuscriptImageUrl(manuscript.files[0].url)}
+                        alt={manuscript.files[0].alternativeText || manuscript.bookName || 'Manuscript'}
+                        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 group-hover:opacity-80"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-white/30 font-display text-lg">No Image</span>
+                      </div>
                     )}
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    
+                    {/* Corner accents on hover - top right */}
+                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0" />
+                    
+                    {/* Corner accents on hover - bottom left */}
+                    <div className="absolute bottom-20 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-all duration-500 transform -translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
                     {manuscript.gregorianYear && (
-                      <p>
-                        <span className="font-semibold">Year:</span> {manuscript.gregorianYear}
+                      <div className="text-xs tracking-[0.15em] uppercase text-[var(--color-accent)] mb-2">
+                        {manuscript.gregorianYear}
+                      </div>
+                    )}
+                    <h3 className="font-display text-2xl text-white mb-2 line-clamp-2">
+                      {manuscript.bookName || `Section ${manuscript.section}`}
+                    </h3>
+                    {manuscript.holdingInstitution && (
+                      <p className="text-sm text-white/60 line-clamp-1">
+                        {manuscript.holdingInstitution}
                       </p>
                     )}
-                    {manuscript.holdingInstitution && (
-                      <p className="line-clamp-1">
-                        <span className="font-semibold">Institution:</span> {manuscript.holdingInstitution}
+                    {manuscript.siglaEnglish && (
+                      <p className="text-xs text-white/40 mt-1">
+                        {manuscript.siglaEnglish}
                       </p>
                     )}
                   </div>
 
-                  {manuscript.files && manuscript.files.length > 1 && (
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="text-xs text-gray-500">
-                        +{manuscript.files.length - 1} more image{manuscript.files.length - 1 > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  )}
+                  {/* Full border on hover */}
+                  <div className="absolute inset-0 border-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No manuscripts found for this filter.</p>
+          <div className="text-center py-20">
+            <p className="text-white/50">No manuscripts available</p>
           </div>
         )}
 
-        {/* View All Link */}
-        {manuscripts.length > 0 && (
-          <div className="text-center mt-12">
-            <Link
-              href="/manuscripts"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#43896B] text-white rounded-lg hover:bg-[#43896B]/90 transition-colors font-semibold"
-            >
-              <ImageIcon className="w-5 h-5" />
-              View All Manuscripts
-            </Link>
-          </div>
-        )}
+        {/* Bottom decorative element */}
+        <div 
+          className={`flex items-center justify-center gap-4 mt-20 transition-all duration-700 delay-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <div className="w-20 h-[1px] bg-gradient-to-r from-transparent to-white/20" />
+          <div className="w-1.5 h-1.5 rotate-45 border border-[var(--color-accent)]" />
+          <div className="w-20 h-[1px] bg-gradient-to-l from-transparent to-white/20" />
+        </div>
       </div>
     </section>
-  );
+  )
 }
+
+export default FeaturedManuscriptsSection
