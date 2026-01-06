@@ -53,7 +53,7 @@ const Footer = () => {
                   Nahj al-Balaghah
                 </h2>
                 <p className="text-xs tracking-[0.2em] uppercase mt-1 text-white/50">
-                  The Peak of Eloquence
+                  The Way of Eloquence
                 </p>
               </div>
             </div>

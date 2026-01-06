@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { orationsApi, lettersApi, sayingsApi } from '@/api'
+import TitleImage from '@/app/assets/images/title.png'
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false)
@@ -92,13 +94,16 @@ const HeroSection = () => {
       {/* Main Content */}
       <div className="relative flex-1 flex items-center justify-center pt-32 pb-16 px-6 lg:px-8">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Arabic Title */}
+          {/* Arabic Title Image */}
           <div 
             className={`mb-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <span className="font-taha text-6xl sm:text-7xl lg:text-8xl text-[var(--color-primary)] leading-none tracking-wide">
-              نهج البلاغة
-            </span>
+            <Image 
+              src={TitleImage} 
+              alt="نهج البلاغة" 
+              className="h-24 sm:h-32 lg:h-40 w-auto mx-auto"
+              priority
+            />
           </div>
 
           {/* Decorative Ornament */}
@@ -114,7 +119,7 @@ const HeroSection = () => {
           <h1 
             className={`font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-[var(--color-ink)] leading-[1.1] mb-6 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            The Peak of Eloquence
+            The Way of Eloquence
           </h1>
 
           {/* Subtitle */}

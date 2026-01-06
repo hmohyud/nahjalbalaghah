@@ -59,7 +59,7 @@ const Header = () => {
                   Nahj al-Balaghah
                 </h1>
                 <p className="text-[10px] lg:text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)]">
-                  Peak of Eloquence
+                  Way of Eloquence
                 </p>
               </div>
             </Link>

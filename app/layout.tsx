@@ -5,13 +5,13 @@ import Footer from "./components/ui/footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "Nahj al-Balaghah | The Peak of Eloquence",
+    default: "Nahj al-Balaghah | The Way of Eloquence",
     template: "%s | Nahj al-Balaghah"
   },
   description: "A scholarly digital archive of Nahj al-Balaghah: the sermons, letters, and sayings of Imam Ali ibn Abi Talib. Explore centuries of wisdom through authenticated manuscripts and translations.",
   keywords: [
     "Nahj al-Balaghah",
-    "Peak of Eloquence",
+    "Way of Eloquence",
     "Imam Ali",
     "Islamic manuscripts",
     "Arabic literature",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   ],
   metadataBase: new URL("https://nahj-al-balagha.com"),
   openGraph: {
-    title: "Nahj al-Balaghah | The Peak of Eloquence",
+    title: "Nahj al-Balaghah | The Way of Eloquence",
     description: "A scholarly digital archive of Nahj al-Balaghah: the sermons, letters, and sayings of Imam Ali ibn Abi Talib.",
     url: "https://nahj-al-balagha.com",
     siteName: "Nahj al-Balaghah",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Nahj al-Balaghah - The Peak of Eloquence"
+        alt: "Nahj al-Balaghah - The Way of Eloquence"
       }
     ],
     locale: "en_US",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nahj al-Balaghah | The Peak of Eloquence",
+    title: "Nahj al-Balaghah | The Way of Eloquence",
     description: "A scholarly digital archive of the sermons, letters, and sayings of Imam Ali ibn Abi Talib.",
     images: ["/og-image.jpg"]
   },

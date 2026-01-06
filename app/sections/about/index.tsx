@@ -90,7 +90,7 @@ const AboutSection = () => {
             >
               <p>
                 <span className="font-display text-xl italic text-[var(--color-primary)]">Nahj al-Balaghah</span>, 
-                meaning "Peak of Eloquence," is a collection of sermons, letters, and sayings attributed 
+                meaning "Way of Eloquence," is a collection of sermons, letters, and sayings attributed 
                 to Imam Ali ibn Abi Talib, compiled by Sharif al-Radi in the 10th century CE.
               </p>
               <p className="text-[var(--color-warm-gray)]">
