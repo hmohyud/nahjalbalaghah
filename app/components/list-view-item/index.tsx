@@ -5,6 +5,93 @@ import { useSearchParams } from 'next/navigation';
 import { type Post } from '@/api/posts';
 import { ChevronDown, ChevronRight, BookOpen, ArrowRight } from 'lucide-react';
 
+// Collapsible section for multi-paragraph content
+interface CollapsibleSectionProps {
+  number: string;
+  arabic: string;
+  english: string;
+  displayMode: 'both' | 'english-only' | 'arabic-only';
+  isEven: boolean;
+  defaultOpen: boolean;
+}
+
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
+  number,
+  arabic,
+  english,
+  displayMode,
+  isEven,
+  defaultOpen
+}) => {
+  const [isOpen, setIsOpen] = React.useState(true); // Always start expanded
+  
+  // Get a preview of the content for the collapsed state
+  const getPreview = () => {
+    if (displayMode === 'arabic-only') {
+      return arabic ? arabic.slice(0, 60) + (arabic.length > 60 ? '...' : '') : '';
+    }
+    return english ? english.slice(0, 80) + (english.length > 80 ? '...' : '') : '';
+  };
+
+  return (
+    <div 
+      className="border-b border-[var(--color-stone)] last:border-b-0"
+      style={{ backgroundColor: isEven ? '#FFFFFF' : '#EDE8DF' }}
+    >
+      {/* Header - always visible, clickable */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-4 flex items-start gap-3 text-left hover:bg-[var(--color-cream)]/30 transition-colors"
+      >
+        <div className="flex-shrink-0 mt-0.5">
+          {isOpen ? (
+            <ChevronDown className="w-4 h-4 text-[var(--color-primary)]" />
+          ) : (
+            <ChevronRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
+          )}
+        </div>
+        <div className="flex-grow min-w-0">
+          <div className="flex items-center gap-3">
+            {number && (
+              <span className="inline-flex items-center px-2 py-0.5 text-xs font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+                {number}
+              </span>
+            )}
+            {!isOpen && (
+              <span className="text-sm text-[var(--color-warm-gray)] font-body truncate">
+                {getPreview()}
+              </span>
+            )}
+          </div>
+        </div>
+      </button>
+      
+      {/* Content - shown when expanded */}
+      {isOpen && (
+        <div className="px-4 pb-4 pl-11">
+          {/* Arabic text */}
+          {(displayMode === 'both' || displayMode === 'arabic-only') && arabic && (
+            <div className="mb-3 p-4 border-r-2 border-[var(--color-primary)]">
+              <p className="text-[var(--color-ink)] font-taha text-lg leading-loose whitespace-pre-wrap" dir="rtl">
+                {arabic}
+              </p>
+            </div>
+          )}
+          
+          {/* English text */}
+          {(displayMode === 'both' || displayMode === 'english-only') && english && (
+            <div className="p-4 border-l-2 border-[var(--color-stone)]">
+              <p className="text-[var(--color-charcoal)] font-body leading-relaxed whitespace-pre-wrap">
+                {english}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface ListViewItemProps {
   item: Post;
   contentType: 'orations' | 'letters' | 'sayings';
@@ -80,45 +167,61 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
     return null;
   };
 
-  // Get full English text
-  const getFullEnglishText = (): string => {
-    if (item.translations && item.translations.length > 0) {
-      const englishTrans = item.translations.find(t => t.type === 'en');
-      if (englishTrans?.text) return englishTrans.text;
-      if (item.translations[0]?.text) return item.translations[0].text;
-    }
-    
-    if (item.paragraphs && item.paragraphs.length > 0) {
-      const texts: string[] = [];
-      for (const para of item.paragraphs) {
-        if (para.translations && para.translations.length > 0) {
-          const englishTrans = para.translations.find(t => t.type === 'en');
-          if (englishTrans?.text) texts.push(englishTrans.text);
-          else if (para.translations[0]?.text) texts.push(para.translations[0].text);
-        }
-      }
-      if (texts.length > 0) return texts.join('\n\n');
-    }
-    
-    return '';
-  };
-
-  // Get full Arabic text
-  const getFullArabicText = (): string => {
-    if (item.paragraphs && item.paragraphs.length > 0) {
-      const arabicTexts = item.paragraphs
-        .filter(p => p.arabic)
-        .map(p => p.arabic);
-      if (arabicTexts.length > 0) return arabicTexts.join('\n\n');
-    }
-    
-    return '';
-  };
-
   const englishPreview = getEnglishPreview();
   const arabicPreview = getArabicPreview();
-  const fullEnglishText = getFullEnglishText();
-  const fullArabicText = getFullArabicText();
+
+  // Get interleaved paragraphs (Arabic + English together for each section)
+  const getInterleavedParagraphs = (): { number: string; arabic: string; english: string }[] => {
+    const results: { number: string; arabic: string; english: string }[] = [];
+    
+    // First add item-level content if exists
+    const itemArabic = item.title 
+      ? item.title.replace(/<center>|<\/center>/gi, '').replace(/<span[^>]*>|<\/span>/gi, '').replace(/&nbsp;/gi, ' ').trim()
+      : '';
+    const itemEnglish = item.translations?.find(t => t.type === 'en')?.text || '';
+    
+    if (itemArabic || itemEnglish) {
+      results.push({ 
+        number: item.sermonNumber || '', 
+        arabic: itemArabic, 
+        english: itemEnglish 
+      });
+    }
+    
+    // Then get paragraph content
+    if (item.paragraphs && item.paragraphs.length > 0) {
+      const sortedParagraphs = [...item.paragraphs].sort((a, b) => {
+        const parseNumber = (num: string) => num.split('.').map(n => parseInt(n, 10));
+        const aNumbers = parseNumber(a.number || '0');
+        const bNumbers = parseNumber(b.number || '0');
+        for (let i = 0; i < Math.max(aNumbers.length, bNumbers.length); i++) {
+          const aNum = aNumbers[i] || 0;
+          const bNum = bNumbers[i] || 0;
+          if (aNum !== bNum) return aNum - bNum;
+        }
+        return 0;
+      });
+      
+      for (const para of sortedParagraphs) {
+        const arabic = para.arabic 
+          ? para.arabic.replace(/<center>|<\/center>/gi, '').replace(/<span[^>]*>|<\/span>/gi, '').replace(/&nbsp;/gi, ' ').trim()
+          : '';
+        const english = para.translations?.find(t => t.type === 'en')?.text || '';
+        
+        if (arabic || english) {
+          results.push({ 
+            number: para.number || '', 
+            arabic, 
+            english 
+          });
+        }
+      }
+    }
+    
+    return results;
+  };
+
+  const interleavedParagraphs = getInterleavedParagraphs();
 
   return (
     <div 
@@ -223,47 +326,72 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
         {/* Expanded Content */}
         {isExpanded && (
           <div className="border-t border-[var(--color-stone)] bg-[var(--color-parchment)]/50 p-6">
-            {/* TOC Summary if available */}
-            {item.TocEnglish && (
+            {/* English Summary */}
+            {(displayMode === 'both' || displayMode === 'english-only') && item.TocEnglish && (
               <div className="mb-6">
                 <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">Summary</h4>
-                <p className="text-[var(--color-charcoal)] font-body leading-relaxed">{item.TocEnglish}</p>
-              </div>
-            )}
-            
-            {/* Arabic TOC if available */}
-            {item.TocArabic && (
-              <div className="mb-6">
-                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">Arabic Summary</h4>
-                <div className="bg-white p-4 border-r-2 border-[var(--color-primary)]">
-                  <p className="text-[var(--color-ink)] font-taha text-lg leading-relaxed" dir="rtl">
-                    {item.TocArabic}
+                <div className="bg-white p-4 border border-[var(--color-stone)]">
+                  <p className="text-[var(--color-charcoal)] font-body leading-relaxed">
+                    {item.TocEnglish}
                   </p>
                 </div>
               </div>
             )}
             
-            {/* Full English Text */}
-            {(displayMode === 'both' || displayMode === 'english-only') && fullEnglishText && (
+            {/* Arabic Summary */}
+            {(displayMode === 'both' || displayMode === 'arabic-only') && item.TocArabic && (
               <div className="mb-6">
-                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">English Text</h4>
-                <div className="bg-white p-4 border border-[var(--color-stone)] max-h-72 overflow-y-auto">
-                  <div className="text-[var(--color-charcoal)] font-body leading-relaxed whitespace-pre-wrap">
-                    {fullEnglishText}
-                  </div>
+                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">ملخص</h4>
+                <div className="bg-white p-4 border-r-2 border-[var(--color-primary)]">
+                  <p className="text-[var(--color-ink)] font-taha text-xl leading-loose" dir="rtl">
+                    {item.TocArabic}
+                  </p>
                 </div>
               </div>
             )}
-            
-            {/* Full Arabic Text */}
-            {(displayMode === 'both' || displayMode === 'arabic-only') && fullArabicText && (
+
+            {/* Full Text - Interleaved Arabic & English */}
+            {interleavedParagraphs.length > 0 && (
               <div className="mb-6">
-                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">Arabic Text</h4>
-                <div className="bg-white p-4 border-r-2 border-[var(--color-primary)] max-h-72 overflow-y-auto">
-                  <div className="text-[var(--color-ink)] font-taha text-xl leading-loose whitespace-pre-wrap" dir="rtl">
-                    {fullArabicText}
+                {/* Single section (letters) - simpler display */}
+                {interleavedParagraphs.length === 1 ? (
+                  <div className="border border-[var(--color-stone)]">
+                    <div className="p-5">
+                      {/* Arabic text */}
+                      {(displayMode === 'both' || displayMode === 'arabic-only') && interleavedParagraphs[0].arabic && (
+                        <div className="mb-4 p-4 bg-[var(--color-parchment)]/30 border-r-2 border-[var(--color-primary)]">
+                          <p className="text-[var(--color-ink)] font-taha text-lg leading-loose whitespace-pre-wrap" dir="rtl">
+                            {interleavedParagraphs[0].arabic}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* English text */}
+                      {(displayMode === 'both' || displayMode === 'english-only') && interleavedParagraphs[0].english && (
+                        <div className="p-4 bg-[var(--color-cream)]/50 border border-[var(--color-stone)]/50">
+                          <p className="text-[var(--color-charcoal)] font-body leading-relaxed whitespace-pre-wrap">
+                            {interleavedParagraphs[0].english}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  /* Multi-section (orations) - collapsible sections with alternating colors */
+                  <div className="border border-[var(--color-stone)]">
+                    {interleavedParagraphs.map((para, idx) => (
+                      <CollapsibleSection
+                        key={idx}
+                        number={para.number}
+                        arabic={para.arabic}
+                        english={para.english}
+                        displayMode={displayMode}
+                        isEven={idx % 2 === 0}
+                        defaultOpen={idx === 0}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             
