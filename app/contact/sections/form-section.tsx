@@ -80,25 +80,29 @@ const ContactFormSection = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 >
-                  <Input
-                    label="Name"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    icon={<User size={18} />}
-                    placeholder="Your Name"
-                    required
-                  />
-                  <Input
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    icon={<Mail size={18} />}
-                    placeholder="you@email.com"
-                    required
-                  />
+                  <div>
+                    <label className="block font-medium text-gray-700 mb-1">Name</label>
+                    <Input
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      icon={<User size={18} />}
+                      placeholder="Your Name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700 mb-1">Email</label>
+                    <Input
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      icon={<Mail size={18} />}
+                      placeholder="you@email.com"
+                      required
+                    />
+                  </div>
                   <div>
                     <label className="block font-medium text-gray-700 mb-1">Message</label>
                     <textarea
@@ -144,4 +148,4 @@ const ContactFormSection = () => {
   );
 };
 
-export default ContactFormSection; 
+export default ContactFormSection;

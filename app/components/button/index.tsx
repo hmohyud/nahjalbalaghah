@@ -2,7 +2,7 @@ import React from "react";
 
 type ButtonProps = {
   children: React.ReactNode;
-  variant?: "primary" | "solid" | "outline" | "outlined" | "ghost" | "accent" | "secondary";
+  variant?: "primary" | "solid" | "outline" | "outlined" | "ghost" | "accent" | "secondary" | "danger";
   size?: "sm" | "md" | "lg";
   className?: string;
   isLoading?: boolean;
@@ -58,6 +58,11 @@ const Button: React.FC<ButtonProps> = ({
       bg-[var(--color-accent)] text-white
       hover:bg-[var(--color-accent-dark)]
       hover:shadow-lg hover:shadow-[var(--color-accent)]/15
+    `,
+    danger: `
+      bg-red-600 text-white
+      hover:bg-red-700
+      hover:shadow-lg hover:shadow-red-600/15
     `,
   };
 
