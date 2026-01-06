@@ -3,17 +3,22 @@ import React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { type Post } from '@/api/posts';
+import { ChevronDown, ChevronRight, BookOpen, ArrowRight } from 'lucide-react';
 
 interface ListViewItemProps {
   item: Post;
   contentType: 'orations' | 'letters' | 'sayings';
   displayMode?: 'both' | 'english-only' | 'arabic-only';
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 const ListViewItem: React.FC<ListViewItemProps> = ({ 
   item, 
   contentType,
-  displayMode = 'both'
+  displayMode = 'both',
+  isExpanded = false,
+  onToggleExpand
 }) => {
   const searchParams = useSearchParams();
   const currentPage = searchParams.get('page');
@@ -31,6 +36,7 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
 
   const returnParams = buildReturnParams();
   const detailUrl = `/${contentType}/details/${item.id}${returnParams ? `?${returnParams}` : ''}`;
+  const tocUrl = `/${contentType}/details/${item.id}/toc${returnParams ? `?${returnParams}` : ''}`;
 
   // Extract display number from sermon number (e.g., "1.5" -> 5)
   const getDisplayNumber = () => {
@@ -40,6 +46,9 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
   };
 
   const displayNumber = getDisplayNumber();
+  
+  const contentTypeLabel = contentType === 'orations' ? 'Oration' : 
+                           contentType === 'letters' ? 'Letter' : 'Saying';
 
   // Get first translation text for preview
   const getEnglishPreview = () => {
@@ -71,12 +80,48 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
     return null;
   };
 
+  // Get full English text
+  const getFullEnglishText = (): string => {
+    if (item.translations && item.translations.length > 0) {
+      const englishTrans = item.translations.find(t => t.type === 'en');
+      if (englishTrans?.text) return englishTrans.text;
+      if (item.translations[0]?.text) return item.translations[0].text;
+    }
+    
+    if (item.paragraphs && item.paragraphs.length > 0) {
+      const texts: string[] = [];
+      for (const para of item.paragraphs) {
+        if (para.translations && para.translations.length > 0) {
+          const englishTrans = para.translations.find(t => t.type === 'en');
+          if (englishTrans?.text) texts.push(englishTrans.text);
+          else if (para.translations[0]?.text) texts.push(para.translations[0].text);
+        }
+      }
+      if (texts.length > 0) return texts.join('\n\n');
+    }
+    
+    return '';
+  };
+
+  // Get full Arabic text
+  const getFullArabicText = (): string => {
+    if (item.paragraphs && item.paragraphs.length > 0) {
+      const arabicTexts = item.paragraphs
+        .filter(p => p.arabic)
+        .map(p => p.arabic);
+      if (arabicTexts.length > 0) return arabicTexts.join('\n\n');
+    }
+    
+    return '';
+  };
+
   const englishPreview = getEnglishPreview();
   const arabicPreview = getArabicPreview();
+  const fullEnglishText = getFullEnglishText();
+  const fullArabicText = getFullArabicText();
 
   return (
-    <Link 
-      href={detailUrl}
+    <div 
       id={displayNumber ? `listing-${displayNumber}` : undefined}
       className="group block"
     >
@@ -95,8 +140,11 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
             </div>
           )}
 
-          {/* Content */}
-          <div className="flex-grow p-5 lg:p-6 min-w-0">
+          {/* Content - Links to detail page */}
+          <Link 
+            href={detailUrl}
+            className="flex-grow p-5 lg:p-6 min-w-0 hover:bg-[var(--color-cream)]/30 transition-colors"
+          >
             {/* Heading */}
             <h3 className="font-display text-lg lg:text-xl text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors duration-200 mb-2 line-clamp-2">
               {item.heading || 'Untitled'}
@@ -134,24 +182,112 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
                 )}
               </div>
             )}
-          </div>
+          </Link>
 
-          {/* Arrow indicator */}
-          <div className="flex-shrink-0 flex items-center pr-4 lg:pr-6">
-            <div className="w-8 h-8 flex items-center justify-center text-[var(--color-stone)] group-hover:text-[var(--color-primary)] transition-colors duration-200">
-              <svg 
-                className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
+          {/* Expand Button */}
+          {onToggleExpand && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleExpand();
+              }}
+              className="flex-shrink-0 w-12 lg:w-14 flex items-center justify-center border-l border-[var(--color-stone)] hover:bg-[var(--color-cream)] transition-colors"
+              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-5 h-5 text-[var(--color-primary)]" />
+              ) : (
+                <ChevronRight className="w-5 h-5 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors" />
+              )}
+            </button>
+          )}
+
+          {/* Arrow indicator (only show if no expand button) */}
+          {!onToggleExpand && (
+            <div className="flex-shrink-0 flex items-center pr-4 lg:pr-6">
+              <div className="w-8 h-8 flex items-center justify-center text-[var(--color-stone)] group-hover:text-[var(--color-primary)] transition-colors duration-200">
+                <svg 
+                  className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Expanded Content */}
+        {isExpanded && (
+          <div className="border-t border-[var(--color-stone)] bg-[var(--color-parchment)]/50 p-6">
+            {/* TOC Summary if available */}
+            {item.TocEnglish && (
+              <div className="mb-6">
+                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">Summary</h4>
+                <p className="text-[var(--color-charcoal)] font-body leading-relaxed">{item.TocEnglish}</p>
+              </div>
+            )}
+            
+            {/* Arabic TOC if available */}
+            {item.TocArabic && (
+              <div className="mb-6">
+                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">Arabic Summary</h4>
+                <div className="bg-white p-4 border-r-2 border-[var(--color-primary)]">
+                  <p className="text-[var(--color-ink)] font-taha text-lg leading-relaxed" dir="rtl">
+                    {item.TocArabic}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Full English Text */}
+            {(displayMode === 'both' || displayMode === 'english-only') && fullEnglishText && (
+              <div className="mb-6">
+                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">English Text</h4>
+                <div className="bg-white p-4 border border-[var(--color-stone)] max-h-72 overflow-y-auto">
+                  <div className="text-[var(--color-charcoal)] font-body leading-relaxed whitespace-pre-wrap">
+                    {fullEnglishText}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Full Arabic Text */}
+            {(displayMode === 'both' || displayMode === 'arabic-only') && fullArabicText && (
+              <div className="mb-6">
+                <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-3">Arabic Text</h4>
+                <div className="bg-white p-4 border-r-2 border-[var(--color-primary)] max-h-72 overflow-y-auto">
+                  <div className="text-[var(--color-ink)] font-taha text-xl leading-loose whitespace-pre-wrap" dir="rtl">
+                    {fullArabicText}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-[var(--color-stone)]">
+              <Link
+                href={detailUrl}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white font-body text-sm hover:bg-[var(--color-primary-dark)] transition-colors"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-              </svg>
+                <BookOpen className="w-4 h-4" />
+                Read Full {contentTypeLabel}
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href={tocUrl}
+                className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--color-primary)] text-[var(--color-primary)] font-body text-sm hover:bg-[var(--color-primary)]/5 transition-colors"
+              >
+                View Table of Contents
+              </Link>
             </div>
           </div>
-        </div>
+        )}
       </div>
-    </Link>
+    </div>
   );
 };
 

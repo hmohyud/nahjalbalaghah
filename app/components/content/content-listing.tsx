@@ -39,6 +39,7 @@ export default function ContentListing({
   showTopPagination = false
 }: ContentListingProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const checkMobile = () => {
@@ -51,6 +52,18 @@ export default function ContentListing({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const toggleExpanded = (id: number) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   const { lastElementRef } = useInfiniteScroll({
     hasNextPage,
     isLoading: isInfiniteLoading,
@@ -62,10 +75,16 @@ export default function ContentListing({
     <div className="space-y-4">
       {content.map((item, index) => (
         <div
-          key={index}
+          key={item.id || index}
           ref={index === content.length - 1 && isMobile ? lastElementRef : undefined}
         >
-          <ListViewItem item={item} contentType={contentType} displayMode={displayMode} />
+          <ListViewItem 
+            item={item} 
+            contentType={contentType} 
+            displayMode={displayMode}
+            isExpanded={expandedItems.has(item.id)}
+            onToggleExpand={() => toggleExpanded(item.id)}
+          />
         </div>
       ))}
     </div>
