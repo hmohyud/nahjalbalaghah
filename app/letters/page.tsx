@@ -14,5 +14,9 @@ const config = {
 };
 
 export default function LettersPage() {
-  return <ContentPage config={config} />;
+  return (
+    <div className="pt-32 lg:pt-36 bg-[var(--color-parchment)] min-h-screen">
+      <ContentPage config={config} />
+    </div>
+  );
 }

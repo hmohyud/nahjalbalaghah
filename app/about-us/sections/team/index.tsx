@@ -8,7 +8,6 @@ const TeamSection = () => {
       name: "Dr. Ahmed Hassan",
       role: "Founder & Director",
       bio: "PhD in Islamic Studies with over 20 years of experience in Islamic scholarship and education.",
-      image: "/api/placeholder/150/150",
       email: "ahmed.hassan@example.com",
       linkedin: "#"
     },
@@ -16,7 +15,6 @@ const TeamSection = () => {
       name: "Dr. Fatima Al-Zahra",
       role: "Chief Scholar",
       bio: "Expert in Nahj al-Balaghah studies with numerous publications on Islamic philosophy and theology.",
-      image: "/api/placeholder/150/150",
       email: "fatima.alzahra@example.com",
       linkedin: "#"
     },
@@ -24,7 +22,6 @@ const TeamSection = () => {
       name: "Dr. Omar Ibn Khattab",
       role: "Research Director",
       bio: "Specializes in Islamic manuscripts and historical texts, leading our research initiatives.",
-      image: "/api/placeholder/150/150",
       email: "omar.khattab@example.com",
       linkedin: "#"
     },
@@ -32,47 +29,68 @@ const TeamSection = () => {
       name: "Dr. Aisha Bint Abu Bakr",
       role: "Education Coordinator",
       bio: "Dedicated to making Islamic education accessible through innovative teaching methods.",
-      image: "/api/placeholder/150/150",
       email: "aisha.bakr@example.com",
       linkedin: "#"
     }
   ]
 
   return (
-    <section className="py-24 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-24 bg-[var(--color-parchment)]">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-5xl font-black text-[#43896B] mb-6">
+          <p className="text-xs tracking-[0.3em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+            The People Behind Our Mission
+          </p>
+          <h2 className="font-display text-3xl lg:text-5xl text-[var(--color-ink)] mb-6">
             Our Team
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          
+          {/* Decorative ornament */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
+            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
+            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+          </div>
+          
+          <p className="font-body text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto">
             Meet the dedicated scholars and professionals who work tirelessly to preserve and share
             the wisdom of Nahj al-Balaghah with the world.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teamMembers.map((member, index) => (
+        {/* Team Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {teamMembers.map((member) => (
             <div
               key={member.name}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 text-center"
+              className="relative bg-white border border-[var(--color-stone)] p-6 text-center"
             >
-              <div className="w-24 h-24 bg-[#43896B]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <User className="w-12 h-12 text-[#43896B]" />
+              {/* Avatar */}
+              <div className="w-20 h-20 bg-[var(--color-primary)]/10 mx-auto mb-5 flex items-center justify-center">
+                <User className="w-10 h-10 text-[var(--color-primary)]" />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{member.name}</h3>
-              <p className="text-[#43896B] font-medium mb-4">{member.role}</p>
-              <p className="text-gray-600 text-sm leading-relaxed mb-4">{member.bio}</p>
+
+              {/* Name & Role */}
+              <h3 className="font-display text-lg text-[var(--color-ink)] mb-1">{member.name}</h3>
+              <p className="text-sm font-body text-[var(--color-primary)] mb-4">{member.role}</p>
+
+              {/* Bio */}
+              <p className="font-body text-sm text-[var(--color-warm-gray)] leading-relaxed mb-5">
+                {member.bio}
+              </p>
+
+              {/* Social Links - these ARE clickable, so keep hover */}
               <div className="flex justify-center gap-3">
                 <a
                   href={`mailto:${member.email}`}
-                  className="w-8 h-8 bg-[#43896B]/10 rounded-full flex items-center justify-center hover:bg-[#43896B] hover:text-white transition-colors"
+                  className="w-9 h-9 border border-[var(--color-stone)] flex items-center justify-center text-[var(--color-warm-gray)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition-all duration-200"
                 >
                   <Mail className="w-4 h-4" />
                 </a>
                 <a
                   href={member.linkedin}
-                  className="w-8 h-8 bg-[#43896B]/10 rounded-full flex items-center justify-center hover:bg-[#43896B] hover:text-white transition-colors"
+                  className="w-9 h-9 border border-[var(--color-stone)] flex items-center justify-center text-[var(--color-warm-gray)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition-all duration-200"
                 >
                   <Linkedin className="w-4 h-4" />
                 </a>

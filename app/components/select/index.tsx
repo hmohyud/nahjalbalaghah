@@ -1,112 +1,94 @@
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+'use client';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
-type Option = {
+interface SelectOption {
   value: string;
   label: string;
-};
+}
 
-type SelectProps = {
-  options: Option[];
+interface SelectProps {
+  options: SelectOption[];
+  value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
-  value?: string; 
-};
+  disabled?: boolean;
+}
 
-const Select = ({
+const Select: React.FC<SelectProps> = ({
   options,
+  value,
   onChange,
-  placeholder = "Select an option",
-  className = "",
-  value: controlledValue,
-}: SelectProps) => {
+  placeholder = 'Select...',
+  className = '',
+  disabled = false
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState<Option | null>(null);
-  const [openUpwards, setOpenUpwards] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const selectRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (controlledValue !== undefined) {
-      const selectedOption = options.find((option) => option.value === controlledValue);
-      setSelected(selectedOption || null);
-    }
-  }, [controlledValue, options]);
-
-  useEffect(() => {
-    if (isOpen && buttonRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const spaceBelow = windowHeight - buttonRect.bottom;
-      // Use the actual max height of dropdown (240px) instead of calculated height
-      const dropdownMaxHeight = 240;
-      
-      setOpenUpwards(spaceBelow < dropdownMaxHeight + 8);
-    }
-  }, [isOpen, options.length]);
+  const selectedOption = options.find(opt => opt.value === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (option: Option) => {
-    setSelected(option);
-    onChange(option.value);
-    setIsOpen(false);
-  };
-
-  const toggleDropdown = () => {
-    setIsOpen((prev) => !prev);
-  };
-
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div ref={selectRef} className={`relative ${className}`}>
       <button
-        ref={buttonRef}
         type="button"
-        onClick={toggleDropdown}
-        className="min-w-36 lg:min-w-40 w-full flex justify-between items-center px-4 py-3 bg-white border border-[#D7DEE9] rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:outline-none"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`
+          w-full flex items-center justify-between gap-2 px-4 py-3
+          bg-[var(--color-parchment)] border border-[var(--color-stone)]
+          text-sm font-body text-left
+          transition-all duration-200
+          ${disabled 
+            ? 'opacity-50 cursor-not-allowed' 
+            : 'hover:border-[var(--color-primary)]/50 focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20'
+          }
+          ${isOpen ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/20' : ''}
+        `}
       >
-        <span className="truncate">{selected ? selected.label : placeholder}</span>
-        <ChevronDown
-          className={`w-5 h-5 text-gray-600 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        <span className={selectedOption ? 'text-[var(--color-charcoal)]' : 'text-[var(--color-warm-gray)]'}>
+          {selectedOption?.label || placeholder}
+        </span>
+        <ChevronDown 
+          className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
         />
       </button>
+
       {isOpen && (
-        <ul
-          className={`absolute z-10 w-full bg-white border border-[#D7DEE9] rounded-lg shadow-lg overflow-hidden ${
-            openUpwards ? "bottom-full mb-2" : "top-full mt-2"
-          }`}
-          role="listbox"
-          style={{
-            maxHeight: "240px",
-            overflowY: "auto"
-          }}
-        >
+        <div className="absolute z-50 w-full mt-1 bg-white border border-[var(--color-stone)] shadow-lg max-h-60 overflow-auto">
           {options.map((option) => (
-            <li
+            <button
               key={option.value}
-              role="option"
-              aria-selected={selected?.value === option.value}
-              className="px-4 text-sm py-2 cursor-pointer hover:bg-[#E2E3E9] transition"
-              onClick={() => handleSelect(option)}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`
+                w-full px-4 py-3 text-left text-sm font-body
+                transition-colors duration-150
+                ${option.value === value 
+                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                  : 'text-[var(--color-charcoal)] hover:bg-[var(--color-parchment)]'
+                }
+              `}
             >
               {option.label}
-            </li>
+            </button>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

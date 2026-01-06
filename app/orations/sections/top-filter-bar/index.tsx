@@ -64,32 +64,38 @@ export default function TopFilterBar({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+    <div className="relative bg-white border border-[var(--color-stone)] p-6 mb-8">
+      {/* Subtle corner accents */}
+      <div className="absolute top-0 left-0 w-3 h-3 border-l border-t border-[var(--color-accent)]" />
+      <div className="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-[var(--color-accent)]" />
+
       <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 flex gap-2">
+        {/* Search Input */}
+        <div className="flex-1 flex gap-3">
           <div className="flex-1">
             <Input
               placeholder="Search orations, topics, or keywords..."
               value={searchTerm}
               onChange={(e: any) => setSearchTerm(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              icon={<Search className="w-5 h-5 text-gray-400" />}
-              className="text-base"
+              icon={<Search className="w-5 h-5" />}
             />
           </div>
           <button
             onClick={handleSearchClick}
-            className="px-4 py-2.5 bg-[#43896B] text-white text-sm font-medium rounded-lg hover:bg-[#367556] transition-all duration-200 flex items-center gap-2"
+            className="px-5 py-3 bg-[var(--color-primary)] text-white text-sm tracking-[0.1em] uppercase font-body font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200 flex items-center gap-2"
           >
             <Search className="w-4 h-4" />
             <span className="hidden sm:inline">Search</span>
           </button>
         </div>
+
+        {/* Controls */}
         <div className="flex flex-col lg:flex-row gap-3">
           {/* Go to # input */}
           <div className="relative flex items-center">
             <div className="absolute left-3 pointer-events-none">
-              <Hash className="w-5 h-5 text-gray-400" />
+              <Hash className="w-5 h-5 text-[var(--color-warm-gray)]" />
             </div>
             <input
               type="number"
@@ -99,16 +105,24 @@ export default function TopFilterBar({
               value={goToValue}
               onChange={(e) => setGoToValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full lg:w-28 pl-10 pr-3 py-2.5 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#43896B]/20 focus:border-[#43896B] transition-all duration-200 placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-full lg:w-28 pl-10 pr-3 py-3 text-sm font-body
+                bg-[var(--color-parchment)] border border-[var(--color-stone)]
+                text-[var(--color-charcoal)] placeholder:text-[var(--color-warm-gray)]
+                focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20
+                transition-all duration-200
+                [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <button
               onClick={handleGoTo}
               disabled={!goToValue || parseInt(goToValue, 10) <= 0}
-              className="ml-2 px-3 py-2.5 bg-[#43896B] text-white text-sm font-medium rounded-lg hover:bg-[#367556] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="ml-2 px-4 py-3 bg-[var(--color-primary)] text-white text-sm font-body font-medium
+                hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               Go
             </button>
           </div>
+
+          {/* Display Mode Select */}
           <Select
             options={displayOptions}
             value={displayMode}
@@ -116,6 +130,8 @@ export default function TopFilterBar({
             placeholder="Display"
             className="w-full lg:w-40"
           />
+
+          {/* Sort Select */}
           <Select
             options={sortOptions}
             value={sortBy}

@@ -117,12 +117,6 @@ const FeaturedManuscriptsSection = () => {
                     
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    {/* Corner selection effect on hover */}
-                    <div className="absolute top-4 left-4 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
-                    <div className="absolute top-4 right-4 w-0 h-0 border-r-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
-                    <div className="absolute bottom-20 left-4 w-0 h-0 border-l-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
-                    <div className="absolute bottom-20 right-4 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
                   </div>
 
                   {/* Content */}

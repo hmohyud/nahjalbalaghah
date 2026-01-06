@@ -1,57 +1,66 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BookOpen, Scroll, Archive } from 'lucide-react';
 
 const ManuscriptsHero = () => {
   return (
-    <div className="relative bg-gradient-to-br from-[#43896B] via-[#5CAF8B] to-[#43896B] overflow-hidden">
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-white opacity-20 rounded-full blur-xl" />
-              <div className="relative bg-white/10 backdrop-blur-sm p-4 rounded-full border-2 border-white/30">
-                <Scroll className="w-12 h-12 text-white" />
-              </div>
-            </div>
+    <section className="relative bg-[var(--color-primary)] overflow-hidden pt-32 lg:pt-36">
+      {/* Decorative corners */}
+      <div className="absolute top-32 lg:top-36 left-8 lg:left-12 w-16 h-16 border-l border-t border-[var(--color-accent)]/30" />
+      <div className="absolute top-32 lg:top-36 right-8 lg:right-12 w-16 h-16 border-r border-t border-[var(--color-accent)]/30" />
+      <div className="absolute bottom-16 left-8 lg:left-12 w-16 h-16 border-l border-b border-[var(--color-accent)]/30" />
+      <div className="absolute bottom-16 right-8 lg:right-12 w-16 h-16 border-r border-b border-[var(--color-accent)]/30" />
+
+      <div className="relative max-w-5xl mx-auto px-6 lg:px-8 py-16 lg:py-20 text-center">
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 bg-white/10 flex items-center justify-center">
+            <Scroll className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-            Historical Manuscripts
-          </h1>
-          <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Explore rare manuscripts of Nahj al-Balaghah from renowned libraries across the world.
-          </p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-12 mt-12">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <BookOpen className="w-6 h-6 text-white/90" />
-                <div className="text-3xl md:text-4xl font-bold text-white">6+</div>
-              </div>
-              <div className="text-sm md:text-base text-white/80">Manuscripts</div>
+        </div>
+
+        {/* Title */}
+        <h1 className="font-display text-4xl lg:text-6xl text-white mb-6">
+          Historical Manuscripts
+        </h1>
+
+        {/* Decorative ornament */}
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
+          <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
+          <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+        </div>
+
+        <p className="font-body text-lg lg:text-xl text-white/80 max-w-2xl mx-auto mb-12">
+          Explore rare manuscripts of Nahj al-Balaghah from renowned libraries across the world.
+        </p>
+
+        {/* Stats */}
+        <div className="flex flex-wrap justify-center gap-12 lg:gap-16">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <BookOpen className="w-5 h-5 text-[var(--color-accent)]" />
+              <span className="font-display text-3xl lg:text-4xl text-white">6+</span>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Archive className="w-6 h-6 text-white/90" />
-                <div className="text-3xl md:text-4xl font-bold text-white">5+</div>
-              </div>
-              <div className="text-sm md:text-base text-white/80">Libraries</div>
+            <span className="text-sm font-body text-white/60 tracking-wide uppercase">Manuscripts</span>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Archive className="w-5 h-5 text-[var(--color-accent)]" />
+              <span className="font-display text-3xl lg:text-4xl text-white">5+</span>
             </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Scroll className="w-6 h-6 text-white/90" />
-                <div className="text-3xl md:text-4xl font-bold text-white">900+</div>
-              </div>
-              <div className="text-sm md:text-base text-white/80">Years Old</div>
+            <span className="text-sm font-body text-white/60 tracking-wide uppercase">Libraries</span>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Scroll className="w-5 h-5 text-[var(--color-accent)]" />
+              <span className="font-display text-3xl lg:text-4xl text-white">900+</span>
             </div>
+            <span className="text-sm font-body text-white/60 tracking-wide uppercase">Years Old</span>
           </div>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-          <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
-        </svg>
-      </div>
-    </div>
+    </section>
   );
 };
 

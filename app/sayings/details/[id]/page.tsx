@@ -10,10 +10,12 @@ export default function SayingDetailsPage() {
   }), []);
 
   return (
-    <ContentDetailsPage
-      contentType="sayings"
-      title="Sayings"
-      api={api}
-    />
+    <div className="pt-32 lg:pt-36 bg-[var(--color-parchment)] min-h-screen">
+      <ContentDetailsPage
+        contentType="sayings"
+        title="Sayings"
+        api={api}
+      />
+    </div>
   );
 }

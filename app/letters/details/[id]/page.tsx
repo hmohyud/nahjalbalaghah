@@ -10,10 +10,12 @@ export default function LetterDetailsPage() {
   }), []);
 
   return (
-    <ContentDetailsPage
-      contentType="letters"
-      title="Letters"
-      api={api}
-    />
+    <div className="pt-32 lg:pt-36 bg-[var(--color-parchment)] min-h-screen">
+      <ContentDetailsPage
+        contentType="letters"
+        title="Letters"
+        api={api}
+      />
+    </div>
   );
 }

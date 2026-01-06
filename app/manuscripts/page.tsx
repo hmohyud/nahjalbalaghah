@@ -33,8 +33,12 @@ export const metadata: Metadata = {
 
 export default function ManuscriptsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Suspense fallback={<div>Loading...</div>}>
+    <div className="min-h-screen bg-[var(--color-parchment)]">
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center pt-32">
+          <div className="text-[var(--color-warm-gray)] font-body">Loading...</div>
+        </div>
+      }>
         <ManuscriptsContent />
       </Suspense>
     </div>

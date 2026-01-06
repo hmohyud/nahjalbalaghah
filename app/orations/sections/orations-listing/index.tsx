@@ -29,10 +29,11 @@ export default function OrationsListing({
 }: OrationsListingProps) {
   return (
     <div className="lg:w-3/4 relative">
-      <div className="flex items-center justify-between mb-6">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="font-display text-2xl lg:text-3xl text-[var(--color-ink)]">{title}</h2>
+          <p className="text-[var(--color-warm-gray)] mt-2 font-body text-sm">
             {loading ? "Loading..." : (subtitle || `Showing ${orations.length} of ${total} results`)}
           </p>
         </div>
@@ -41,15 +42,15 @@ export default function OrationsListing({
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {[...Array(9)].map((_, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
-              <div className="h-40 bg-gray-200"></div>
-              <div className="p-4">
-                <div className="h-5 bg-gray-200 rounded mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded mb-2 w-4/5"></div>
-                <div className="h-4 bg-gray-200 rounded mb-3 w-3/5"></div>
-                <div className="flex gap-2 mt-3">
-                  <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                  <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+            <div key={index} className="bg-white border border-[var(--color-stone)] overflow-hidden animate-pulse">
+              <div className="h-40 bg-[var(--color-stone)]"></div>
+              <div className="p-5">
+                <div className="h-5 bg-[var(--color-stone)] mb-3"></div>
+                <div className="h-4 bg-[var(--color-stone)] mb-2 w-4/5"></div>
+                <div className="h-4 bg-[var(--color-stone)] mb-3 w-3/5"></div>
+                <div className="flex gap-2 mt-4">
+                  <div className="h-6 bg-[var(--color-stone)] w-16"></div>
+                  <div className="h-6 bg-[var(--color-stone)] w-20"></div>
                 </div>
               </div>
             </div>
@@ -69,7 +70,7 @@ export default function OrationsListing({
           </div>
           
           {totalPages > 1 && onPageChange && (
-            <div className="mt-12">
+            <div className="mt-16">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

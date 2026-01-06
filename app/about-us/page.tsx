@@ -34,13 +34,13 @@ export const metadata = {
 };
 
 export default function Page() {
-    return (
-        <div>
-            <AboutUsHero />
-            <BannerSection />
-            <AboutCardSection />
-            <TeamSection />
-            <SponsorsSection />
-        </div>
-    )
+  return (
+    <div className="bg-[var(--color-parchment)]">
+      <AboutUsHero />
+      <BannerSection />
+      <AboutCardSection />
+      <TeamSection />
+      <SponsorsSection />
+    </div>
+  )
 }

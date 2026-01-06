@@ -11,65 +11,85 @@ const AboutCardSection = () => {
     router.push('/scholarly-notes');
   };
 
+  const features = [
+    { icon: BookOpen, label: "Authentic Sources" },
+    { icon: Sparkles, label: "Expert Analysis" },
+    { icon: FileText, label: "Detailed Notes" },
+  ];
+
   return (
-    <div className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/20"></div>
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-16 right-16 w-64 h-64 border border-[#43896B]/20 rounded-full"></div>
-        <div className="absolute bottom-16 left-16 w-48 h-48 border-2 border-[#43896B]/15 rounded-full"></div>
-        <div className="absolute top-1/2 left-1/3 w-32 h-32 border border-[#43896B]/10 rounded-full"></div>
-      </div>
-      <div className="relative z-10 max-w-5xl mx-auto">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-[#43896B]/10 border border-white/50 p-8 lg:p-12 text-center hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="w-20 h-20 bg-[#43896B] rounded-2xl flex items-center justify-center shadow-lg">
+    <section className="relative py-24 bg-[var(--color-cream)]">
+      {/* Background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative max-w-4xl mx-auto px-6 lg:px-8">
+        <div className="relative bg-white border border-[var(--color-stone)]">
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[var(--color-accent)]" />
+          <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[var(--color-accent)]" />
+
+          <div className="p-10 lg:p-14 text-center">
+            {/* Icon */}
+            <div className="flex justify-center mb-8">
+              <div className="w-20 h-20 bg-[var(--color-primary)] flex items-center justify-center">
                 <FileText className="w-10 h-10 text-white" />
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+            </div>
+
+            {/* Title */}
+            <h3 className="font-display text-3xl lg:text-4xl text-[var(--color-ink)] mb-6">
+              Scholarly Notes & Editions
+            </h3>
+
+            {/* Description */}
+            <div className="max-w-2xl mx-auto mb-10 space-y-4">
+              <p className="font-body text-lg text-[var(--color-charcoal)] leading-relaxed">
+                Explore detailed notes on the edition and translation of Nahj al-Balaghah,
+                providing valuable insights into the scholarly work behind this timeless collection.
+              </p>
+              <p className="font-body text-base text-[var(--color-warm-gray)] leading-relaxed">
+                Our comprehensive annotations offer deep understanding of the historical context,
+                linguistic nuances, and theological significance of Imam Ali's (AS) profound teachings.
+              </p>
+            </div>
+
+            {/* Features - no hover, not clickable */}
+            <div className="flex flex-wrap justify-center gap-4 mb-10">
+              {features.map((feature) => (
+                <div 
+                  key={feature.label}
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--color-parchment)] border border-[var(--color-stone)]"
+                >
+                  <feature.icon className="w-4 h-4 text-[var(--color-primary)]" />
+                  <span className="text-sm font-body text-[var(--color-charcoal)]">{feature.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA Button - clickable, has hover */}
+            <div className="flex justify-center">
+              <div className="group relative inline-block">
+                <Button
+                  onClick={handleViewNotes}
+                  variant="primary"
+                  size="lg"
+                >
+                  View Notes on Edition and Translation
+                </Button>
+                {/* Outer corners on hover */}
+                <div className="absolute -top-1.5 -left-1.5 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
+                <div className="absolute -bottom-1.5 -right-1.5 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
               </div>
             </div>
-          </div>
-          <h3 className="text-3xl lg:text-4xl font-black text-[#43896B] mb-6 leading-tight">
-            Scholarly Notes & Editions
-          </h3>
-          <div className="max-w-3xl mx-auto mb-8">
-            <p className="text-lg text-gray-700 leading-relaxed mb-4">
-              Explore detailed notes on the edition and translation of Nahj al-Balaghah,
-              providing valuable insights into the scholarly work behind this timeless collection.
-            </p>
-            <p className="text-base text-gray-600 leading-relaxed">
-              Our comprehensive annotations offer deep understanding of the historical context,
-              linguistic nuances, and theological significance of Imam Ali's (AS) profound teachings.
-            </p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-6 mb-10">
-            <div className="flex items-center gap-3 bg-[#43896B]/5 px-4 py-2 rounded-full">
-              <BookOpen className="w-5 h-5 text-[#43896B]" />
-              <span className="text-sm font-medium text-[#43896B]">Authentic Sources</span>
-            </div>
-            <div className="flex items-center gap-3 bg-[#43896B]/5 px-4 py-2 rounded-full">
-              <Sparkles className="w-5 h-5 text-[#43896B]" />
-              <span className="text-sm font-medium text-[#43896B]">Expert Analysis</span>
-            </div>
-            <div className="flex items-center gap-3 bg-[#43896B]/5 px-4 py-2 rounded-full">
-              <FileText className="w-5 h-5 text-[#43896B]" />
-              <span className="text-sm font-medium text-[#43896B]">Detailed Notes</span>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <Button
-              onClick={handleViewNotes}
-              variant="solid"
-              className="text-lg px-8 py-4 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              View Notes on Edition and Translation
-            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
