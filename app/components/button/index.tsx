@@ -2,7 +2,7 @@ import React from "react";
 
 type ButtonProps = {
   children: React.ReactNode;
-  variant?: "primary" | "outline" | "ghost" | "accent";
+  variant?: "primary" | "solid" | "outline" | "outlined" | "ghost" | "accent" | "secondary";
   size?: "sm" | "md" | "lg";
   className?: string;
   isLoading?: boolean;
@@ -33,7 +33,14 @@ const Button: React.FC<ButtonProps> = ({
     focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2
   `;
 
-  const variantClasses = {
+  // Map aliases to base variants
+  const normalizedVariant = 
+    variant === "solid" ? "primary" : 
+    variant === "outlined" ? "outline" : 
+    variant === "secondary" ? "outline" :
+    variant;
+
+  const variantClasses: Record<string, string> = {
     primary: `
       bg-[var(--color-primary)] text-white
       hover:bg-[var(--color-primary-dark)]
@@ -56,7 +63,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`${baseClasses} ${variantClasses[variant]} ${sizes[size]} ${className}`}
+      className={`${baseClasses} ${variantClasses[normalizedVariant] || variantClasses.primary} ${sizes[size]} ${className}`}
       disabled={isLoading || disabled}
       {...props}
     >
