@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react'
 import { Menu, X, Search, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,9 +22,15 @@ const Header = () => {
     { name: 'Orations', href: '/orations' },
     { name: 'Letters', href: '/letters' },
     { name: 'Sayings', href: '/sayings' },
+    { name: 'Introduction', href: '/radis' },
     { name: 'Manuscripts', href: '/manuscripts' },
     { name: 'About', href: '/about-us' },
   ]
+
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/'
+    return pathname.startsWith(href)
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -64,23 +72,38 @@ const Header = () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation - Option D: Two corner brackets */}
+            {/* Desktop Navigation with active state */}
             <nav className="hidden lg:flex items-center gap-1">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="group relative px-4 py-2"
-                >
-                  <span className="text-sm font-medium text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)] transition-colors duration-200">
-                    {item.name}
-                  </span>
-                  {/* Top-left corner */}
-                  <div className="absolute top-1 left-1 w-0 h-0 border-l border-t border-[var(--color-accent)] group-hover:w-2 group-hover:h-2 transition-all duration-200" />
-                  {/* Bottom-right corner */}
-                  <div className="absolute bottom-1 right-1 w-0 h-0 border-r border-b border-[var(--color-accent)] group-hover:w-2 group-hover:h-2 transition-all duration-200" />
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="group relative px-4 py-2"
+                  >
+                    <span className={`text-sm font-medium transition-colors duration-200 ${
+                      active 
+                        ? 'text-[var(--color-primary)]' 
+                        : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                    }`}>
+                      {item.name}
+                    </span>
+                    {/* Top-left corner - always visible when active */}
+                    <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
+                      active ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                    }`} />
+                    {/* Bottom-right corner - always visible when active */}
+                    <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
+                      active ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                    }`} />
+                    {/* Active underline */}
+                    {active && (
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-[var(--color-accent)]" />
+                    )}
+                  </Link>
+                )
+              })}
             </nav>
 
             {/* Right Actions */}
@@ -147,17 +170,27 @@ const Header = () => {
         >
           <div className="border-t border-[var(--color-stone)] bg-white">
             <nav className="px-6 py-4">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between py-3 text-[var(--color-charcoal)] hover:text-[var(--color-primary)] transition-colors duration-200"
-                >
-                  <span className="font-display text-lg">{item.name}</span>
-                  <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center justify-between py-3 transition-colors duration-200 ${
+                      active 
+                        ? 'text-[var(--color-primary)]' 
+                        : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {active && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                      <span className="font-display text-lg">{item.name}</span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
+                  </Link>
+                )
+              })}
             </nav>
           </div>
         </div>

@@ -125,16 +125,16 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-[var(--color-parchment)]">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4 w-1/4"></div>
-            <div className="bg-white rounded-2xl border border-gray-200 p-8">
-              <div className="h-10 bg-gray-200 rounded mb-6"></div>
-              <div className="h-6 bg-gray-200 rounded mb-8 w-3/4"></div>
-              <div className="space-y-4">
+            <div className="h-6 bg-white border border-[var(--color-stone)] w-32 mb-6"></div>
+            <div className="bg-white border border-[var(--color-stone)] p-8">
+              <div className="h-8 bg-[var(--color-parchment)] mb-6 w-3/4"></div>
+              <div className="h-4 bg-[var(--color-parchment)] mb-4 w-1/2"></div>
+              <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                  <div key={i} className="h-4 bg-[var(--color-parchment)]"></div>
                 ))}
               </div>
             </div>
@@ -146,14 +146,14 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="font-display text-2xl text-[var(--color-ink)] mb-4">
             {error}
           </h2>
           <button
             onClick={handleBackNavigation}
-            className="bg-[#43896B] text-white px-6 py-2 rounded-lg hover:bg-[#367556] inline-flex items-center gap-2 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-body hover:bg-[var(--color-primary-dark)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
@@ -165,15 +165,15 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (!content) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="font-display text-2xl text-[var(--color-ink)] mb-4">
             {title.slice(0, -1)} not found
           </h2>
-          <p className="text-gray-600 mb-6">The requested {contentType.slice(0, -1)} could not be found.</p>
+          <p className="text-[var(--color-warm-gray)] font-body mb-6">The requested {contentType.slice(0, -1)} could not be found.</p>
           <button
             onClick={handleBackNavigation}
-            className="bg-[#43896B] text-white px-6 py-2 rounded-lg hover:bg-[#367556] inline-flex items-center gap-2 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-body hover:bg-[var(--color-primary-dark)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
@@ -184,19 +184,19 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[var(--color-parchment)]">
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
         {/* Header with back button and action buttons */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <button
             onClick={handleBackNavigation}
-            className="inline-flex items-center gap-2 text-[#43896B] hover:text-[#367556] font-medium transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-body transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
           </button>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant='outlined'
               disabled={!adjacentPosts.previous}
@@ -220,59 +220,58 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
               icon={<GitCompare className='w-4 h-4' />}
               onClick={() => setIsComparisonModalOpen(true)}
             >
-              Compare Manuscripts
+              Compare
             </Button>
             <Link href={content?.sermonNumber ? `/manuscripts?section=${content.sermonNumber}` : '/manuscripts'}>
-              <Button variant='outlined' icon={<Book className='w-4 h-4' />} >
-                View Manuscripts
+              <Button variant='outlined' icon={<Book className='w-4 h-4' />}>
+                Manuscripts
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Main content */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className='w-full'>
-            <ContentDescription
-              content={content}
-              contentType={contentType}
-              highlightRef={highlightRef}
-              englishWord={englishWord}
-              arabicWord={arabicWord}
-            />
-          </div>
-        </div>
+        <ContentDescription
+          content={content}
+          contentType={contentType}
+          highlightRef={highlightRef}
+          englishWord={englishWord}
+          arabicWord={arabicWord}
+        />
 
         {/* Next/Previous Navigation */}
-        <div className="mt-8 border-t border-gray-200 pt-8">
+        <div className="mt-10 pt-8 border-t border-[var(--color-stone)]">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             {/* Previous Post */}
             <div className="flex-1">
               {adjacentPosts.previous ? (
                 <button
                   onClick={() => navigateToPost(adjacentPosts.previous!)}
-                  className="w-full group p-4 rounded-xl border border-gray-200 bg-white hover:border-[#43896B] hover:shadow-md transition-all text-left"
+                  className="group w-full p-5 border border-[var(--color-stone)] bg-white hover:border-[var(--color-primary)]/40 hover:shadow-lg transition-all text-left relative"
                 >
-                  <div className="flex items-center gap-2 text-gray-500 group-hover:text-[#43896B] mb-2">
+                  {/* Hover corners */}
+                  <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-4 group-hover:h-4 transition-all duration-200" />
+                  
+                  <div className="flex items-center gap-2 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] mb-2 transition-colors">
                     <ChevronLeft className="w-4 h-4" />
-                    <span className="text-sm font-medium">Previous {getContentTypeLabel()}</span>
+                    <span className="text-xs tracking-[0.1em] uppercase">Previous {getContentTypeLabel()}</span>
                   </div>
-                  <div className="font-semibold text-gray-900 group-hover:text-[#43896B] line-clamp-2">
+                  <div className="font-display text-[var(--color-ink)] group-hover:text-[var(--color-primary)] line-clamp-2 transition-colors">
                     {truncateText(adjacentPosts.previous.heading)}
                   </div>
                   {adjacentPosts.previous.sermonNumber && (
-                    <div className="text-sm text-gray-500 mt-1">
+                    <div className="text-sm text-[var(--color-warm-gray)] mt-1 font-body">
                       {adjacentPosts.previous.sermonNumber}
                     </div>
                   )}
                 </button>
               ) : (
-                <div className="w-full p-4 rounded-xl border border-gray-100 bg-gray-50 opacity-50">
-                  <div className="flex items-center gap-2 text-gray-400 mb-2">
+                <div className="w-full p-5 border border-[var(--color-stone)] bg-[var(--color-parchment)] opacity-50">
+                  <div className="flex items-center gap-2 text-[var(--color-warm-gray)] mb-2">
                     <ChevronLeft className="w-4 h-4" />
-                    <span className="text-sm font-medium">Previous {getContentTypeLabel()}</span>
+                    <span className="text-xs tracking-[0.1em] uppercase">Previous {getContentTypeLabel()}</span>
                   </div>
-                  <div className="text-gray-400">No previous {getContentTypeLabel().toLowerCase()}</div>
+                  <div className="text-[var(--color-warm-gray)] font-body">No previous {getContentTypeLabel().toLowerCase()}</div>
                 </div>
               )}
             </div>
@@ -282,28 +281,31 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
               {adjacentPosts.next ? (
                 <button
                   onClick={() => navigateToPost(adjacentPosts.next!)}
-                  className="w-full group p-4 rounded-xl border border-gray-200 bg-white hover:border-[#43896B] hover:shadow-md transition-all text-right"
+                  className="group w-full p-5 border border-[var(--color-stone)] bg-white hover:border-[var(--color-primary)]/40 hover:shadow-lg transition-all text-right relative"
                 >
-                  <div className="flex items-center justify-end gap-2 text-gray-500 group-hover:text-[#43896B] mb-2">
-                    <span className="text-sm font-medium">Next {getContentTypeLabel()}</span>
+                  {/* Hover corners */}
+                  <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-4 group-hover:h-4 transition-all duration-200" />
+                  
+                  <div className="flex items-center justify-end gap-2 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] mb-2 transition-colors">
+                    <span className="text-xs tracking-[0.1em] uppercase">Next {getContentTypeLabel()}</span>
                     <ChevronRight className="w-4 h-4" />
                   </div>
-                  <div className="font-semibold text-gray-900 group-hover:text-[#43896B] line-clamp-2">
+                  <div className="font-display text-[var(--color-ink)] group-hover:text-[var(--color-primary)] line-clamp-2 transition-colors">
                     {truncateText(adjacentPosts.next.heading)}
                   </div>
                   {adjacentPosts.next.sermonNumber && (
-                    <div className="text-sm text-gray-500 mt-1">
+                    <div className="text-sm text-[var(--color-warm-gray)] mt-1 font-body">
                       {adjacentPosts.next.sermonNumber}
                     </div>
                   )}
                 </button>
               ) : (
-                <div className="w-full p-4 rounded-xl border border-gray-100 bg-gray-50 opacity-50">
-                  <div className="flex items-center justify-end gap-2 text-gray-400 mb-2">
-                    <span className="text-sm font-medium">Next {getContentTypeLabel()}</span>
+                <div className="w-full p-5 border border-[var(--color-stone)] bg-[var(--color-parchment)] opacity-50">
+                  <div className="flex items-center justify-end gap-2 text-[var(--color-warm-gray)] mb-2">
+                    <span className="text-xs tracking-[0.1em] uppercase">Next {getContentTypeLabel()}</span>
                     <ChevronRight className="w-4 h-4" />
                   </div>
-                  <div className="text-gray-400">No next {getContentTypeLabel().toLowerCase()}</div>
+                  <div className="text-[var(--color-warm-gray)] font-body">No next {getContentTypeLabel().toLowerCase()}</div>
                 </div>
               )}
             </div>

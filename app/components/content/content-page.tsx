@@ -54,7 +54,6 @@ function ContentPageContent({ config }: ContentPageProps) {
   const updateUrlParams = (page?: number, search?: string, sort?: string) => {
     const params = new URLSearchParams();
 
-    // Use current state if parameters not provided
     const currentSearch = search !== undefined ? search : searchTerm;
     const currentSort = sort !== undefined ? sort : sortBy;
     const currentPageNum = page !== undefined ? page : currentPage;
@@ -74,7 +73,6 @@ function ContentPageContent({ config }: ContentPageProps) {
     const queryString = params.toString();
     const newUrl = queryString ? `/${config.contentType}?${queryString}` : `/${config.contentType}`;
 
-    // Use window.history.pushState to avoid unnecessary re-renders
     window.history.pushState(null, '', newUrl);
   };
 
@@ -87,7 +85,6 @@ function ContentPageContent({ config }: ContentPageProps) {
 
     return posts.filter(post => {
       if (post.title?.toLowerCase().includes(query)) return true;
-
       if (post.heading?.toLowerCase().includes(query)) return true;
 
       if (post.translations && Array.isArray(post.translations)) {
@@ -115,9 +112,8 @@ function ContentPageContent({ config }: ContentPageProps) {
     });
   };
 
-  // Helper function to fetch all content with pagination handling
   const fetchAllContent = async (): Promise<Post[]> => {
-    const batchSize = 100; // Strapi typically limits to 100 per request
+    const batchSize = 100;
     let currentPage = 1;
     let hasMore = true;
     const allData: Post[] = [];
@@ -131,7 +127,6 @@ function ContentPageContent({ config }: ContentPageProps) {
       const filteredData = response.data.filter(item => item.heading);
       allData.push(...filteredData);
       
-      // Check if there are more pages
       const totalPages = response.meta?.pagination?.pageCount || 1;
       hasMore = currentPage < totalPages;
       currentPage++;
@@ -201,17 +196,14 @@ function ContentPageContent({ config }: ContentPageProps) {
         setHasNextPage(page < totalPagesCalc);
 
       } else if (search) {
-        // Search mode: fetch all data and apply client-side filtering
         const fetchedData = await fetchAllContent();
 
         if (fetchedData.length === 0) {
           throw new Error('Invalid response format from API');
         }
 
-        // Apply client-side search filter (includes translations.text)
         let searchResults = clientSideSearchFilter(fetchedData, search);
 
-        // Sort if sortBy is active
         if (sortBy && sortBy !== 'relevance') {
           const getDisplayNumber = (sermonNumber: string | null) => {
             if (!sermonNumber) return 0;
@@ -231,10 +223,8 @@ function ContentPageContent({ config }: ContentPageProps) {
           });
         }
 
-        // Store all filtered results
         setAllContent(searchResults);
 
-        // Paginate results
         const pageSize = 15;
         const totalItems = searchResults.length;
         const totalPagesCalc = Math.ceil(totalItems / pageSize);
@@ -254,14 +244,13 @@ function ContentPageContent({ config }: ContentPageProps) {
         setHasNextPage(page < totalPagesCalc);
 
       } else {
-        // Normal mode: server-side pagination
         response = await config.api.getContent(page, 15);
 
         if (!response || !response.data) {
           throw new Error('Invalid response format from API');
         }
 
-        let filteredData = response.data.filter(item => item.heading);
+        const filteredData = response.data.filter(item => item.heading);
 
         if (append) {
           setContent(prevContent => [...prevContent, ...filteredData]);
@@ -271,99 +260,67 @@ function ContentPageContent({ config }: ContentPageProps) {
 
         setCurrentPage(page);
         setTotalPages(response.meta?.pagination?.pageCount || 1);
-        setTotal(response.meta?.pagination?.total || filteredData.length);
+        setTotal(response.meta?.pagination?.total || 0);
         setHasNextPage(page < (response.meta?.pagination?.pageCount || 1));
+        setAllContent([]);
       }
 
-      // Update URL after state updates
-      if (updateUrl && !append) {
+      if (updateUrl) {
         updateUrlParams(page, search, sortBy);
       }
     } catch (err) {
-      let errorMessage = 'An unexpected error occurred';
-
-      if (err instanceof Error) {
-        if (err.message.includes('timeout')) {
-          errorMessage = 'Request timeout. The server took too long to respond. Please try again.';
-        } else if (err.message.includes('Network Error')) {
-          errorMessage = 'Network error. Please check your internet connection.';
-        } else {
-          errorMessage = err.message;
-        }
-      }
-
-      setError(`Failed to load ${config.contentType}: ${errorMessage}`);
-      console.error(`Error loading ${config.contentType}:`, err);
-
-      if (!append) {
-        setContent([]);
-      }
+      setError('Failed to load content. Please try again.');
+      console.error('Error loading content:', err);
     } finally {
-      // Smooth transition timing
-      setTimeout(() => {
-        setLoading(false);
-        setIsTransitioning(false);
-        setIsInfiniteLoading(false);
-      }, 150);
+      setLoading(false);
+      setIsTransitioning(false);
+      setIsInfiniteLoading(false);
+      setIsInitialized(true);
     }
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setContent([]);
+    setAllContent([]);
+    loadContent(1, searchTerm, true, false, true);
   };
 
   const handleLoadMore = () => {
-    if (hasNextPage && !isInfiniteLoading) {
-      const nextPage = currentPage + 1;
-      loadContent(nextPage, searchTerm, false, true);
+    if (!isInfiniteLoading && hasNextPage) {
+      loadContent(currentPage + 1, searchTerm, true, true);
     }
   };
 
-  // Sync URL params to state when navigating back (e.g., browser back button)
   useEffect(() => {
     const page = searchParams.get('page');
     const search = searchParams.get('search');
     const sort = searchParams.get('sort');
 
-    const urlPage = page ? parseInt(page, 10) : 1;
-    const urlSearch = search || '';
-    const urlSort = sort || '';
-
-    // Check if URL params differ from current state
-    const stateChanged =
-      urlPage !== currentPage ||
-      urlSearch !== searchTerm ||
-      urlSort !== sortBy;
-
-    if (isInitialized && stateChanged) {
-      // User navigated back/forward, restore state from URL
+    if (page || search || sort) {
       setIsRestoringState(true);
-      setSearchTerm(urlSearch);
-      setSortBy(urlSort);
-      setCurrentPage(urlPage);
-
-      // Load content with URL parameters
-      loadContent(urlPage, urlSearch, false, false).finally(() => {
-        setIsRestoringState(false);
-      });
-    } else if (!isInitialized) {
-      // Initial load
-      loadContent(urlPage, urlSearch, false, false).finally(() => {
-        setIsInitialized(true);
-      });
+      if (page) setCurrentPage(parseInt(page, 10));
+      if (search) setSearchTerm(search);
+      if (sort) setSortBy(sort);
     }
+
+    loadContent(
+      page ? parseInt(page, 10) : 1,
+      search || '',
+      false,
+      false,
+      true
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, []);
 
-  // Manual search handler (triggered by search button)
-  const handleSearch = () => {
-    setCurrentPage(1);
-    setAllContent([]); // Clear cached content to force fresh search
-    loadContent(1, searchTerm, true, false);
-  };
-
-  // Handle sort changes
   useEffect(() => {
-    if (!isInitialized || isRestoringState) return;
+    if (!isInitialized || isRestoringState) {
+      setIsRestoringState(false);
+      return;
+    }
 
     setCurrentPage(1);
-    setLoading(true);
     setContent([]);
     setAllContent([]);
 
@@ -372,8 +329,8 @@ function ContentPageContent({ config }: ContentPageProps) {
   }, [sortBy]);
 
   const sortOptions = [
-    { value: 'sermon-asc', label: 'Sermon Number (Ascending)' },
-    { value: 'sermon-desc', label: 'Sermon Number (Descending)' },
+    { value: 'sermon-asc', label: 'Number (Ascending)' },
+    { value: 'sermon-desc', label: 'Number (Descending)' },
     { value: 'relevance', label: 'Relevance' }
   ];
 
@@ -397,32 +354,27 @@ function ContentPageContent({ config }: ContentPageProps) {
   };
 
   const handleGoToNumber = async (targetNumber: number) => {
-    // Validate the number is within range
     if (targetNumber < 1) {
       return;
     }
 
     const pageSize = 15;
 
-    // Helper function to get display number from sermon number
     const getDisplayNumber = (sermonNumber: string | null) => {
       if (!sermonNumber) return 0;
       const parts = sermonNumber.split('.');
       return parseInt(parts.length > 1 ? parts[1] : parts[0], 10) || 0;
     };
 
-    // Function to scroll to the card once it's rendered
     const scrollToCard = (attempts = 0) => {
       const cardElement = document.getElementById(`listing-${targetNumber}`);
       if (cardElement) {
         cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a brief highlight effect
-        cardElement.classList.add('ring-2', 'ring-[#43896B]', 'ring-offset-2');
+        cardElement.classList.add('ring-2', 'ring-[var(--color-primary)]', 'ring-offset-2');
         setTimeout(() => {
-          cardElement.classList.remove('ring-2', 'ring-[#43896B]', 'ring-offset-2');
+          cardElement.classList.remove('ring-2', 'ring-[var(--color-primary)]', 'ring-offset-2');
         }, 2000);
       } else if (attempts < 50) {
-        // Retry up to 50 times (5 seconds total) to handle slower page loads
         setTimeout(() => scrollToCard(attempts + 1), 100);
       }
     };
@@ -430,14 +382,11 @@ function ContentPageContent({ config }: ContentPageProps) {
     setIsTransitioning(true);
 
     try {
-      // We need all content to find the item position
       let dataToSearch: Post[] = [];
 
       if (allContent.length > 0) {
-        // Already have all content loaded (sorted/searched mode)
         dataToSearch = allContent;
       } else {
-        // Need to fetch all content - fetch in batches to handle API pagination limits
         const fetchedData = await fetchAllContent();
 
         if (fetchedData.length === 0) {
@@ -446,32 +395,23 @@ function ContentPageContent({ config }: ContentPageProps) {
         }
 
         dataToSearch = fetchedData;
-        
-        // Sort by sermon number ascending (default order)
         dataToSearch.sort((a, b) => getDisplayNumber(a.sermonNumber) - getDisplayNumber(b.sermonNumber));
-        
-        // Store for future use
         setAllContent(dataToSearch);
       }
 
-      // Find the index of the item with the target sermon number
       const itemIndex = dataToSearch.findIndex(item => getDisplayNumber(item.sermonNumber) === targetNumber);
 
       if (itemIndex === -1) {
-        // Item not found
         setIsTransitioning(false);
         return;
       }
 
-      // Calculate which page this item is on (1-based)
       const targetPage = Math.floor(itemIndex / pageSize) + 1;
 
-      // Get the paginated data for this page
       const startIndex = (targetPage - 1) * pageSize;
       const endIndex = startIndex + pageSize;
       const paginatedData = dataToSearch.slice(startIndex, endIndex);
 
-      // Update state
       setContent(paginatedData);
       setCurrentPage(targetPage);
       setTotalPages(Math.ceil(dataToSearch.length / pageSize));
@@ -479,7 +419,6 @@ function ContentPageContent({ config }: ContentPageProps) {
       setHasNextPage(targetPage < Math.ceil(dataToSearch.length / pageSize));
       updateUrlParams(targetPage, searchTerm, sortBy);
 
-      // Wait for React to render the new content, then scroll
       requestAnimationFrame(() => {
         setTimeout(() => scrollToCard(), 100);
       });
@@ -494,13 +433,13 @@ function ContentPageContent({ config }: ContentPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Error Loading {config.title}</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h2 className="font-display text-2xl text-[var(--color-ink)] mb-4">Error Loading {config.title}</h2>
+          <p className="font-body text-[var(--color-warm-gray)] mb-6">{error}</p>
           <button
             onClick={() => loadContent()}
-            className="bg-[#43896B] text-white px-6 py-2 rounded-lg hover:bg-[#367556]"
+            className="px-6 py-3 bg-[var(--color-primary)] text-white font-body hover:bg-[var(--color-primary-dark)] transition-colors"
           >
             Try Again
           </button>
@@ -510,14 +449,18 @@ function ContentPageContent({ config }: ContentPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">{config.title}</h1>
-          <p className="text-lg text-gray-600">
+    <div className="min-h-screen bg-[var(--color-parchment)]">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="font-display text-3xl lg:text-4xl text-[var(--color-ink)] mb-3">{config.title}</h1>
+          <p className="font-body text-[var(--color-warm-gray)] max-w-2xl">
             {config.subtitle}
           </p>
+          <div className="w-16 h-[2px] bg-[var(--color-accent)] mt-6" />
         </div>
+
+        {/* Filter Bar */}
         <TopFilterBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -530,13 +473,15 @@ function ContentPageContent({ config }: ContentPageProps) {
           totalItems={total}
           onSearch={handleSearch}
         />
+
         <div className="flex flex-col gap-8">
-          {/* Show a subtle loading overlay when transitioning */}
+          {/* Transitioning indicator */}
           {isTransitioning && (
-            <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#43896B] text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium">
+            <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-[var(--color-primary)] text-white px-4 py-2 text-sm font-body">
               Loading...
             </div>
           )}
+          
           <ContentListing
             content={content}
             onPageChange={handlePageChange}
@@ -560,22 +505,21 @@ function ContentPageContent({ config }: ContentPageProps) {
 
 function ContentPageFallback({ config }: ContentPageProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">{config.title}</h1>
-          <p className="text-lg text-gray-600">
+    <div className="min-h-screen bg-[var(--color-parchment)]">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+        <div className="mb-10">
+          <h1 className="font-display text-3xl lg:text-4xl text-[var(--color-ink)] mb-3">{config.title}</h1>
+          <p className="font-body text-[var(--color-warm-gray)] max-w-2xl">
             {config.subtitle}
           </p>
+          <div className="w-16 h-[2px] bg-[var(--color-accent)] mt-6" />
         </div>
         <div className="animate-pulse">
-          <div className="h-12 bg-gray-200 rounded mb-8"></div>
-          <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-              {[...Array(12)].map((_, i) => (
-                <div key={i} className="h-48 bg-gray-200 rounded"></div>
-              ))}
-            </div>
+          <div className="h-14 bg-white border border-[var(--color-stone)] mb-8"></div>
+          <div className="space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-24 bg-white border border-[var(--color-stone)]"></div>
+            ))}
           </div>
         </div>
       </div>
