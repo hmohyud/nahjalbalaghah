@@ -61,7 +61,7 @@ const AboutCardSection = () => {
           <div className="flex justify-center">
             <Button
               onClick={handleViewNotes}
-              variant="solid"
+              variant="primary"
               className="text-lg px-8 py-4 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               View Notes on Edition and Translation
