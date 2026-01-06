@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Contact | Nahj al-Balaghah',
     description: 'Get in touch with Nahj al-Balaghah. Reach out for inquiries, support, or feedback.',
-    url: 'https://nahj-al-balagha.com/contact',
+    url: 'https://nahj-al-balagha.com/contact-us',
   }
 };
 
-export default function ContactPage() {
+export default function ContactUsPage() {
   return (
     <>
       <ContactHero />

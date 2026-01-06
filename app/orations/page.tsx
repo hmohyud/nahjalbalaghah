@@ -6,7 +6,7 @@ import { orationsApi } from '@/api/posts';
 const config = {
   contentType: 'orations' as const,
   title: 'Orations (Sermons)',
-  subtitle: 'The eloquent sermons of Imam Ali, delivering powerful guidance on faith, governance, and the human condition.',
+  subtitle: 'The eloquent sermons of Imam Ali, covering themes of faith, justice, governance, and the human condition.',
   api: {
     getContent: orationsApi.getOrations,
     searchContent: orationsApi.searchOrations,
