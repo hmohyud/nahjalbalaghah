@@ -9,7 +9,7 @@ interface SelectOption {
 
 interface SelectProps {
   options: SelectOption[];
-  value: string;
+  value: string | undefined;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;

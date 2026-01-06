@@ -1,344 +1,139 @@
 'use client';
-import React, { useState, useEffect, Suspense } from 'react';
-import { conclusionsApi, Conclusion, ConclusionApiResponse } from '@/api/posts';
-import { Search, BookOpen, GitCompare, Book } from 'lucide-react';
-import Button from '@/app/components/button';
-import Input from '@/app/components/input';
-import { useTextRefHighlight } from '@/app/hooks/useTextRefHighlight';
-import ManuscriptComparisonModal from '@/app/components/manuscript-comparison-modal';
+import React, { useState, useEffect } from 'react';
+import { Bookmark, ArrowRight, Quote } from 'lucide-react';
 import Link from 'next/link';
 
-function ConclusionsContent() {
-  const [conclusions, setConclusions] = useState<Conclusion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
-  const [selectedConclusionForComparison, setSelectedConclusionForComparison] = useState<Conclusion | null>(null);
-
-  const { scrollToAndHighlight } = useTextRefHighlight({
-    onHighlight: (ref) => {
-      // Optional: Log or track highlight
-      console.log('Highlighting ref:', ref);
-    }
-  });
+export default function ConclusionsPage() {
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    fetchConclusions();
+    setIsVisible(true);
   }, []);
 
-  const fetchConclusions = async () => {
-    try {
-      setLoading(true);
-      const response: ConclusionApiResponse = await conclusionsApi.getConclusions();
-      setConclusions(response.data);
-      setError(null);
-
-      // Check for highlight after data loads
-      const urlParams = new URLSearchParams(window.location.search);
-      const highlightRef = urlParams.get('highlightRef');
-      const word = urlParams.get('word');
-
-      if (highlightRef) {
-        // Small delay to ensure rendering
-        setTimeout(() => {
-          scrollToAndHighlight(highlightRef);
-
-          // Handle word highlighting if present
-          if (word) {
-            const element = document.querySelector(`[data-text-ref="${highlightRef}"]`);
-            if (element) {
-              // Target the translation container specifically
-              const translationContainer = element.querySelector('.font-brill');
-              if (translationContainer) {
-                highlightWordInElement(translationContainer, word);
-              }
-            }
-          }
-        }, 500);
-      }
-    } catch (err) {
-      console.error('Error fetching conclusions:', err);
-      setError("Failed to load conclusions. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      fetchConclusions();
-      return;
-    }
-
-    try {
-      setIsSearching(true);
-      const response = await conclusionsApi.searchConclusions(searchQuery);
-      setConclusions(response.data);
-    } catch (err) {
-      console.error('Error searching conclusions:', err);
-      setError('Search failed. Please try again.');
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchQuery('');
-    fetchConclusions();
-  };
-
-  // Function to highlight a word within a specific element
-  const highlightWordInElement = (element: Element, word: string) => {
-    // Find all text nodes in the element and wrap the matching word
-    const walker = document.createTreeWalker(
-      element,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
-
-    const nodesToReplace: Array<{ node: Text; matches: Array<{ start: number; end: number }> }> = [];
-    let textNode;
-    // Use case-insensitive substring matching
-    const wordRegex = new RegExp(word, 'gi');
-
-    // Collect all text nodes with the word
-    while (textNode = walker.nextNode() as Text | null) {
-      let match;
-      const matches: Array<{ start: number; end: number }> = [];
-      wordRegex.lastIndex = 0;
-
-      while ((match = wordRegex.exec(textNode.textContent || '')) !== null) {
-        matches.push({ start: match.index, end: wordRegex.lastIndex });
-      }
-
-      if (matches.length > 0) {
-        nodesToReplace.push({ node: textNode, matches });
-      }
-    }
-
-    // Replace nodes with highlighted spans
-    for (const { node, matches } of nodesToReplace.reverse()) {
-      for (const match of matches.reverse()) {
-        const before = node.textContent?.substring(0, match.start) || '';
-        const highlighted = node.textContent?.substring(match.start, match.end) || '';
-        const after = node.textContent?.substring(match.end) || '';
-
-        const span = document.createElement('span');
-        span.className = 'highlight-word';
-        span.textContent = highlighted;
-
-        if (after) {
-          const afterNode = document.createTextNode(after);
-          node.parentNode?.insertBefore(span, node.nextSibling);
-          node.parentNode?.insertBefore(afterNode, span.nextSibling);
-        } else {
-          node.parentNode?.insertBefore(span, node.nextSibling);
-        }
-        node.textContent = before;
-      }
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-white">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#43896B] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading conclusions...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-white">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={fetchConclusions}>
-              Try Again
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-white">
-      <div className="bg-gradient-to-r from-[#43896B] to-[#5BA67C] text-white">
-        <div className="container mx-auto px-4 py-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center items-center mb-6">
-              <h1 className="text-4xl lg:text-6xl font-bold">
-                Conclusion
-              </h1>
+    <div className="min-h-screen bg-[var(--color-parchment)] pt-32 lg:pt-36">
+      {/* Hero Section */}
+      <section className="relative py-16 lg:py-24">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 text-center">
+          {/* Icon */}
+          <div 
+            className={`flex justify-center mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          >
+            <div className="w-16 h-16 bg-[var(--color-primary)] flex items-center justify-center">
+              <Bookmark className="w-8 h-8 text-white" />
             </div>
-            <div className="text-2xl lg:text-3xl mb-6 font-[uthman-taha]" style={{ fontFamily: 'uthman-taha, serif' }}>
-              خاتمة
-            </div>
-            <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
-              The concluding remarks by Al-Sharif Al-Raḍī, compiler of Nahj al-Balaghah,
-              reflecting on the completion of this monumental work.
-            </p>
           </div>
+
+          {/* Title */}
+          <h1 
+            className={`font-display text-4xl lg:text-6xl text-[var(--color-ink)] mb-6 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          >
+            Concluding Remarks
+          </h1>
+
+          {/* Decorative ornament */}
+          <div 
+            className={`flex items-center justify-center gap-4 mb-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
+            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
+            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+          </div>
+
+          <p 
+            className={`font-body text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          >
+            Reflections on the completion of this monumental work and its enduring legacy.
+          </p>
         </div>
-      </div>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 ">
-              <Input
-                type="text"
-                placeholder="Search in Arabic or English..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={isSearching}
-              icon={<Search size={16} />}
-            >
-              {isSearching ? 'Searching...' : 'Search'}
-            </Button>
-            {searchQuery && (
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={clearSearch}
-              >
-                Clear
-              </Button>
-            )}
-          </form>
-        </div>
-      </div>
-      <div className="container mx-auto px-4 pb-16">
-        <div className="max-w-6xl mx-auto">
-          {conclusions.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-gray-600 text-lg">
-                {searchQuery ? 'No results found for your search.' : 'No conclusions available.'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {conclusions.map((conclusion) => (
-                <div
-                  key={conclusion.id}
-                  id={`conclusion-${conclusion.number}`}
-                  data-text-ref={conclusion.number}
-                  className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="p-6 lg:p-8">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center">
-                        <div className="bg-[#43896B] text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mr-4">
-                          {conclusion.number}
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-800">
-                          Conclusion {conclusion.number}
-                        </h3>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant='outlined'
-                          icon={<GitCompare className='w-4 h-4' />}
-                          onClick={() => {
-                            setSelectedConclusionForComparison(conclusion);
-                            setIsComparisonModalOpen(true);
-                          }}
-                        >
-                          Compare Manuscripts
-                        </Button>
-                        <Link href={`/manuscripts?section=${conclusion.number.startsWith('0.') ? conclusion.number : `0.${conclusion.number}`}`}>
-                          <Button variant='outlined' icon={<Book className='w-4 h-4' />}>
-                            View Manuscripts
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="mb-6">
+      </section>
 
-                      <div
-                        className="text-right lg:text-lg leading-loose text-gray-800 font-[uthman-taha] rounded-lg"
-                        style={{ fontFamily: 'uthman-taha, serif' }}
-                      >
-                        {conclusion.arabic.split('\n').map((line, idx) => (
-                          <div key={idx} className={idx > 0 ? 'mt-4' : ''}>
-                            {line}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {conclusion.translation && (
-                      <div className="mb-6">
-                        <div className="text-gray-700 text-base lg:text-lg leading-relaxed p-4 border border-gray-200 font-brill rounded-lg">
-                          {conclusion.translation.split('\n').map((line, idx) => {
-                            // Check if this is the specific text that should be indented
-                            const isIndentedText = line.includes('I seek my direction from God') || 
-                                                 line.includes('I write this in the month of Rajab');
-                            
-                            return (
-                              <div key={idx} className={idx > 0 ? 'mt-4' : ''} style={{ 
-                                marginLeft: isIndentedText ? '2rem' : '0',
-                                textIndent: isIndentedText ? '-2rem' : '0'
-                              }}>
-                                {line}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+      {/* Main Content */}
+      <section className="py-12 lg:py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8">
+          <div className="relative bg-[var(--color-parchment)] border border-[var(--color-stone)]">
+            {/* Corner accents */}
+            <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[var(--color-accent)]" />
+            <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[var(--color-accent)]" />
 
-
-                  </div>
+            <div className="p-8 lg:p-12">
+              {/* Quote Block */}
+              <div className="mb-10">
+                <Quote className="w-10 h-10 text-[var(--color-accent)]/30 mb-6" strokeWidth={1} />
+                <blockquote className="font-display text-2xl lg:text-3xl text-[var(--color-ink)] leading-snug italic mb-6">
+                  "The worth of every person is in their attainments."
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-[1px] bg-[var(--color-accent)]" />
+                  <p className="font-display text-[var(--color-charcoal)]">
+                    Imam Ali ibn Abi Talib (AS)
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 my-10">
+                <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
+                <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
+                <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
+              </div>
+
+              <div className="space-y-6 font-body text-[var(--color-charcoal)] leading-relaxed">
+                <p className="text-lg">
+                  The compilation of <span className="font-display italic text-[var(--color-primary)]">Nahj al-Balaghah</span> represents one of the most significant achievements in Islamic literary history. Through the dedicated efforts of al-Sharīf al-Raḍī, the profound wisdom of Imam Ali has been preserved for generations of seekers.
+                </p>
+
+                <p>
+                  This collection stands as a testament to the eloquence of the Arabic language and the depth of Islamic spiritual and ethical thought. Each sermon, letter, and saying contained within these pages offers guidance that remains as relevant today as it was over a millennium ago.
+                </p>
+
+                <p>
+                  We hope that this digital platform serves as a humble contribution to making these timeless teachings accessible to seekers of knowledge worldwide. May the wisdom contained within Nahj al-Balaghah continue to illuminate hearts and minds for generations to come.
+                </p>
+              </div>
+
+              {/* Arabic Closing */}
+              <div className="mt-10 pt-8 border-t border-[var(--color-stone)]">
+                <p className="font-taha text-2xl text-[var(--color-primary)] text-right leading-loose" dir="rtl">
+                  وَالحَمْدُ لِلّٰهِ رَبِّ العَالَمِينَ
+                </p>
+                <p className="text-sm text-[var(--color-warm-gray)] text-right mt-2">
+                  All praise is due to Allah, Lord of all the worlds.
+                </p>
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Manuscript Comparison Modal */}
-      {selectedConclusionForComparison && (
-        <ManuscriptComparisonModal
-          isOpen={isComparisonModalOpen}
-          onClose={() => {
-            setIsComparisonModalOpen(false);
-            setSelectedConclusionForComparison(null);
-          }}
-          content={{
-            id: selectedConclusionForComparison.id,
-            number: selectedConclusionForComparison.number,
-            arabic: selectedConclusionForComparison.arabic,
-            translation: selectedConclusionForComparison.translation,
-            heading: `Conclusion ${selectedConclusionForComparison.number}`,
-            sermonNumber: `0.${selectedConclusionForComparison.number}`,
-            paragraphs: [],
-            title: undefined,
-            translations: undefined,
-            footnotes: []
-          }}
-          contentType="conclusion"
-        />
-      )}
+      {/* Navigation Section */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
+          <h2 className="font-display text-2xl text-[var(--color-ink)] mb-8">
+            Continue Exploring
+          </h2>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/orations" className="group relative inline-block">
+              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
+                <span>Orations</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+            <Link href="/letters" className="group relative inline-block">
+              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
+                <span>Letters</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+            <Link href="/sayings" className="group relative inline-block">
+              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
+                <span>Sayings</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
-  );
-}
-
-export default function ConclusionsPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ConclusionsContent />
-    </Suspense>
   );
 }
