@@ -54,16 +54,13 @@ const AboutSection = () => {
 
   return (
     <section ref={sectionRef} className="relative py-24 lg:py-32 bg-[var(--color-parchment)] overflow-hidden">
-      {/* Background pattern */}
+      {/* Subtle background texture */}
       <div 
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.015]"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23000000' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
         }}
       />
-
-      {/* Decorative corner - top right */}
-      <div className="absolute top-16 right-16 w-24 h-24 border-t border-r border-[var(--color-accent)]/20" />
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
@@ -85,7 +82,7 @@ const AboutSection = () => {
             </h2>
 
             <div 
-              className={`w-24 h-[2px] bg-[var(--color-accent)] mb-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 w-24' : 'opacity-0 w-0'}`}
+              className={`w-16 h-[2px] bg-[var(--color-accent)] mb-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
             />
 
             <div 
@@ -104,20 +101,19 @@ const AboutSection = () => {
               </p>
             </div>
 
-            {/* Stats with corner accents */}
+            {/* Stats */}
             <div 
-              className={`relative mt-12 pt-12 border-t border-[var(--color-stone)] transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`relative mt-12 pt-10 border-t border-[var(--color-stone)] transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             >
-              {/* Subtle corner accent on stats container */}
-              <div className="absolute -top-px left-0 w-8 h-[2px] bg-[var(--color-accent)]" />
+              <div className="absolute top-0 left-0 w-12 h-[2px] bg-[var(--color-accent)] -translate-y-[1px]" />
               
-              <div className="grid grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                  <div key={stat.label} className="text-center group">
-                    <div className="font-display text-3xl lg:text-4xl text-[var(--color-primary)] mb-1 group-hover:text-[var(--color-accent)] transition-colors duration-300">
+              <div className="grid grid-cols-4 gap-4 lg:gap-6">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="text-center">
+                    <div className="font-display text-2xl lg:text-3xl text-[var(--color-primary)] mb-1">
                       {stat.value}
                     </div>
-                    <div className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)]">
+                    <div className="text-[10px] lg:text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)]">
                       {stat.label}
                     </div>
                   </div>
@@ -126,47 +122,45 @@ const AboutSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Quote Card */}
+          {/* Right Column - Quote Card with corner framing */}
           <div 
             className={`transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}
           >
-            <div className="relative bg-white p-10 lg:p-14 border border-[var(--color-stone)] group hover:border-[var(--color-accent)]/50 transition-all duration-500 hover:shadow-xl">
-              {/* Decorative corner - top left - always visible */}
-              <div className="absolute -top-3 -left-3 w-24 h-24 border-l-2 border-t-2 border-[var(--color-accent)] transition-all duration-500 group-hover:w-28 group-hover:h-28 group-hover:-top-4 group-hover:-left-4" />
+            {/* Outer wrapper for corner brackets */}
+            <div className="relative">
+              {/* Corner brackets - positioned outside the card */}
+              <div className="absolute -top-3 -left-3 w-16 h-16 border-l-2 border-t-2 border-[var(--color-accent)]" />
+              <div className="absolute -bottom-3 -right-3 w-16 h-16 border-r-2 border-b-2 border-[var(--color-accent)]" />
               
-              {/* Decorative corner - bottom right - always visible */}
-              <div className="absolute -bottom-3 -right-3 w-24 h-24 border-r-2 border-b-2 border-[var(--color-accent)] transition-all duration-500 group-hover:w-28 group-hover:h-28 group-hover:-bottom-4 group-hover:-right-4" />
-              
-              {/* Small inner corners on hover */}
-              <div className="absolute top-6 right-6 w-0 h-0 border-t border-r border-transparent group-hover:w-6 group-hover:h-6 group-hover:border-[var(--color-stone)] transition-all duration-500" />
-              <div className="absolute bottom-6 left-6 w-0 h-0 border-b border-l border-transparent group-hover:w-6 group-hover:h-6 group-hover:border-[var(--color-stone)] transition-all duration-500" />
-              
-              {/* Quote Icon */}
-              <Quote className="w-12 h-12 text-[var(--color-accent)]/30 mb-6" />
-              
-              {/* Quote Text */}
-              <blockquote className="font-display text-2xl lg:text-3xl text-[var(--color-ink)] leading-relaxed italic mb-8">
-                "The worth of a man lies in what he does well."
-              </blockquote>
-              
-              {/* Attribution */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-[1px] bg-[var(--color-accent)]" />
-                <div>
-                  <p className="font-display text-lg text-[var(--color-charcoal)]">
-                    Imam Ali ibn Abi Talib
-                  </p>
-                  <p className="text-sm text-[var(--color-warm-gray)]">
-                    Nahj al-Balaghah, Saying 81
+              {/* The card itself */}
+              <div className="relative bg-white p-10 lg:p-12 border border-[var(--color-stone)]">
+                {/* Quote Icon */}
+                <Quote className="w-10 h-10 text-[var(--color-accent)]/30 mb-6" strokeWidth={1} />
+                
+                {/* Quote Text */}
+                <blockquote className="font-display text-2xl lg:text-3xl text-[var(--color-ink)] leading-snug italic mb-8">
+                  "The worth of a man lies in what he does well."
+                </blockquote>
+                
+                {/* Attribution */}
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-[1px] bg-[var(--color-accent)]" />
+                  <div>
+                    <p className="font-display text-base text-[var(--color-charcoal)]">
+                      Imam Ali ibn Abi Talib
+                    </p>
+                    <p className="text-sm text-[var(--color-warm-gray)]">
+                      Nahj al-Balaghah, Saying 81
+                    </p>
+                  </div>
+                </div>
+
+                {/* Arabic text */}
+                <div className="mt-10 pt-8 border-t border-[var(--color-stone)]">
+                  <p className="font-taha text-2xl text-[var(--color-primary)] text-right leading-loose">
+                    قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ
                   </p>
                 </div>
-              </div>
-
-              {/* Arabic text */}
-              <div className="mt-10 pt-8 border-t border-[var(--color-stone)]">
-                <p className="font-taha text-2xl text-[var(--color-primary)] text-right leading-loose">
-                  قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ
-                </p>
               </div>
             </div>
           </div>

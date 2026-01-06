@@ -32,7 +32,7 @@ const FeaturedManuscriptsSection = () => {
       try {
         setLoading(true)
         const response = await manuscriptsApi.getAllManuscripts(1, 6)
-        setManuscripts(response.data.slice(0, 3)) // Show only 3 featured
+        setManuscripts(response.data.slice(0, 3))
       } catch (err) {
         console.error('Error fetching manuscripts:', err)
       } finally {
@@ -45,20 +45,18 @@ const FeaturedManuscriptsSection = () => {
 
   return (
     <section ref={sectionRef} className="relative py-24 lg:py-32 bg-[var(--color-ink)] overflow-hidden">
-      {/* Subtle pattern */}
+      {/* Subtle dot pattern */}
       <div 
-        className="absolute inset-0 opacity-5"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)`,
           backgroundSize: '32px 32px'
         }}
       />
 
-      {/* Decorative corner - top left */}
-      <div className="absolute top-12 left-12 w-32 h-32 border-l border-t border-[var(--color-accent)]/20" />
-      
-      {/* Decorative corner - bottom right */}
-      <div className="absolute bottom-12 right-12 w-32 h-32 border-r border-b border-[var(--color-accent)]/20" />
+      {/* Section frame corners - subtle, atmospheric */}
+      <div className="absolute top-8 left-8 lg:top-12 lg:left-12 w-16 lg:w-24 h-16 lg:h-24 border-l border-t border-[var(--color-accent)]/15" />
+      <div className="absolute bottom-8 right-8 lg:bottom-12 lg:right-12 w-16 lg:w-24 h-16 lg:h-24 border-r border-b border-[var(--color-accent)]/15" />
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
@@ -75,13 +73,13 @@ const FeaturedManuscriptsSection = () => {
               Featured Manuscripts
             </h2>
             <div 
-              className={`w-24 h-[2px] bg-[var(--color-accent)] mt-6 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 w-24' : 'opacity-0 w-0'}`}
+              className={`w-16 h-[2px] bg-[var(--color-accent)] mt-6 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
             />
           </div>
           
           <Link 
             href="/manuscripts"
-            className={`group inline-flex items-center gap-3 text-white/60 hover:text-white transition-all duration-500 delay-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            className={`group inline-flex items-center gap-3 text-white/60 hover:text-white transition-all duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
           >
             <span className="text-sm tracking-[0.1em] uppercase">View All Manuscripts</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
@@ -102,28 +100,29 @@ const FeaturedManuscriptsSection = () => {
                 className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
                 style={{ transitionDelay: `${400 + index * 150}ms` }}
               >
-                <div className="relative overflow-hidden">
-                  {/* Image */}
+                <div className="relative">
+                  {/* Image container */}
                   <div className="relative aspect-[3/4] overflow-hidden bg-[var(--color-charcoal)]">
                     {manuscript.files && manuscript.files.length > 0 ? (
                       <img
                         src={getManuscriptImageUrl(manuscript.files[0].url)}
                         alt={manuscript.files[0].alternativeText || manuscript.bookName || 'Manuscript'}
-                        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105 group-hover:opacity-80"
+                        className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="text-white/30 font-display text-lg">No Image</span>
                       </div>
                     )}
-                    {/* Overlay gradient */}
+                    
+                    {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     
-                    {/* Corner accents on hover - top right */}
-                    <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-2 -translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0" />
-                    
-                    {/* Corner accents on hover - bottom left */}
-                    <div className="absolute bottom-20 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-all duration-500 transform -translate-x-2 translate-y-2 group-hover:translate-x-0 group-hover:translate-y-0" />
+                    {/* Corner selection effect on hover */}
+                    <div className="absolute top-4 left-4 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
+                    <div className="absolute top-4 right-4 w-0 h-0 border-r-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
+                    <div className="absolute bottom-20 left-4 w-0 h-0 border-l-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
+                    <div className="absolute bottom-20 right-4 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
                   </div>
 
                   {/* Content */}
@@ -133,7 +132,7 @@ const FeaturedManuscriptsSection = () => {
                         {manuscript.gregorianYear}
                       </div>
                     )}
-                    <h3 className="font-display text-2xl text-white mb-2 line-clamp-2">
+                    <h3 className="font-display text-xl text-white mb-2 line-clamp-2">
                       {manuscript.bookName || `Section ${manuscript.section}`}
                     </h3>
                     {manuscript.holdingInstitution && (
@@ -141,15 +140,7 @@ const FeaturedManuscriptsSection = () => {
                         {manuscript.holdingInstitution}
                       </p>
                     )}
-                    {manuscript.siglaEnglish && (
-                      <p className="text-xs text-white/40 mt-1">
-                        {manuscript.siglaEnglish}
-                      </p>
-                    )}
                   </div>
-
-                  {/* Full border on hover */}
-                  <div className="absolute inset-0 border-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 </div>
               </Link>
             ))}
@@ -160,13 +151,13 @@ const FeaturedManuscriptsSection = () => {
           </div>
         )}
 
-        {/* Bottom decorative element */}
+        {/* Bottom ornament */}
         <div 
           className={`flex items-center justify-center gap-4 mt-20 transition-all duration-700 delay-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         >
-          <div className="w-20 h-[1px] bg-gradient-to-r from-transparent to-white/20" />
+          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-white/20" />
           <div className="w-1.5 h-1.5 rotate-45 border border-[var(--color-accent)]" />
-          <div className="w-20 h-[1px] bg-gradient-to-l from-transparent to-white/20" />
+          <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-white/20" />
         </div>
       </div>
     </section>

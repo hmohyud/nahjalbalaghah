@@ -72,22 +72,22 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex flex-col">
       {/* Background */}
       <div className="absolute inset-0 bg-[var(--color-parchment)]">
-        {/* Subtle pattern overlay */}
         <div 
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--color-cream)]" />
       </div>
 
-      {/* Decorative corner - top left */}
-      <div className="absolute top-28 left-8 lg:left-16 w-24 lg:w-32 h-24 lg:h-32 border-l-2 border-t-2 border-[var(--color-accent)]/30" />
-      
-      {/* Decorative corner - top right */}
-      <div className="absolute top-28 right-8 lg:right-16 w-24 lg:w-32 h-24 lg:h-32 border-r-2 border-t-2 border-[var(--color-accent)]/30" />
+      {/* Decorative page frame - like manuscript edges */}
+      <div className="absolute inset-8 lg:inset-16 pointer-events-none">
+        <div className="absolute top-0 left-0 w-20 lg:w-28 h-20 lg:h-28 border-l border-t border-[var(--color-accent)]/15" />
+        <div className="absolute top-0 right-0 w-20 lg:w-28 h-20 lg:h-28 border-r border-t border-[var(--color-accent)]/15" />
+        <div className="absolute bottom-0 left-0 w-20 lg:w-28 h-20 lg:h-28 border-l border-b border-[var(--color-accent)]/15" />
+        <div className="absolute bottom-0 right-0 w-20 lg:w-28 h-20 lg:h-28 border-r border-b border-[var(--color-accent)]/15" />
+      </div>
 
       {/* Main Content */}
       <div className="relative flex-1 flex items-center justify-center pt-32 pb-16 px-6 lg:px-8">
@@ -144,18 +144,18 @@ const HeroSection = () => {
             </p>
           </div>
 
-          {/* CTA */}
+          {/* CTA - outer corners on hover */}
           <div 
             className={`transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <Link href="/radis">
-              <button className="group relative inline-flex items-center gap-4 px-8 py-4 bg-[var(--color-primary)] text-white text-sm tracking-[0.15em] uppercase font-medium hover:bg-[var(--color-primary-dark)] transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-[var(--color-primary)]/20 overflow-hidden">
-                {/* Corner accents on hover */}
-                <span className="absolute top-0 left-0 w-3 h-3 border-l border-t border-white/0 group-hover:border-white/50 transition-all duration-300" />
-                <span className="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-white/0 group-hover:border-white/50 transition-all duration-300" />
+            <Link href="/radis" className="group relative inline-block">
+              <button className="relative inline-flex items-center gap-4 px-8 py-4 bg-[var(--color-primary)] text-white text-sm tracking-[0.15em] uppercase font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200">
                 <span>Begin Reading</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="w-4 h-4" />
               </button>
+              {/* Outer corners */}
+              <div className="absolute -top-1.5 -left-1.5 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
+              <div className="absolute -bottom-1.5 -right-1.5 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
             </Link>
           </div>
         </div>
@@ -172,14 +172,14 @@ const HeroSection = () => {
                 className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
                 style={{ transitionDelay: `${800 + index * 100}ms` }}
               >
-                <div className="relative bg-white border border-[var(--color-stone)] p-8 lg:p-10 transition-all duration-500 hover:border-[var(--color-accent)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/5 hover:-translate-y-2 overflow-hidden">
-                  {/* Number badge */}
-                  <div className="absolute top-6 right-6 text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)]">
+                <div className="relative bg-white border border-[var(--color-stone)] p-8 lg:p-10 transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1">
+                  {/* Count badge */}
+                  <div className="absolute top-6 right-6 text-xs tracking-[0.15em] text-[var(--color-warm-gray)]">
                     {content.count}
                   </div>
                   
                   {/* Arabic */}
-                  <div className="font-taha text-4xl text-[var(--color-primary)] mb-4 group-hover:text-[var(--color-accent)] transition-colors duration-500">
+                  <div className="font-taha text-4xl text-[var(--color-primary)] mb-4 transition-colors duration-300 group-hover:text-[var(--color-primary-dark)]">
                     {content.arabic}
                   </div>
                   
@@ -191,17 +191,17 @@ const HeroSection = () => {
                     {content.description}
                   </p>
 
-                  {/* Arrow */}
-                  <div className="mt-8 flex items-center gap-2 text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transform translate-x-[-8px] group-hover:translate-x-0 transition-all duration-500">
-                    <span className="text-xs tracking-[0.15em] uppercase">Explore</span>
-                    <ArrowRight className="w-4 h-4" />
+                  {/* Hover indicator line */}
+                  <div className="mt-8 flex items-center gap-3">
+                    <div className="h-[1px] w-0 bg-[var(--color-accent)] group-hover:w-8 transition-all duration-300" />
+                    <span className="text-xs tracking-[0.15em] uppercase text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      Explore
+                    </span>
                   </div>
 
-                  {/* Corner accent - top left on hover */}
-                  <div className="absolute top-0 left-0 w-12 h-12 border-l-2 border-t-2 border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-500 transform -translate-x-1 -translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
-                  
-                  {/* Corner accent - bottom right on hover */}
-                  <div className="absolute bottom-0 right-0 w-16 h-16 border-r-2 border-b-2 border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-500 transform translate-x-1 translate-y-1 group-hover:translate-x-0 group-hover:translate-y-0" />
+                  {/* Corner accents - appear on hover */}
+                  <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
+                  <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
                 </div>
               </Link>
             ))}

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Menu, X, Search, ChevronRight } from 'lucide-react'
+import { Menu, X, Search, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 const Header = () => {
@@ -27,84 +27,92 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Top accent line */}
-      <div className="h-[2px] bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent" />
+      <div className="h-[2px] bg-[var(--color-accent)]" />
       
       <div 
-        className={`transition-all duration-500 ${
+        className={`transition-all duration-300 ${
           isScrolled 
-            ? 'bg-white/95 backdrop-blur-md shadow-sm' 
-            : 'bg-transparent'
+            ? 'bg-white/98 backdrop-blur-md shadow-sm' 
+            : 'bg-[var(--color-parchment)]'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 lg:h-24">
-            {/* Logo */}
+            {/* Logo with inner frame and hover corners */}
             <Link href="/" className="group flex items-center gap-4">
-              <div className="relative">
-                {/* Corner accent on hover */}
-                <div className="absolute -top-1 -left-1 w-3 h-3 border-l border-t border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-300" />
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 border-r border-b border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-300" />
-                
-                <div className="relative w-14 h-14 bg-[var(--color-primary)] flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                  <div className="text-center font-taha leading-none">
-                    <div className="text-white text-sm font-bold">نهج</div>
-                    <div className="text-white text-xs font-bold -mt-0.5">البلاغة</div>
+              <div className="relative w-12 h-12 lg:w-14 lg:h-14 bg-[var(--color-primary)] p-1 transition-colors duration-300 group-hover:bg-[var(--color-primary-dark)]">
+                {/* Inner frame */}
+                <div className="relative w-full h-full border border-white/20 flex items-center justify-center">
+                  {/* Inner corners on hover */}
+                  <div className="absolute top-0.5 left-0.5 w-0 h-0 border-l border-t border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-2 group-hover:h-2 transition-all duration-300" />
+                  <div className="absolute bottom-0.5 right-0.5 w-0 h-0 border-r border-b border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-2 group-hover:h-2 transition-all duration-300" />
+                  
+                  {/* Arabic text */}
+                  <div className="text-center" style={{ lineHeight: '1' }}>
+                    <div className="font-taha text-white text-sm lg:text-base font-bold">نهج</div>
+                    <div className="font-taha text-white/80 text-[8px] lg:text-[9px]">البلاغة</div>
                   </div>
                 </div>
               </div>
               <div className="hidden sm:block">
-                <h1 
-                  className="font-display text-xl lg:text-2xl font-medium tracking-tight text-[var(--color-ink)]"
-                >
+                <h1 className="font-display text-lg lg:text-xl font-medium text-[var(--color-ink)] transition-colors duration-300 group-hover:text-[var(--color-primary)]">
                   Nahj al-Balaghah
                 </h1>
-                <p className="text-xs tracking-[0.2em] uppercase mt-0.5 text-[var(--color-warm-gray)]">
+                <p className="text-[10px] lg:text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)]">
                   Peak of Eloquence
                 </p>
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - Option D: Two corner brackets */}
             <nav className="hidden lg:flex items-center gap-1">
               {menuItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="relative px-5 py-2 text-sm tracking-wide font-medium text-[var(--color-charcoal)] hover:text-[var(--color-primary)] transition-colors duration-300 group"
+                  className="group relative px-4 py-2"
                 >
-                  {item.name}
-                  {/* Underline with corner accent */}
-                  <span className="absolute bottom-1 left-5 right-5 h-[1px] bg-[var(--color-accent)] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                  {/* Tiny corner on hover */}
-                  <span className="absolute bottom-0 right-4 w-2 h-2 border-r border-b border-[var(--color-accent)]/0 group-hover:border-[var(--color-accent)] transition-all duration-300" />
+                  <span className="text-sm font-medium text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)] transition-colors duration-200">
+                    {item.name}
+                  </span>
+                  {/* Top-left corner */}
+                  <div className="absolute top-1 left-1 w-0 h-0 border-l border-t border-[var(--color-accent)] group-hover:w-2 group-hover:h-2 transition-all duration-200" />
+                  {/* Bottom-right corner */}
+                  <div className="absolute bottom-1 right-1 w-0 h-0 border-r border-b border-[var(--color-accent)] group-hover:w-2 group-hover:h-2 transition-all duration-200" />
                 </Link>
               ))}
             </nav>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              {/* Search Button with corner accent */}
+            <div className="flex items-center gap-1">
+              {/* Search Button */}
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="relative p-3 hover:bg-[var(--color-stone)] transition-colors duration-300 group"
+                className={`w-10 h-10 flex items-center justify-center transition-colors duration-200 ${
+                  isSearchOpen 
+                    ? 'bg-[var(--color-primary)] text-white' 
+                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                }`}
                 aria-label="Search"
               >
-                <Search className="w-5 h-5 text-[var(--color-charcoal)]" />
-                <span className="absolute top-1 right-1 w-2 h-2 border-t border-r border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300" />
+                <Search className="w-5 h-5" strokeWidth={1.5} />
               </button>
 
               {/* Mobile Menu Button */}
               <button
-                className="lg:hidden relative p-3 hover:bg-[var(--color-stone)] transition-colors duration-300 group"
+                className={`lg:hidden w-10 h-10 flex items-center justify-center transition-colors duration-200 ${
+                  isMenuOpen 
+                    ? 'bg-[var(--color-primary)] text-white' 
+                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Toggle menu"
               >
                 {isMenuOpen ? (
-                  <X className="w-5 h-5 text-[var(--color-charcoal)]" />
+                  <X className="w-5 h-5" strokeWidth={1.5} />
                 ) : (
-                  <Menu className="w-5 h-5 text-[var(--color-charcoal)]" />
+                  <Menu className="w-5 h-5" strokeWidth={1.5} />
                 )}
-                <span className="absolute top-1 right-1 w-2 h-2 border-t border-r border-transparent group-hover:border-[var(--color-accent)] transition-all duration-300" />
               </button>
             </div>
           </div>
@@ -112,53 +120,46 @@ const Header = () => {
 
         {/* Search Overlay */}
         <div 
-          className={`absolute top-full left-0 right-0 bg-white border-b border-[var(--color-stone)] transition-all duration-300 overflow-hidden ${
-            isSearchOpen ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'
+          className={`overflow-hidden transition-all duration-300 ${
+            isSearchOpen ? 'max-h-24' : 'max-h-0'
           }`}
         >
-          <div className="max-w-3xl mx-auto px-6 py-6">
-            <div className="relative flex items-center gap-4 border-b-2 border-[var(--color-primary)] pb-2">
-              <Search className="w-5 h-5 text-[var(--color-warm-gray)]" />
-              <input
-                type="text"
-                placeholder="Search sermons, letters, sayings..."
-                className="flex-1 bg-transparent text-lg font-display placeholder:text-[var(--color-warm-gray)] focus:outline-none"
-              />
-              {/* Corner accent */}
-              <div className="absolute -bottom-1 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+          <div className="border-t border-[var(--color-stone)]">
+            <div className="max-w-2xl mx-auto px-6 py-5">
+              <div className="flex items-center gap-4">
+                <Search className="w-5 h-5 text-[var(--color-warm-gray)] flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search sermons, letters, sayings..."
+                  className="flex-1 bg-transparent text-base font-body placeholder:text-[var(--color-warm-gray)] focus:outline-none"
+                  autoFocus={isSearchOpen}
+                />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Mobile Menu */}
         <div 
-          className={`lg:hidden absolute top-full left-0 right-0 bg-white border-b border-[var(--color-stone)] transition-all duration-500 overflow-hidden ${
-            isMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          className={`lg:hidden overflow-hidden transition-all duration-300 ${
+            isMenuOpen ? 'max-h-96' : 'max-h-0'
           }`}
         >
-          <nav className="max-w-7xl mx-auto px-6 py-8">
-            {/* Corner accent on mobile menu */}
-            <div className="absolute top-4 right-4 w-8 h-8 border-t border-r border-[var(--color-accent)]/30" />
-            <div className="absolute bottom-4 left-4 w-8 h-8 border-b border-l border-[var(--color-accent)]/30" />
-            
-            <div className="space-y-1">
-              {menuItems.map((item, index) => (
+          <div className="border-t border-[var(--color-stone)] bg-white">
+            <nav className="px-6 py-4">
+              {menuItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between py-4 border-b border-[var(--color-stone)] group"
+                  className="flex items-center justify-between py-3 text-[var(--color-charcoal)] hover:text-[var(--color-primary)] transition-colors duration-200"
                 >
-                  <span className="font-display text-xl text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
-                    {item.name}
-                  </span>
-                  <div className="relative">
-                    <ChevronRight className="w-5 h-5 text-[var(--color-warm-gray)] group-hover:text-[var(--color-accent)] group-hover:translate-x-1 transition-all duration-300" />
-                  </div>
+                  <span className="font-display text-lg">{item.name}</span>
+                  <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
                 </Link>
               ))}
-            </div>
-          </nav>
+            </nav>
+          </div>
         </div>
       </div>
     </header>
