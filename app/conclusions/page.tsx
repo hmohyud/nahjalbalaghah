@@ -28,7 +28,7 @@ export default function ConclusionsPage() {
           <h1 
             className={`font-display text-4xl lg:text-6xl text-[var(--color-ink)] mb-6 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            Concluding Remarks
+            Raḍī's Conclusion
           </h1>
 
           {/* Decorative ornament */}
@@ -113,23 +113,17 @@ export default function ConclusionsPage() {
             Continue Exploring
           </h2>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/orations" className="group relative inline-block">
-              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
-                <span>Orations</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <Link href="/orations" className="btn-outline">
+              <span>Orations</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href="/letters" className="group relative inline-block">
-              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
-                <span>Letters</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <Link href="/letters" className="btn-outline">
+              <span>Letters</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href="/sayings" className="group relative inline-block">
-              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
-                <span>Sayings</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <Link href="/sayings" className="btn-outline">
+              <span>Sayings</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react'
-import { ArrowRight, ChevronDown } from 'lucide-react'
+import { ArrowRight, ChevronDown, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { orationsApi, lettersApi, sayingsApi } from '@/api'
@@ -71,6 +71,7 @@ const HeroSection = () => {
   ]
 
   return (
+    <>
     <section className="relative min-h-screen flex flex-col">
       {/* Background */}
       <div className="absolute inset-0 bg-[var(--color-parchment)]">
@@ -149,13 +150,14 @@ const HeroSection = () => {
             </p>
           </div>
 
-          {/* CTA - outer corners on hover */}
+          {/* CTA - Raḍī's Intro */}
           <div 
             className={`transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <Link href="/radis" className="group relative inline-block">
               <button className="relative inline-flex items-center gap-4 px-8 py-4 bg-[var(--color-primary)] text-white text-sm tracking-[0.15em] uppercase font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200">
-                <span>Begin Reading</span>
+                <BookOpen className="w-4 h-4" />
+                <span>Raḍī's Intro</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               {/* Outer corners */}
@@ -224,6 +226,36 @@ const HeroSection = () => {
         </div>
       </div>
     </section>
+
+    {/* Raḍī's Conclusion */}
+    <section className="bg-[var(--color-stone)] py-10 lg:py-12">
+      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+        <Link href="/conclusions" className="group block">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+            {/* Title block */}
+            <div className="sm:border-r sm:border-[var(--color-warm-gray)]/30 sm:pr-8">
+              <h2 className="font-display text-lg text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
+                Raḍī's Conclusion
+              </h2>
+            </div>
+            
+            {/* Summary block */}
+            <div className="flex-1">
+              <p className="font-body text-sm text-[var(--color-warm-gray)] leading-relaxed">
+                Closing reflections on preserving the Commander of the Faithful's wisdom for generations to come.
+              </p>
+            </div>
+            
+            {/* Action block */}
+            <div className="flex items-center gap-2 text-[var(--color-primary)] sm:border-l sm:border-[var(--color-warm-gray)]/30 sm:pl-8">
+              <span className="text-xs tracking-[0.1em] uppercase font-medium">Read</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </Link>
+      </div>
+    </section>
+    </>
   )
 }
 

@@ -1,13 +1,90 @@
 'use client'
-import React, { useState, useEffect } from 'react'
-import { Menu, X, Search, ArrowRight } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Menu, X, Search, ArrowRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+
+interface DropdownItem {
+  name: string;
+  href: string;
+}
+
+interface DropdownProps {
+  label: string;
+  items: DropdownItem[];
+  isActive: boolean;
+}
+
+const Dropdown: React.FC<DropdownProps> = ({ label, items, isActive }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="group relative px-4 py-2 flex items-center gap-1"
+      >
+        <span className={`text-sm font-medium transition-colors duration-200 ${
+          isActive 
+            ? 'text-[var(--color-primary)]' 
+            : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+        }`}>
+          {label}
+        </span>
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${
+          isOpen ? 'rotate-180' : ''
+        } ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'}`} />
+        
+        {/* Corner accents */}
+        <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
+          isActive || isOpen ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+        }`} />
+        <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
+          isActive || isOpen ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+        }`} />
+        {/* Active background tint */}
+        {isActive && (
+          <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
+        )}
+      </button>
+
+      {/* Dropdown menu */}
+      <div className={`absolute top-full left-0 mt-1 bg-white border border-[var(--color-stone)] shadow-lg transition-all duration-200 ${
+        isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+      }`}>
+        <div className="py-2 min-w-[160px]">
+          {items.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-2 text-sm text-[var(--color-charcoal)] hover:text-[var(--color-primary)] hover:bg-[var(--color-cream)] transition-colors duration-150"
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [mobileDropdown, setMobileDropdown] = useState<string | null>(null)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -18,18 +95,27 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const menuItems = [
+  const collectionsItems = [
     { name: 'Orations', href: '/orations' },
     { name: 'Letters', href: '/letters' },
     { name: 'Sayings', href: '/sayings' },
+  ]
+
+  const radisItems = [
     { name: 'Introduction', href: '/radis' },
-    { name: 'Manuscripts', href: '/manuscripts' },
-    { name: 'About', href: '/about-us' },
+    { name: 'Conclusion', href: '/conclusions' },
   ]
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
+  }
+
+  const isCollectionsActive = collectionsItems.some(item => isActive(item.href))
+  const isRadisActive = radisItems.some(item => isActive(item.href))
+
+  const toggleMobileDropdown = (name: string) => {
+    setMobileDropdown(mobileDropdown === name ? null : name)
   }
 
   return (
@@ -72,38 +158,83 @@ const Header = () => {
               </div>
             </Link>
 
-            {/* Desktop Navigation with active state */}
+            {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-1">
-              {menuItems.map((item) => {
-                const active = isActive(item.href)
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className="group relative px-4 py-2"
-                  >
-                    <span className={`text-sm font-medium transition-colors duration-200 ${
-                      active 
-                        ? 'text-[var(--color-primary)]' 
-                        : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
-                    }`}>
-                      {item.name}
-                    </span>
-                    {/* Top-left corner - always visible when active */}
-                    <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
-                      active ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                    }`} />
-                    {/* Bottom-right corner - always visible when active */}
-                    <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
-                      active ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                    }`} />
-                    {/* Active underline */}
-                    {active && (
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-[var(--color-accent)]" />
-                    )}
-                  </Link>
-                )
-              })}
+              {/* Home */}
+              <Link href="/" className="group relative px-4 py-2">
+                <span className={`text-sm font-medium transition-colors duration-200 ${
+                  pathname === '/' 
+                    ? 'text-[var(--color-primary)]' 
+                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                }`}>
+                  Home
+                </span>
+                {/* Corner accents - always visible when active, appear on hover otherwise */}
+                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
+                  pathname === '/' ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                }`} />
+                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
+                  pathname === '/' ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                }`} />
+                {/* Active background tint */}
+                {pathname === '/' && (
+                  <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
+                )}
+              </Link>
+
+              {/* Raḍī's Dropdown */}
+              <Dropdown 
+                label="Raḍī's" 
+                items={radisItems} 
+                isActive={isRadisActive}
+              />
+
+              {/* Collections Dropdown */}
+              <Dropdown 
+                label="Collections" 
+                items={collectionsItems} 
+                isActive={isCollectionsActive}
+              />
+
+              {/* Manuscripts */}
+              <Link href="/manuscripts" className="group relative px-4 py-2">
+                <span className={`text-sm font-medium transition-colors duration-200 ${
+                  isActive('/manuscripts') 
+                    ? 'text-[var(--color-primary)]' 
+                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                }`}>
+                  Manuscripts
+                </span>
+                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
+                  isActive('/manuscripts') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                }`} />
+                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
+                  isActive('/manuscripts') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                }`} />
+                {isActive('/manuscripts') && (
+                  <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
+                )}
+              </Link>
+
+              {/* About */}
+              <Link href="/about-us" className="group relative px-4 py-2">
+                <span className={`text-sm font-medium transition-colors duration-200 ${
+                  isActive('/about') 
+                    ? 'text-[var(--color-primary)]' 
+                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                }`}>
+                  About
+                </span>
+                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
+                  isActive('/about') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                }`} />
+                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
+                  isActive('/about') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                }`} />
+                {isActive('/about') && (
+                  <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
+                )}
+              </Link>
             </nav>
 
             {/* Right Actions */}
@@ -165,32 +296,141 @@ const Header = () => {
         {/* Mobile Menu */}
         <div 
           className={`lg:hidden overflow-hidden transition-all duration-300 ${
-            isMenuOpen ? 'max-h-96' : 'max-h-0'
+            isMenuOpen ? 'max-h-[500px]' : 'max-h-0'
           }`}
         >
           <div className="border-t border-[var(--color-stone)] bg-white">
             <nav className="px-6 py-4">
-              {menuItems.map((item) => {
-                const active = isActive(item.href)
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center justify-between py-3 transition-colors duration-200 ${
-                      active 
-                        ? 'text-[var(--color-primary)]' 
-                        : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {active && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
-                      <span className="font-display text-lg">{item.name}</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
-                  </Link>
-                )
-              })}
+              {/* Home */}
+              <Link
+                href="/"
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center justify-between py-3 transition-colors duration-200 ${
+                  pathname === '/' 
+                    ? 'text-[var(--color-primary)]' 
+                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {pathname === '/' && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                  <span className="font-display text-lg">Home</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
+              </Link>
+
+              {/* Raḍī's Dropdown */}
+              <div className="border-t border-[var(--color-stone)]/50">
+                <button
+                  onClick={() => toggleMobileDropdown('radis')}
+                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${
+                    isRadisActive 
+                      ? 'text-[var(--color-primary)]' 
+                      : 'text-[var(--color-charcoal)]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {isRadisActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                    <span className="font-display text-lg">Raḍī's</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${
+                    mobileDropdown === 'radis' ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ${
+                  mobileDropdown === 'radis' ? 'max-h-40' : 'max-h-0'
+                }`}>
+                  <div className="pl-6 pb-2">
+                    {radisItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${
+                          isActive(item.href) 
+                            ? 'text-[var(--color-primary)]' 
+                            : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                        }`}
+                      >
+                        <span className="font-body">{item.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Collections Dropdown */}
+              <div className="border-t border-[var(--color-stone)]/50">
+                <button
+                  onClick={() => toggleMobileDropdown('collections')}
+                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${
+                    isCollectionsActive 
+                      ? 'text-[var(--color-primary)]' 
+                      : 'text-[var(--color-charcoal)]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {isCollectionsActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                    <span className="font-display text-lg">Collections</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${
+                    mobileDropdown === 'collections' ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ${
+                  mobileDropdown === 'collections' ? 'max-h-40' : 'max-h-0'
+                }`}>
+                  <div className="pl-6 pb-2">
+                    {collectionsItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${
+                          isActive(item.href) 
+                            ? 'text-[var(--color-primary)]' 
+                            : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                        }`}
+                      >
+                        <span className="font-body">{item.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Manuscripts */}
+              <Link
+                href="/manuscripts"
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${
+                  isActive('/manuscripts') 
+                    ? 'text-[var(--color-primary)]' 
+                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isActive('/manuscripts') && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                  <span className="font-display text-lg">Manuscripts</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
+              </Link>
+
+              {/* About */}
+              <Link
+                href="/about-us"
+                onClick={() => setIsMenuOpen(false)}
+                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${
+                  isActive('/about') 
+                    ? 'text-[var(--color-primary)]' 
+                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {isActive('/about') && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                  <span className="font-display text-lg">About</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
+              </Link>
             </nav>
           </div>
         </div>

@@ -29,14 +29,14 @@ const Footer = () => {
       <div className="absolute top-8 left-8 lg:top-12 lg:left-12 w-12 lg:w-16 h-12 lg:h-16 border-l border-t border-[var(--color-accent)]/15" />
       <div className="absolute top-8 right-8 lg:top-12 lg:right-12 w-12 lg:w-16 h-12 lg:h-16 border-r border-t border-[var(--color-accent)]/15" />
       
-      {/* Main Footer Content */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-20">
+      {/* Main Footer Content - min padding to stay inside corners */}
+      <div className="relative max-w-7xl mx-auto px-10 lg:px-16 py-16 lg:py-20">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-8">
-          {/* Brand Column */}
+          {/* Brand Column - Now clickable */}
           <div className="lg:col-span-5">
-            <div className="flex items-center gap-4 mb-8">
+            <Link href="/" className="group inline-flex items-center gap-4 mb-8">
               {/* Logo with inner frame */}
-              <div className="group relative w-14 h-14 border border-[var(--color-accent)]/30 p-1 cursor-pointer">
+              <div className="relative w-14 h-14 border border-[var(--color-accent)]/30 p-1 transition-colors duration-300 group-hover:border-[var(--color-accent)]/60">
                 <div className="relative w-full h-full border border-white/20 flex items-center justify-center">
                   {/* Inner corners on hover */}
                   <div className="absolute top-0.5 left-0.5 w-0 h-0 border-l border-t border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-2 group-hover:h-2 transition-all duration-300" />
@@ -49,14 +49,14 @@ const Footer = () => {
                 </div>
               </div>
               <div>
-                <h2 className="font-display text-xl font-medium text-white">
+                <h2 className="font-display text-xl font-medium text-white transition-colors duration-300 group-hover:text-[var(--color-accent)]">
                   Nahj al-Balaghah
                 </h2>
                 <p className="text-xs tracking-[0.2em] uppercase mt-1 text-white/50">
                   The Way of Eloquence
                 </p>
               </div>
-            </div>
+            </Link>
             <p className="text-white/60 leading-relaxed max-w-md text-sm">
               A comprehensive digital archive preserving and presenting the sermons, 
               letters, and sayings of Imam Ali ibn Abi Talib, compiled by Sharif al-Radi 

@@ -218,7 +218,7 @@ const ContactFormSection = () => {
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[var(--color-primary)] text-white font-body font-medium hover:bg-[var(--color-primary-dark)] transition-colors"
+                      className="btn-primary w-full justify-center"
                     >
                       <Send className="w-5 h-5" />
                       Send Message
