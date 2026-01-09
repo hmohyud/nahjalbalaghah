@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react'
-import { ArrowRight, ChevronDown, BookOpen } from 'lucide-react'
+import { ArrowRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { orationsApi, lettersApi, sayingsApi } from '@/api'
@@ -81,97 +81,77 @@ const HeroSection = () => {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[var(--color-cream)]" />
       </div>
 
       {/* Decorative page frame - like manuscript edges */}
-      <div className="absolute inset-8 lg:inset-16 pointer-events-none">
-        <div className="absolute top-0 left-0 w-20 lg:w-28 h-20 lg:h-28 border-l border-t border-[var(--color-accent)]/15" />
-        <div className="absolute top-0 right-0 w-20 lg:w-28 h-20 lg:h-28 border-r border-t border-[var(--color-accent)]/15" />
-        <div className="absolute bottom-0 left-0 w-20 lg:w-28 h-20 lg:h-28 border-l border-b border-[var(--color-accent)]/15" />
-        <div className="absolute bottom-0 right-0 w-20 lg:w-28 h-20 lg:h-28 border-r border-b border-[var(--color-accent)]/15" />
+      <div className="absolute inset-8 lg:inset-12 pointer-events-none">
+        <div className="absolute top-0 left-0 w-16 lg:w-20 h-16 lg:h-20 border-l border-t border-[var(--color-accent)]/15" />
+        <div className="absolute top-0 right-0 w-16 lg:w-20 h-16 lg:h-20 border-r border-t border-[var(--color-accent)]/15" />
+        <div className="absolute bottom-0 left-0 w-16 lg:w-20 h-16 lg:h-20 border-l border-b border-[var(--color-accent)]/15" />
+        <div className="absolute bottom-0 right-0 w-16 lg:w-20 h-16 lg:h-20 border-r border-b border-[var(--color-accent)]/15" />
       </div>
 
       {/* Main Content */}
-      <div className="relative flex-1 flex items-center justify-center pt-32 pb-16 px-6 lg:px-8">
+      <div className="relative flex-1 flex items-center justify-center pt-28 pb-8 px-6 lg:px-8">
         <div className="max-w-5xl mx-auto text-center">
           {/* Arabic Title Image */}
           <div 
-            className={`mb-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            className={`mb-6 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <Image 
               src={TitleImage} 
               alt="نهج البلاغة" 
-              className="h-24 sm:h-32 lg:h-40 w-auto mx-auto"
+              className="h-20 sm:h-24 lg:h-32 w-auto mx-auto"
               priority
             />
           </div>
 
           {/* Decorative Ornament */}
           <div 
-            className={`flex items-center justify-center gap-4 mb-10 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            className={`flex items-center justify-center gap-4 mb-6 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
           >
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
+            <div className="w-12 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
             <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+            <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
           </div>
 
           {/* English Title */}
           <h1 
-            className={`font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-[var(--color-ink)] leading-[1.1] mb-6 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            className={`font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-light text-[var(--color-ink)] leading-[1.1] mb-4 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             The Way of Eloquence
           </h1>
 
           {/* Subtitle */}
           <p 
-            className={`font-body text-base sm:text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto leading-relaxed mb-4 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            className={`font-body text-sm sm:text-base text-[var(--color-warm-gray)] max-w-2xl mx-auto leading-relaxed mb-2 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             Selections from the Words of the Commander of the Faithful
           </p>
           <p 
-            className={`font-display text-xl sm:text-2xl text-[var(--color-charcoal)] italic mb-12 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            className={`font-display text-lg sm:text-xl text-[var(--color-charcoal)] italic mb-8 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             ʿAlī ibn Abī Ṭālib
           </p>
 
           {/* Compiler Credit */}
           <div 
-            className={`mb-16 transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            className={`transition-all duration-1000 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="text-xs tracking-[0.2em] uppercase text-[var(--color-warm-gray)] mb-2">
+            <p className="text-xs tracking-[0.2em] uppercase text-[var(--color-warm-gray)] mb-1">
               Compiled by
             </p>
-            <p className="font-display text-lg text-[var(--color-charcoal)]">
+            <p className="font-display text-base text-[var(--color-charcoal)]">
               al-Sharīf al-Raḍī
             </p>
-            <p className="text-sm text-[var(--color-warm-gray)] mt-1">
-              10th Century CE
-            </p>
-          </div>
-
-          {/* CTA - Raḍī's Intro */}
-          <div 
-            className={`transition-all duration-1000 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          >
-            <Link href="/radis" className="group relative inline-block">
-              <button className="relative inline-flex items-center gap-4 px-8 py-4 bg-[var(--color-primary)] text-white text-sm tracking-[0.15em] uppercase font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200">
-                <BookOpen className="w-4 h-4" />
-                <span>Raḍī's Intro</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              {/* Outer corners */}
-              <div className="absolute -top-1.5 -left-1.5 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
-              <div className="absolute -bottom-1.5 -right-1.5 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
-            </Link>
           </div>
         </div>
       </div>
 
       {/* Content Type Cards */}
-      <div className="relative bg-[var(--color-cream)] py-16 lg:py-24">
+      <div className="relative bg-[var(--color-cream)] py-8 lg:py-10">
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid md:grid-cols-3 gap-4 lg:gap-6">
             {contentTypes.map((content, index) => (
               <Link 
                 href={content.href} 
@@ -179,19 +159,19 @@ const HeroSection = () => {
                 className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
                 style={{ transitionDelay: `${800 + index * 100}ms` }}
               >
-                <div className="relative bg-white border border-[var(--color-stone)] p-8 lg:p-10 transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1">
+                <div className="relative bg-white border border-[var(--color-stone)] p-6 lg:p-8 transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1">
                   {/* Count badge */}
-                  <div className="absolute top-6 right-6 text-xs tracking-[0.15em] text-[var(--color-warm-gray)]">
+                  <div className="absolute top-4 right-4 text-xs tracking-[0.15em] text-[var(--color-warm-gray)]">
                     {content.count}
                   </div>
                   
                   {/* Arabic */}
-                  <div className="font-taha text-4xl text-[var(--color-primary)] mb-4 transition-colors duration-300 group-hover:text-[var(--color-primary-dark)]">
+                  <div className="font-taha text-3xl text-[var(--color-primary)] mb-3 transition-colors duration-300 group-hover:text-[var(--color-primary-dark)]">
                     {content.arabic}
                   </div>
                   
                   {/* English */}
-                  <h3 className="font-display text-2xl text-[var(--color-ink)] mb-2">
+                  <h3 className="font-display text-xl text-[var(--color-ink)] mb-1">
                     {content.label}
                   </h3>
                   <p className="text-sm text-[var(--color-warm-gray)]">
@@ -199,7 +179,7 @@ const HeroSection = () => {
                   </p>
 
                   {/* Hover indicator line */}
-                  <div className="mt-8 flex items-center gap-3">
+                  <div className="mt-6 flex items-center gap-3">
                     <div className="h-[1px] w-0 bg-[var(--color-accent)] group-hover:w-8 transition-all duration-300" />
                     <span className="text-xs tracking-[0.15em] uppercase text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       Explore
@@ -207,8 +187,8 @@ const HeroSection = () => {
                   </div>
 
                   {/* Corner accents - appear on hover */}
-                  <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
-                  <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
+                  <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-6 group-hover:h-6 transition-all duration-300" />
+                  <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-6 group-hover:h-6 transition-all duration-300" />
                 </div>
               </Link>
             ))}
@@ -216,44 +196,55 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div 
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-      >
-        <div className="flex flex-col items-center gap-2 text-[var(--color-warm-gray)]">
-          <span className="text-xs tracking-[0.2em] uppercase">Scroll</span>
-          <ChevronDown className="w-4 h-4 animate-bounce" />
+      {/* Raḍī's Introduction & Conclusion */}
+      <div className="relative bg-[var(--color-cream)] py-6">
+        {/* Decorative top line */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] max-w-4xl h-[1px] bg-gradient-to-r from-transparent via-[var(--color-stone)] to-transparent" />
+        
+        <div className="max-w-2xl mx-auto px-6">
+          {/* Grid: 3 columns with diamond fixed in center */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            {/* Left link - right aligned */}
+            <Link 
+              href="/radis" 
+              className="group text-right"
+            >
+              <span className="font-display text-base text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
+                Raḍī's Introduction
+              </span>
+            </Link>
+            
+            {/* Center ornament */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
+              <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
+              <div className="w-8 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+            </div>
+            
+            {/* Right link - left aligned */}
+            <Link 
+              href="/conclusions" 
+              className="group text-left"
+            >
+              <span className="font-display text-base text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
+                Raḍī's Conclusion
+              </span>
+            </Link>
+          </div>
+        </div>
+        
+        {/* Scroll Indicator - same grid centering approach */}
+        <div className="max-w-2xl mx-auto px-6 mt-6">
+          <div 
+            className={`grid grid-cols-[1fr_auto_1fr] transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <div />
+            <ChevronDown className="w-5 h-5 text-[var(--color-warm-gray)] opacity-50 animate-bounce" />
+            <div />
+          </div>
         </div>
       </div>
-    </section>
 
-    {/* Raḍī's Conclusion */}
-    <section className="bg-[var(--color-stone)] py-10 lg:py-12">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
-        <Link href="/conclusions" className="group block">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
-            {/* Title block */}
-            <div className="sm:border-r sm:border-[var(--color-warm-gray)]/30 sm:pr-8">
-              <h2 className="font-display text-lg text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
-                Raḍī's Conclusion
-              </h2>
-            </div>
-            
-            {/* Summary block */}
-            <div className="flex-1">
-              <p className="font-body text-sm text-[var(--color-warm-gray)] leading-relaxed">
-                Closing reflections on preserving the Commander of the Faithful's wisdom for generations to come.
-              </p>
-            </div>
-            
-            {/* Action block */}
-            <div className="flex items-center gap-2 text-[var(--color-primary)] sm:border-l sm:border-[var(--color-warm-gray)]/30 sm:pl-8">
-              <span className="text-xs tracking-[0.1em] uppercase font-medium">Read</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </div>
-        </Link>
-      </div>
     </section>
     </>
   )

@@ -101,18 +101,12 @@ const Header = () => {
     { name: 'Sayings', href: '/sayings' },
   ]
 
-  const radisItems = [
-    { name: 'Introduction', href: '/radis' },
-    { name: 'Conclusion', href: '/conclusions' },
-  ]
-
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
 
   const isCollectionsActive = collectionsItems.some(item => isActive(item.href))
-  const isRadisActive = radisItems.some(item => isActive(item.href))
 
   const toggleMobileDropdown = (name: string) => {
     setMobileDropdown(mobileDropdown === name ? null : name)
@@ -181,13 +175,6 @@ const Header = () => {
                   <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
                 )}
               </Link>
-
-              {/* Raḍī's Dropdown */}
-              <Dropdown 
-                label="Raḍī's" 
-                items={radisItems} 
-                isActive={isRadisActive}
-              />
 
               {/* Collections Dropdown */}
               <Dropdown 
@@ -317,46 +304,6 @@ const Header = () => {
                 </div>
                 <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
               </Link>
-
-              {/* Raḍī's Dropdown */}
-              <div className="border-t border-[var(--color-stone)]/50">
-                <button
-                  onClick={() => toggleMobileDropdown('radis')}
-                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${
-                    isRadisActive 
-                      ? 'text-[var(--color-primary)]' 
-                      : 'text-[var(--color-charcoal)]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {isRadisActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
-                    <span className="font-display text-lg">Raḍī's</span>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${
-                    mobileDropdown === 'radis' ? 'rotate-180' : ''
-                  }`} />
-                </button>
-                <div className={`overflow-hidden transition-all duration-200 ${
-                  mobileDropdown === 'radis' ? 'max-h-40' : 'max-h-0'
-                }`}>
-                  <div className="pl-6 pb-2">
-                    {radisItems.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${
-                          isActive(item.href) 
-                            ? 'text-[var(--color-primary)]' 
-                            : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                        }`}
-                      >
-                        <span className="font-body">{item.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
               {/* Collections Dropdown */}
               <div className="border-t border-[var(--color-stone)]/50">

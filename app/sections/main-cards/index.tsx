@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react'
-import { FileText, BookOpen, ScrollText, Bookmark, Info, ArrowRight } from 'lucide-react'
+import { FileText, BookOpen, Info, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 const MainCardsSection = () => {
@@ -37,20 +37,6 @@ const MainCardsSection = () => {
       title: "Indexes",
       description: "Browse comprehensive indexes including names, places, terms, and religious concepts",
       href: "/indexes",
-      featured: false
-    },
-    {
-      icon: ScrollText,
-      title: "Introduction",
-      description: "Read the enlightening introduction by al-Sharīf al-Raḍī, the compiler",
-      href: "/radis",
-      featured: false
-    },
-    {
-      icon: Bookmark,
-      title: "Conclusion",
-      description: "Explore the concluding remarks on the completion of this monumental work",
-      href: "/conclusions",
       featured: false
     },
     {
@@ -91,7 +77,7 @@ const MainCardsSection = () => {
           <p 
             className={`text-[var(--color-warm-gray)] text-lg leading-relaxed mt-6 max-w-xl transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            Access manuscripts, scholarly indexes, introductions, and supplementary materials 
+            Access manuscripts, scholarly indexes, and supplementary materials 
             to deepen your understanding of this timeless text.
           </p>
         </div>
