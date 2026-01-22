@@ -175,25 +175,25 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
   return (
     <div className="relative bg-white border border-[var(--color-stone)]">
       {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-      <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
+      <div className="absolute top-0 left-0 w-4 h-4 lg:w-6 lg:h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
+      <div className="absolute bottom-0 right-0 w-4 h-4 lg:w-6 lg:h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
 
-      <div className="p-8 lg:p-10">
+      <div className="p-4 sm:p-6 lg:p-10">
         {/* Header */}
-        <div className="mb-8 pb-6 border-b border-[var(--color-stone)]">
-          <h1 className="font-display text-2xl lg:text-3xl text-[var(--color-ink)] mb-4 leading-relaxed">
+        <div className="mb-6 lg:mb-8 pb-4 lg:pb-6 border-b border-[var(--color-stone)]">
+          <h1 className="font-display text-xl sm:text-2xl lg:text-3xl text-[var(--color-ink)] mb-3 lg:mb-4 leading-relaxed">
             {heading || `${getContentLabel()} Details`}
           </h1>
           
           {/* Tags */}
           {content.tags && content.tags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
+            <div className="flex flex-wrap items-center gap-1.5 lg:gap-2 mt-3 lg:mt-4">
               {content.tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-body bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20"
+                  className="inline-flex items-center gap-1 px-2 lg:px-3 py-0.5 lg:py-1 text-[10px] lg:text-xs font-body bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20"
                 >
-                  <TagIcon className="w-3 h-3" />
+                  <TagIcon className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
                   {tag.name}
                 </span>
               ))}
@@ -201,7 +201,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
           )}
 
           {/* Display Controls */}
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 lg:mt-6 flex flex-col sm:flex-row gap-2 lg:gap-3">
             <Select
               options={displayOptions}
               value={displayMode}
@@ -223,8 +223,8 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Sermon Number Badge */}
         {content.sermonNumber && (
-          <div className="mb-6">
-            <span className="inline-flex items-center px-3 py-1 text-sm font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+          <div className="mb-4 lg:mb-6">
+            <span className="inline-flex items-center px-2 lg:px-3 py-0.5 lg:py-1 text-xs lg:text-sm font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
               {content.sermonNumber}
             </span>
           </div>
@@ -233,15 +233,15 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
         {/* Main Content */}
         {(content.title || mainTranslation) && (
           <div 
-            className={`space-y-6 mb-8 ${highlightedParagraphNumber === content.sermonNumber ? 'highlight-text-ref' : ''}`}
+            className={`space-y-4 lg:space-y-6 mb-6 lg:mb-8 ${highlightedParagraphNumber === content.sermonNumber ? 'highlight-text-ref' : ''}`}
             data-text-ref={content.sermonNumber}
           >
-            <div className="border-b border-[var(--color-stone)] pb-8">
+            <div className="border-b border-[var(--color-stone)] pb-6 lg:pb-8">
               {/* Arabic Title */}
               {(displayMode === 'both' || displayMode === 'arabic-only') && content.title && (
-                <div className="mb-6">
-                  <div className="text-right bg-[var(--color-parchment)] p-6 border-r-4 border-[var(--color-accent)]">
-                    <p className="text-lg lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap" dir="rtl">
+                <div className="mb-4 lg:mb-6">
+                  <div className="text-right bg-[var(--color-parchment)] p-4 lg:p-6 border-r-4 border-[var(--color-accent)]">
+                    <p className="text-base lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap" dir="rtl">
                       {formatTextWithFootnotes(cleanArabicText(content.title), allFootnotes, true, content.sermonNumber || 'main')}
                     </p>
                   </div>
@@ -255,8 +255,8 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                   allReferences = allReferences.concat(refs);
 
                   return (
-                    <div className="bg-[var(--color-cream)] p-6 border border-[var(--color-stone)]">
-                      <p className="text-base lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
+                    <div className="bg-[var(--color-cream)] p-4 lg:p-6 border border-[var(--color-stone)]">
+                      <p className="text-sm lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
                         {formatTextWithFootnotes(mainTranslation.text, allFootnotes, false, content.sermonNumber || 'main')}
                       </p>
                     </div>
@@ -269,19 +269,19 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Paragraphs */}
         {sortedParagraphs.length > 0 && (
-          <div className="space-y-8">
+          <div className="space-y-6 lg:space-y-8">
             {sortedParagraphs.map((paragraph) => {
               const englishTranslation = paragraph.translations?.find(t => t.type === selectedTranslation);
               return (
                 <div 
                   key={paragraph.id} 
                   data-text-ref={paragraph.number}
-                  className={`border-b border-[var(--color-stone)] pb-8 last:border-b-0 last:pb-0 ${highlightedParagraphNumber === paragraph.number ? 'highlight-text-ref' : ''}`}
+                  className={`border-b border-[var(--color-stone)] pb-6 lg:pb-8 last:border-b-0 last:pb-0 ${highlightedParagraphNumber === paragraph.number ? 'highlight-text-ref' : ''}`}
                 >
                   {/* Paragraph Number */}
                   {paragraph.number && (
-                    <div className="mb-4">
-                      <span className="inline-flex items-center px-3 py-1 text-sm font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+                    <div className="mb-3 lg:mb-4">
+                      <span className="inline-flex items-center px-2 lg:px-3 py-0.5 lg:py-1 text-xs lg:text-sm font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
                         {paragraph.number}
                       </span>
                     </div>
@@ -292,8 +292,8 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                     const lines = paragraph.arabic.split(/\n+/).filter(Boolean);
 
                     return (
-                      <div className="mb-6">
-                        <div className="bg-[var(--color-parchment)] p-6 border-r-4 border-[var(--color-accent)]">
+                      <div className="mb-4 lg:mb-6">
+                        <div className="bg-[var(--color-parchment)] p-4 lg:p-6 border-r-4 border-[var(--color-accent)]">
                           {lines.map((line, index) => {
                             const isCentered = /<center>/i.test(line);
                             const cleanedLine = line
@@ -307,7 +307,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                             return (
                               <div key={index} className={isCentered ? 'text-center' : 'text-right'}>
                                 <p
-                                  className={`text-lg lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap ${isCentered ? 'inline-block' : ''}`}
+                                  className={`text-base lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap ${isCentered ? 'inline-block' : ''}`}
                                   dir="rtl"
                                 >
                                   {formatTextWithFootnotes(cleanedLine, allFootnotes, true, paragraph.number)}
@@ -326,8 +326,8 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                     allReferences = allReferences.concat(refs);
 
                     return (
-                      <div className="bg-[var(--color-cream)] p-6 border border-[var(--color-stone)]">
-                        <p className="text-base lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
+                      <div className="bg-[var(--color-cream)] p-4 lg:p-6 border border-[var(--color-stone)]">
+                        <p className="text-sm lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
                           {formatTextWithFootnotes(englishTranslation.text, allFootnotes, false, paragraph.number)}
                         </p>
                       </div>
@@ -341,8 +341,8 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Empty State */}
         {sortedParagraphs.length === 0 && !(content.title || mainTranslation) && (
-          <div className="text-center py-12">
-            <p className="text-[var(--color-warm-gray)] font-body">No content available for this {contentType.slice(0, -1)}.</p>
+          <div className="text-center py-8 lg:py-12">
+            <p className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base">No content available for this {contentType.slice(0, -1)}.</p>
           </div>
         )}
       </div>

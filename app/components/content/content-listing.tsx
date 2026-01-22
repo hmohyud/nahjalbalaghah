@@ -72,7 +72,7 @@ export default function ContentListing({
   });
 
   const renderListView = () => (
-    <div className="space-y-4">
+    <div className="space-y-3 lg:space-y-4">
       {content.map((item, index) => (
         <div
           key={item.id || index}
@@ -91,7 +91,7 @@ export default function ContentListing({
   );
 
   const renderLoadingList = () => (
-    <div className="space-y-4">
+    <div className="space-y-3 lg:space-y-4">
       {[...Array(6)].map((_, index) => (
         <div 
           key={index} 
@@ -99,14 +99,14 @@ export default function ContentListing({
           style={{ animationDelay: `${index * 80}ms` }}
         >
           <div className="flex items-center gap-0">
-            <div className="w-20 h-20 bg-[var(--color-parchment)]"></div>
-            <div className="flex-grow py-5 pr-6 pl-6">
+            <div className="w-12 sm:w-14 lg:w-20 h-16 lg:h-20 bg-[var(--color-parchment)]"></div>
+            <div className="flex-grow py-3 lg:py-5 pr-4 lg:pr-6 pl-3 lg:pl-6">
               <div className="flex items-center justify-between">
                 <div className="flex-grow">
-                  <div className="h-5 bg-[var(--color-parchment)] mb-3 w-3/4"></div>
+                  <div className="h-4 lg:h-5 bg-[var(--color-parchment)] mb-2 lg:mb-3 w-3/4"></div>
                   <div className="flex gap-2">
-                    <div className="h-5 bg-[var(--color-parchment)] w-16"></div>
-                    <div className="h-5 bg-[var(--color-parchment)] w-20"></div>
+                    <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-12 lg:w-16"></div>
+                    <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-16 lg:w-20"></div>
                   </div>
                 </div>
               </div>
@@ -119,8 +119,8 @@ export default function ContentListing({
 
   return (
     <div className="w-full relative">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
-        <p className="text-[var(--color-warm-gray)] font-body text-sm whitespace-nowrap flex-shrink-0">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 lg:mb-6 gap-3 lg:gap-4">
+        <p className="text-[var(--color-warm-gray)] font-body text-xs lg:text-sm whitespace-nowrap flex-shrink-0">
           {loading ? "Loading..." : (subtitle || `Showing ${content.length} of ${total} results`)}
         </p>
         
@@ -146,18 +146,18 @@ export default function ContentListing({
           
           {/* Show loading indicator on mobile for infinite scroll */}
           {isInfiniteLoading && (
-            <div className="mt-6 lg:hidden">
+            <div className="mt-4 lg:mt-6 lg:hidden">
               <div className="animate-pulse">
                 <div className="bg-white border border-[var(--color-stone)] overflow-hidden">
                   <div className="flex items-center gap-0">
-                    <div className="w-20 h-20 bg-[var(--color-parchment)]"></div>
-                    <div className="flex-grow py-5 pr-6 pl-6">
+                    <div className="w-12 sm:w-14 lg:w-20 h-16 lg:h-20 bg-[var(--color-parchment)]"></div>
+                    <div className="flex-grow py-3 lg:py-5 pr-4 lg:pr-6 pl-3 lg:pl-6">
                       <div className="flex items-center justify-between">
                         <div className="flex-grow">
-                          <div className="h-5 bg-[var(--color-parchment)] mb-3 w-3/4"></div>
+                          <div className="h-4 lg:h-5 bg-[var(--color-parchment)] mb-2 lg:mb-3 w-3/4"></div>
                           <div className="flex gap-2">
-                            <div className="h-5 bg-[var(--color-parchment)] w-16"></div>
-                            <div className="h-5 bg-[var(--color-parchment)] w-20"></div>
+                            <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-12 lg:w-16"></div>
+                            <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-16 lg:w-20"></div>
                           </div>
                         </div>
                       </div>
@@ -170,7 +170,7 @@ export default function ContentListing({
           
           {/* Show pagination at bottom on desktop only */}
           {totalPages > 1 && onPageChange && (
-            <div className="hidden lg:block mt-10">
+            <div className="hidden lg:block mt-8 lg:mt-10">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

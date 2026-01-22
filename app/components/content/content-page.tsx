@@ -450,14 +450,14 @@ function ContentPageContent({ config }: ContentPageProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-parchment)]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="font-display text-3xl lg:text-4xl text-[var(--color-ink)] mb-3">{config.title}</h1>
-          <p className="font-body text-[var(--color-warm-gray)] max-w-2xl">
+        <div className="mb-6 lg:mb-10">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-ink)] mb-2 lg:mb-3">{config.title}</h1>
+          <p className="font-body text-sm lg:text-base text-[var(--color-warm-gray)] max-w-2xl">
             {config.subtitle}
           </p>
-          <div className="w-16 h-[2px] bg-[var(--color-accent)] mt-6" />
+          <div className="w-12 lg:w-16 h-[2px] bg-[var(--color-accent)] mt-4 lg:mt-6" />
         </div>
 
         {/* Filter Bar */}
@@ -506,19 +506,19 @@ function ContentPageContent({ config }: ContentPageProps) {
 function ContentPageFallback({ config }: ContentPageProps) {
   return (
     <div className="min-h-screen bg-[var(--color-parchment)]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
-        <div className="mb-10">
-          <h1 className="font-display text-3xl lg:text-4xl text-[var(--color-ink)] mb-3">{config.title}</h1>
-          <p className="font-body text-[var(--color-warm-gray)] max-w-2xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="mb-6 lg:mb-10">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-ink)] mb-2 lg:mb-3">{config.title}</h1>
+          <p className="font-body text-sm lg:text-base text-[var(--color-warm-gray)] max-w-2xl">
             {config.subtitle}
           </p>
-          <div className="w-16 h-[2px] bg-[var(--color-accent)] mt-6" />
+          <div className="w-12 lg:w-16 h-[2px] bg-[var(--color-accent)] mt-4 lg:mt-6" />
         </div>
         <div className="animate-pulse">
-          <div className="h-14 bg-white border border-[var(--color-stone)] mb-8"></div>
-          <div className="space-y-4">
+          <div className="h-12 lg:h-14 bg-white border border-[var(--color-stone)] mb-6 lg:mb-8"></div>
+          <div className="space-y-3 lg:space-y-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-24 bg-white border border-[var(--color-stone)]"></div>
+              <div key={i} className="h-20 lg:h-24 bg-white border border-[var(--color-stone)]"></div>
             ))}
           </div>
         </div>
