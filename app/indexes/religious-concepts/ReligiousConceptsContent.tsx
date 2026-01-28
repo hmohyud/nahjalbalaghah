@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { Search, X, Book, ArrowRight } from 'lucide-react';
+import { Search, X, Book, ArrowRight, Scale } from 'lucide-react';
 import { religiousConceptsApi, ReligiousConcept, ReligiousConceptsFilters } from '@/api';
 import Button from '@/app/components/button';
 import Input from '@/app/components/input';
@@ -32,7 +32,6 @@ export default function ReligiousConceptsContent() {
 
   const [filters, setFilters] = useState<ReligiousConceptsFilters>(appliedFilters);
 
-  // Sync filters with URL params when they change (e.g. back button)
   useEffect(() => {
     setFilters({
       word_english: searchParams.get('word_english') || '',
@@ -120,70 +119,89 @@ export default function ReligiousConceptsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Index of Religious &amp; Ethical Concepts</h1>
-          <p className="text-lg text-gray-600">
+    <div className="min-h-screen bg-[var(--color-parchment)]">
+      {/* Hero Section */}
+      <div className="pt-28 lg:pt-32 pb-6">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 bg-[var(--color-primary)] flex items-center justify-center">
+              <Scale className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="font-display text-2xl lg:text-3xl text-[var(--color-primary)]">
+              Index of Religious &amp; Ethical Concepts
+            </h1>
+          </div>
+          <p className="text-[var(--color-warm-gray)] font-body mt-2 ml-16">
             Explore the religious and ethical concepts found in Nahj al-Balaghah
           </p>
         </div>
+      </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">Filters</h2>
-            {hasActiveFilters && (
-              <Button
-                onClick={handleClearFilters}
-                variant='danger'
-                icon={<X className="w-4 h-4" />}
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
+      <div className="max-w-6xl mx-auto px-6 lg:px-8 pb-12">
+        {/* Filter Section */}
+        <div className="mb-8">
+          <div className="relative bg-white border border-[var(--color-stone)]">
+            <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+            
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-lg text-[var(--color-ink)]">Filters</h2>
+                {hasActiveFilters && (
+                  <Button
+                    onClick={handleClearFilters}
+                    variant='danger'
+                    icon={<X className="w-4 h-4" />}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-medium text-sm text-gray-700 mb-1">Language</label>
-              <Select
-                value={filters.language || 'Arabic'}
-                onChange={(value) => setFilters({ ...filters, language: value as 'English' | 'Arabic' })}
-                options={[
-                  { value: 'Arabic', label: 'Arabic' }
-                ]}
-                placeholder="Select Language"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body mb-2">Language</label>
+                  <Select
+                    value={filters.language || 'Arabic'}
+                    onChange={(value) => setFilters({ ...filters, language: value as 'English' | 'Arabic' })}
+                    options={[
+                      { value: 'Arabic', label: 'Arabic' }
+                    ]}
+                    placeholder="Select Language"
+                  />
+                </div>
+                {filters.language === 'English' ? (
+                  <Input
+                    label="English Word"
+                    placeholder="Search English..."
+                    value={filters.word_english}
+                    onChange={(e) => setFilters({ ...filters, word_english: e.target.value })}
+                  />
+                ) : (
+                  <Input
+                    label="Arabic Word"
+                    placeholder="Search Arabic..."
+                    value={filters.word_arabic}
+                    onChange={(e) => setFilters({ ...filters, word_arabic: e.target.value })}
+                    className="text-right"
+                    dir="rtl"
+                  />
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  onClick={() => handleApplyFilters()}
+                  variant='outlined'
+                  icon={<Search className="w-4 h-4" />}
+                >
+                  Apply Filters
+                </Button>
+              </div>
             </div>
-            {filters.language === 'English' ? (
-              <Input
-                label="English Word"
-                placeholder="Search English..."
-                value={filters.word_english}
-                onChange={(e) => setFilters({ ...filters, word_english: e.target.value })}
-              />
-            ) : (
-              <Input
-                label="Arabic Word"
-                placeholder="Search Arabic..."
-                value={filters.word_arabic}
-                onChange={(e) => setFilters({ ...filters, word_arabic: e.target.value })}
-                className="text-right"
-                dir="rtl"
-              />
-            )}
-          </div>
-          <div className="mt-4 flex justify-end">
-            <Button
-              onClick={() => handleApplyFilters()}
-              variant='outlined'
-              icon={<Search className="w-4 h-4" />}
-            >
-              Apply Filters
-            </Button>
           </div>
         </div>
 
+        {/* Alphabet Chips */}
         <div className="mb-6">
           <AlphabetChips
             selectedLetter={filters.language === 'English' ? (filters.startsWith_english || '') : (filters.startsWith_arabic || '')}
@@ -192,12 +210,15 @@ export default function ReligiousConceptsContent() {
           />
         </div>
 
+        {/* Results */}
         <div>
           {loading ? (
             <>
               {/* Desktop Loading */}
-              <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
+              <div className="hidden md:block">
+                <div className="relative bg-white border border-[var(--color-stone)] overflow-hidden">
+                  <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
                   <table className="w-full table-fixed">
                     <colgroup>
                       <col className="w-24" />
@@ -205,28 +226,27 @@ export default function ReligiousConceptsContent() {
                       {appliedFilters.language === 'Arabic' && <col className="w-1/5" />}
                       <col />
                     </colgroup>
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-[var(--color-cream)] border-b border-[var(--color-stone)]">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Section</th>
-                        {appliedFilters.language === 'English' && <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">English</th>}
-                        {appliedFilters.language === 'Arabic' && <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 whitespace-nowrap">Arabic</th>}
-                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Text References</th>
+                        <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Section</th>
+                        {appliedFilters.language === 'English' && <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">English</th>}
+                        {appliedFilters.language === 'Arabic' && <th className="px-6 py-4 text-right text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body whitespace-nowrap">Arabic</th>}
+                        <th className="px-6 py-4 text-center text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Text References</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-[var(--color-stone)]">
                       {[...Array(10)].map((_, index) => (
                         <tr key={index} className="animate-pulse">
                           <td className="px-6 py-4">
-                            <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                            <div className="w-10 h-10 bg-[var(--color-stone)] opacity-50"></div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-4 bg-[var(--color-stone)] opacity-50 w-3/4"></div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-2 justify-center">
-                              <div className="h-6 bg-gray-200 rounded w-12"></div>
-                              <div className="h-6 bg-gray-200 rounded w-12"></div>
-                              <div className="h-6 bg-gray-200 rounded w-12"></div>
+                              <div className="h-6 bg-[var(--color-stone)] opacity-50 w-12"></div>
+                              <div className="h-6 bg-[var(--color-stone)] opacity-50 w-12"></div>
                             </div>
                           </td>
                         </tr>
@@ -238,13 +258,15 @@ export default function ReligiousConceptsContent() {
               {/* Mobile Loading */}
               <div className="md:hidden space-y-4">
                 {[...Array(5)].map((_, index) => (
-                  <div key={index} className="bg-white rounded-xl border border-gray-200 p-4 animate-pulse">
+                  <div key={index} className="relative bg-white border border-[var(--color-stone)] p-4 animate-pulse">
+                    <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[var(--color-accent)]" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[var(--color-accent)]" />
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-5 bg-[var(--color-stone)] opacity-50 w-3/4 mb-2"></div>
+                        <div className="h-4 bg-[var(--color-stone)] opacity-50 w-1/2"></div>
                       </div>
-                      <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                      <div className="w-8 h-8 bg-[var(--color-stone)] opacity-50"></div>
                     </div>
                   </div>
                 ))}
@@ -252,91 +274,101 @@ export default function ReligiousConceptsContent() {
             </>
           ) : error ? (
             <div className="text-center py-12">
-              <div className="text-red-500 mb-4">
-                <X className="w-12 h-12 mx-auto" />
+              <div className="relative bg-white border border-[var(--color-stone)] p-8 max-w-md mx-auto">
+                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+                <div className="text-red-600 mb-4">
+                  <X className="w-12 h-12 mx-auto" />
+                </div>
+                <h3 className="font-display text-lg text-[var(--color-ink)] mb-2">Error</h3>
+                <p className="text-[var(--color-warm-gray)] font-body">{error}</p>
+                <Button onClick={() => window.location.reload()} variant='solid' className="mt-4">
+                  Try Again
+                </Button>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Error</h3>
-              <p className="text-gray-600">{error}</p>
-              <Button onClick={() => window.location.reload()} variant='solid' className="mt-4">
-                Try Again
-              </Button>
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">
-                <Book className="w-12 h-12 mx-auto" />
+              <div className="relative bg-white border border-[var(--color-stone)] p-8 max-w-md mx-auto">
+                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+                <Book className="w-16 h-16 text-[var(--color-stone)] mx-auto mb-4" />
+                <h3 className="font-display text-lg text-[var(--color-ink)] mb-2">No Results Found</h3>
+                <p className="text-[var(--color-warm-gray)] font-body">Try adjusting your filters or search criteria.</p>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Results Found</h3>
-              <p className="text-gray-600">Try adjusting your filters or search criteria.</p>
             </div>
           ) : (
             <>
-              <div className="mb-4 text-sm text-gray-600">
+              <div className="mb-4 text-sm text-[var(--color-warm-gray)] font-body">
                 Showing {items.length} of {total} results
               </div>
               {/* Desktop Table */}
-              <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full table-fixed">
-                    <colgroup>
-                      <col className="w-24" />
-                      {appliedFilters.language === 'English' && <col className="w-1/4" />}
-                      {appliedFilters.language === 'Arabic' && <col className="w-1/5" />}
-                      <col />
-                    </colgroup>
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Section</th>
-                        {appliedFilters.language === 'English' && <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">English</th>}
-                        {appliedFilters.language === 'Arabic' && <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 whitespace-nowrap">Arabic</th>}
-                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Text References</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {items.map((item) => {
-                        const name = appliedFilters.language === 'Arabic' ? item.word_arabic : item.word_english;
-                        const refs = item.text_numbers?.map(t => t.value).join(',') || '';
-                        const targetUrl = name
-                          ? `/indexes/religious-concepts/${encodeURIComponent(name)}${refs ? `?refs=${encodeURIComponent(refs)}` : ''}`
-                          : '#';
+              <div className="hidden md:block">
+                <div className="relative bg-white border border-[var(--color-stone)] overflow-hidden">
+                  <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+                  <div className="overflow-x-auto">
+                    <table className="w-full table-fixed">
+                      <colgroup>
+                        <col className="w-24" />
+                        {appliedFilters.language === 'English' && <col className="w-1/4" />}
+                        {appliedFilters.language === 'Arabic' && <col className="w-1/5" />}
+                        <col />
+                      </colgroup>
+                      <thead className="bg-[var(--color-cream)] border-b border-[var(--color-stone)]">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Section</th>
+                          {appliedFilters.language === 'English' && <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">English</th>}
+                          {appliedFilters.language === 'Arabic' && <th className="px-6 py-4 text-right text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body whitespace-nowrap">Arabic</th>}
+                          <th className="px-6 py-4 text-center text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Text References</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--color-stone)]">
+                        {items.map((item) => {
+                          const name = appliedFilters.language === 'Arabic' ? item.word_arabic : item.word_english;
+                          const refs = item.text_numbers?.map(t => t.value).join(',') || '';
+                          const targetUrl = name
+                            ? `/indexes/religious-concepts/${encodeURIComponent(name)}${refs ? `?refs=${encodeURIComponent(refs)}` : ''}`
+                            : '#';
 
-                        return (
-                          <tr
-                            key={item.id}
-                            className="hover:bg-gray-50 cursor-pointer transition-colors group"
-                            onClick={() => name && router.push(targetUrl)}
-                          >
-                            <td className="px-6 py-4">
-                              <div className="w-10 h-10 bg-[#43896B]/10 rounded-lg flex items-center justify-center text-[#43896B] font-semibold">
-                                {item.section || '-'}
-                              </div>
-                            </td>
-                            {appliedFilters.language === 'English' && (
+                          return (
+                            <tr
+                              key={item.id}
+                              className="hover:bg-[var(--color-cream)] cursor-pointer transition-colors group"
+                              onClick={() => name && router.push(targetUrl)}
+                            >
                               <td className="px-6 py-4">
-                                <span className="text-gray-900 font-medium group-hover:text-[#43896B] transition-colors">
-                                  {item.word_english || '-'}
-                                </span>
-                              </td>
-                            )}
-                            {appliedFilters.language === 'Arabic' && (
-                              <td className="px-6 py-4 text-right" dir="rtl">
-                                <span className="text-gray-900 font-medium group-hover:text-[#43896B] transition-colors">
-                                  {item.word_arabic || '-'}
-                                </span>
-                              </td>
-                            )}
-                            <td className="px-6 py-4">
-                              <div className="flex justify-center">
-                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#43896B] group-hover:text-white transition-colors">
-                                  <ArrowRight className="w-4 h-4" />
+                                <div className="w-10 h-10 bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-display font-semibold">
+                                  {item.section || '-'}
                                 </div>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                              </td>
+                              {appliedFilters.language === 'English' && (
+                                <td className="px-6 py-4">
+                                  <span className="text-[var(--color-ink)] font-body font-medium group-hover:text-[var(--color-primary)] transition-colors">
+                                    {item.word_english || '-'}
+                                  </span>
+                                </td>
+                              )}
+                              {appliedFilters.language === 'Arabic' && (
+                                <td className="px-6 py-4 text-right" dir="rtl">
+                                  <span className="text-[var(--color-ink)] font-body font-medium group-hover:text-[var(--color-primary)] transition-colors">
+                                    {item.word_arabic || '-'}
+                                  </span>
+                                </td>
+                              )}
+                              <td className="px-6 py-4">
+                                <div className="flex justify-center">
+                                  <div className="w-8 h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors">
+                                    <ArrowRight className="w-4 h-4" />
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
               {/* Mobile Cards */}
@@ -351,23 +383,25 @@ export default function ReligiousConceptsContent() {
                   return (
                     <div
                       key={item.id}
-                      className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:border-[#43896B] transition-colors group"
+                      className="relative bg-white border border-[var(--color-stone)] p-4 cursor-pointer hover:border-[var(--color-primary)] transition-colors group"
                       onClick={() => name && router.push(targetUrl)}
                     >
+                      <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="flex items-center gap-3">
                         <div className="flex-1 min-w-0">
                           {appliedFilters.language === 'English' && (
-                            <div className="text-base font-semibold text-gray-900 group-hover:text-[#43896B] transition-colors">
+                            <div className="text-base font-display font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors">
                               {item.word_english || '-'}
                             </div>
                           )}
                           {appliedFilters.language === 'Arabic' && (
-                            <div className="text-base font-semibold text-gray-900 group-hover:text-[#43896B] transition-colors" dir="rtl">
+                            <div className="text-base font-display font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors" dir="rtl">
                               {item.word_arabic || '-'}
                             </div>
                           )}
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#43896B] group-hover:text-white transition-colors">
+                        <div className="w-8 h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors">
                           <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>

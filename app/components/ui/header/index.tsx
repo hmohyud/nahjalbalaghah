@@ -60,7 +60,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, items, isActive }) => {
       <div className={`absolute top-full left-0 mt-1 bg-white border border-[var(--color-stone)] shadow-lg transition-all duration-200 ${
         isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
       }`}>
-        <div className="py-2 min-w-[160px]">
+        <div className="py-2 min-w-[200px]">
           {items.map((item) => (
             <Link
               key={item.name}
@@ -98,12 +98,18 @@ const Header = () => {
     { name: 'Sayings', href: '/sayings' },
   ]
 
+  const aboutItems = [
+    { name: 'About Us', href: '/about-us' },
+    { name: 'About Nahj al-Balaghah', href: '/about-nahj-al-balaghah' },
+  ]
+
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
 
   const isCollectionsActive = collectionsItems.some(item => isActive(item.href))
+  const isAboutActive = aboutItems.some(item => isActive(item.href))
 
   const toggleMobileDropdown = (name: string) => {
     setMobileDropdown(mobileDropdown === name ? null : name)
@@ -169,7 +175,7 @@ const Header = () => {
                 isActive={isCollectionsActive}
               />
 
-              {/* Timeline - NEW */}
+              {/* Timeline */}
               <Link href="/timeline" className="group relative px-4 py-2">
                 <span className={`text-sm font-medium transition-colors duration-200 ${
                   isActive('/timeline') 
@@ -208,24 +214,12 @@ const Header = () => {
                 )}
               </Link>
 
-              <Link href="/about-us" className="group relative px-4 py-2">
-                <span className={`text-sm font-medium transition-colors duration-200 ${
-                  isActive('/about') 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
-                }`}>
-                  About
-                </span>
-                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
-                  isActive('/about') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
-                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
-                  isActive('/about') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
-                {isActive('/about') && (
-                  <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
-                )}
-              </Link>
+              {/* About Dropdown */}
+              <Dropdown 
+                label="About" 
+                items={aboutItems} 
+                isActive={isAboutActive}
+              />
             </nav>
 
             <div className="flex items-center gap-1">
@@ -282,7 +276,7 @@ const Header = () => {
 
         <div 
           className={`lg:hidden overflow-hidden transition-all duration-300 ${
-            isMenuOpen ? 'max-h-[600px]' : 'max-h-0'
+            isMenuOpen ? 'max-h-[700px]' : 'max-h-0'
           }`}
         >
           <div className="border-t border-[var(--color-stone)] bg-white">
@@ -342,7 +336,7 @@ const Header = () => {
                 </div>
               </div>
 
-              {/* Timeline - NEW */}
+              {/* Timeline */}
               <Link
                 href="/timeline"
                 onClick={() => setIsMenuOpen(false)}
@@ -375,21 +369,45 @@ const Header = () => {
                 <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
               </Link>
 
-              <Link
-                href="/about-us"
-                onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${
-                  isActive('/about') 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  {isActive('/about') && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
-                  <span className="font-display text-lg">About</span>
+              {/* About Dropdown - Mobile */}
+              <div className="border-t border-[var(--color-stone)]/50">
+                <button
+                  onClick={() => toggleMobileDropdown('about')}
+                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${
+                    isAboutActive 
+                      ? 'text-[var(--color-primary)]' 
+                      : 'text-[var(--color-charcoal)]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {isAboutActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                    <span className="font-display text-lg">About</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${
+                    mobileDropdown === 'about' ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ${
+                  mobileDropdown === 'about' ? 'max-h-40' : 'max-h-0'
+                }`}>
+                  <div className="pl-6 pb-2">
+                    {aboutItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${
+                          isActive(item.href) 
+                            ? 'text-[var(--color-primary)]' 
+                            : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                        }`}
+                      >
+                        <span className="font-body">{item.name}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-                <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
-              </Link>
+              </div>
             </nav>
           </div>
         </div>

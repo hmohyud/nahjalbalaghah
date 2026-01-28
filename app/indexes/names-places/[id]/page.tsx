@@ -10,7 +10,7 @@ import {
     RadisIntroduction,
     NamePlace
 } from '@/api';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, MapPin } from 'lucide-react';
 import Button from '@/app/components/button';
 import { parseTextReference } from '@/app/utils/text-reference';
 
@@ -289,49 +289,75 @@ export default function NamesPlacesDetailsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#43896B]"></div>
+            <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
+                <div className="animate-spin h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <div className="text-red-500 mb-4">{error}</div>
-                <Button onClick={() => router.back()} variant="outlined">Go Back</Button>
+            <div className="min-h-screen bg-[var(--color-parchment)] flex flex-col items-center justify-center p-4">
+                <div className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-8 relative">
+                    <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]"></div>
+                    <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-[var(--color-accent)]"></div>
+                    <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-[var(--color-accent)]"></div>
+                    <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]"></div>
+                    <div className="text-red-600 mb-4 font-body">{error}</div>
+                    <Button onClick={() => router.back()} variant="outlined">Go Back</Button>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
-            <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="min-h-screen bg-[var(--color-parchment)] pb-12">
+            {/* Header */}
+            <div className="bg-[var(--color-cream)] border-b border-[var(--color-stone)] sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-                    <Button
+                    <button
                         onClick={() => router.back()}
-                        variant="outlined"
-                        className="!p-2 -ml-2 border-none text-gray-500 hover:text-gray-700"
-                        icon={<ArrowLeft className="w-5 h-5" />}
+                        className="flex items-center gap-2 text-[var(--color-warm-gray)] hover:text-[var(--color-primary)] transition-colors"
                     >
-                        Back
-                    </Button>
-                    <h1 className="text-xl font-bold text-gray-800 text-center flex-1">
-                        &ldquo;{term}&rdquo; <span className="text-sm font-normal text-gray-400 uppercase ml-2">{language}</span>
-                    </h1>
+                        <ArrowLeft className="w-5 h-5" />
+                        <span className="font-body text-sm hidden sm:inline">Back</span>
+                    </button>
+                    <div className="flex items-center gap-3 flex-1 justify-center">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--color-primary)] flex items-center justify-center">
+                            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        </div>
+                        <div className="text-center">
+                            <h1 className="text-lg sm:text-xl font-display text-[var(--color-primary)] line-clamp-1">
+                                &ldquo;{term}&rdquo;
+                            </h1>
+                            {language && (
+                                <span className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">{language}</span>
+                            )}
+                        </div>
+                    </div>
                     <div className="w-10"></div>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-8 space-y-6">
+            {/* Results */}
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8 space-y-4 sm:space-y-6">
                 {results.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                        <p className="text-xl mb-4">No content found for &ldquo;{term}&rdquo;.</p>
+                    <div className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-8 sm:p-12 relative text-center">
+                        <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]"></div>
+                        <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-[var(--color-accent)]"></div>
+                        <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-[var(--color-accent)]"></div>
+                        <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]"></div>
+                        <p className="text-lg sm:text-xl text-[var(--color-warm-gray)] font-body">No content found for &ldquo;{term}&rdquo;.</p>
                     </div>
                 ) : (
-                    results.map((item, index) => (
-                        <ContentCard key={`${item.type}-${item.reference}-${index}`} item={item} term={term} language={language} />
-                    ))
+                    <>
+                        <p className="text-sm text-[var(--color-warm-gray)] font-body">
+                            Found {results.length} reference{results.length !== 1 ? 's' : ''}
+                        </p>
+                        {results.map((item, index) => (
+                            <ContentCard key={`${item.type}-${item.reference}-${index}`} item={item} term={term} language={language} />
+                        ))}
+                    </>
                 )}
             </div>
         </div>
@@ -408,36 +434,40 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
 
         return (
             <div 
-                className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-[#43896B] transition-all cursor-pointer relative group"
+                className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-4 sm:p-6 hover:border-[var(--color-primary)] transition-all cursor-pointer relative group"
                 onClick={handleCardClick}
             >
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">
+                {/* Accent corners on hover */}
+                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="bg-[var(--color-primary)] text-white text-[10px] sm:text-xs font-body px-2 py-1 uppercase tracking-[0.1em]">
                             {post.type}
                         </span>
-                        <span className="text-gray-500 text-sm font-medium">#{post.sermonNumber}</span>
+                        <span className="text-[var(--color-warm-gray)] text-xs sm:text-sm font-body">#{post.sermonNumber}</span>
                         {matchingParagraphNumber && (
-                            <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                            <span className="bg-[var(--color-stone)] text-[var(--color-charcoal)] text-[10px] sm:text-xs px-2 py-1 font-body">
                                 Para: {matchingParagraphNumber}
                             </span>
                         )}
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#43896B] group-hover:text-white transition-colors">
-                        <ArrowRight className="w-4 h-4" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] transition-colors">
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--color-charcoal)] group-hover:text-white transition-colors" />
                     </div>
                 </div>
 
-                <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#43896B] transition-colors">{displayTitle}</h3>
+                <h3 className="text-base sm:text-lg font-display text-[var(--color-ink)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">{displayTitle}</h3>
 
-                <div className="space-y-4">
-                    <div className="text-gray-700 leading-relaxed">
-                        <HighlightText text={displayContent} term={term} />
-                    </div>
+                <div className="text-[var(--color-charcoal)] leading-relaxed font-body text-sm sm:text-base">
+                    <HighlightText text={displayContent} term={term} />
                 </div>
                 
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                    <span className="text-sm text-[#43896B] font-medium group-hover:underline">
+                <div className="mt-3 sm:mt-4 pt-3 border-t border-[var(--color-stone)]">
+                    <span className="text-xs sm:text-sm text-[var(--color-primary)] font-body group-hover:underline">
                         View full {post.type.toLowerCase()} →
                     </span>
                 </div>
@@ -457,27 +487,33 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
 
         return (
             <div 
-                className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-[#43896B] transition-all cursor-pointer relative group"
+                className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-4 sm:p-6 hover:border-[var(--color-primary)] transition-all cursor-pointer relative group"
                 onClick={handleCardClick}
             >
-                <div className="flex items-center justify-between mb-4">
+                {/* Accent corners on hover */}
+                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
                     <div className="flex items-center gap-2">
-                        <span className="bg-purple-50 text-purple-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">
+                        <span className="bg-[var(--color-accent)] text-[var(--color-ink)] text-[10px] sm:text-xs font-body px-2 py-1 uppercase tracking-[0.1em]">
                             Radis Introduction
                         </span>
-                        <span className="text-gray-500 text-sm font-medium">#{radis.number}</span>
+                        <span className="text-[var(--color-warm-gray)] text-xs sm:text-sm font-body">#{radis.number}</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#43896B] group-hover:text-white transition-colors">
-                        <ArrowRight className="w-4 h-4" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] transition-colors">
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--color-charcoal)] group-hover:text-white transition-colors" />
                     </div>
                 </div>
 
-                <div className="text-gray-700 leading-relaxed">
+                <div className="text-[var(--color-charcoal)] leading-relaxed font-body text-sm sm:text-base">
                     <HighlightText text={displayContent} term={term} />
                 </div>
                 
-                <div className="mt-4 pt-3 border-t border-gray-100">
-                    <span className="text-sm text-[#43896B] font-medium group-hover:underline">
+                <div className="mt-3 sm:mt-4 pt-3 border-t border-[var(--color-stone)]">
+                    <span className="text-xs sm:text-sm text-[var(--color-primary)] font-body group-hover:underline">
                         View full introduction →
                     </span>
                 </div>
@@ -490,7 +526,7 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
 
 function HighlightText({ text, term }: { text: string; term: string }) {
     if (!text) return null;
-    if (!term) return <p className="text-gray-800 text-lg leading-loose">{text}</p>;
+    if (!term) return <p className="text-[var(--color-charcoal)] leading-loose">{text}</p>;
 
     const t = term.toLowerCase().trim();
 
@@ -505,10 +541,10 @@ function HighlightText({ text, term }: { text: string; term: string }) {
     const parts = text.split(new RegExp(`(${regexStr})`, 'gi'));
 
     return (
-        <p className="text-gray-800 text-lg leading-loose">
+        <p className="text-[var(--color-charcoal)] leading-loose">
             {parts.map((part, i) =>
                 new RegExp(`^${regexStr}$`, 'i').test(part) ? (
-                    <span key={i} className="bg-yellow-200 text-gray-900 font-medium px-1 rounded">
+                    <span key={i} className="bg-[var(--color-accent)] text-[var(--color-ink)] font-medium px-1">
                         {part}
                     </span>
                 ) : (
