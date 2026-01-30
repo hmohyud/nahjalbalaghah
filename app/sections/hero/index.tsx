@@ -149,7 +149,7 @@ const HeroSection = () => {
       </div>
 
       {/* Content Type Cards */}
-      <div className="relative bg-[var(--color-cream)] py-8 lg:py-10">
+      <div className="hero-content-cards relative bg-[var(--color-cream)] py-8 lg:py-10">
         <div className="max-w-6xl mx-auto px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-4 lg:gap-6">
             {contentTypes.map((content, index) => (
@@ -159,7 +159,7 @@ const HeroSection = () => {
                 className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
                 style={{ transitionDelay: `${800 + index * 100}ms` }}
               >
-                <div className="relative bg-white border border-[var(--color-stone)] p-6 lg:p-8 transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1">
+                <div className="hero-content-card relative bg-white border border-[var(--color-stone)] p-6 lg:p-8 transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1">
                   {/* Count badge */}
                   <div className="absolute top-4 right-4 text-xs tracking-[0.15em] text-[var(--color-warm-gray)]">
                     {content.count}

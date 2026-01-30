@@ -154,6 +154,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-taha {
   font-family: 'UthmanTaha', sans-serif;
+  color: black !important
 }
 
 /* Decorative Elements */
@@ -176,6 +177,15 @@ h1, h2, h3, h4, h5, h6 {
   margin: var(--space-xl) 0;
 }
 
+.hero-content-cards {
+  text-align: center;
+}
+
+.hero-content-card {
+  justify-content: center !important;
+  align-self: center !important;
+  align-items: center !important;
+}
 /* Elegant Buttons */
 .btn-primary {
   display: inline-flex;
