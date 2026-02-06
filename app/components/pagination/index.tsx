@@ -18,37 +18,50 @@ const Pagination: React.FC<PaginationProps> = ({
   loading = false
 }) => {
   const getPageNumbers = () => {
+    const windowSize = 11; // 5 each side + current
+
+    if (totalPages <= windowSize + 2) {
+      // Small enough to show all pages
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    // Calculate window, always 11 wide
+    let start = currentPage - 5;
+    let end = currentPage + 5;
+
+    // Near the start: shift excess right
+    if (start < 1) {
+      end += 1 - start;
+      start = 1;
+    }
+
+    // Near the end: shift excess left
+    if (end > totalPages) {
+      start -= end - totalPages;
+      end = totalPages;
+    }
+
+    // Clamp
+    start = Math.max(1, start);
+    end = Math.min(totalPages, end);
+
     const pages: (number | string)[] = [];
-    const showEllipsisStart = currentPage > 4;
-    const showEllipsisEnd = currentPage < totalPages - 3;
 
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
+    // First page + ellipsis if window doesn't include it
+    if (start > 1) {
       pages.push(1);
-      
-      if (showEllipsisStart) {
-        pages.push('ellipsis-start');
-      }
+      if (start > 2) pages.push('ellipsis-start');
+    }
 
-      const start = showEllipsisStart ? Math.max(2, currentPage - 1) : 2;
-      const end = showEllipsisEnd ? Math.min(totalPages - 1, currentPage + 1) : totalPages - 1;
+    // The window
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
 
-      for (let i = start; i <= end; i++) {
-        if (!pages.includes(i)) {
-          pages.push(i);
-        }
-      }
-
-      if (showEllipsisEnd) {
-        pages.push('ellipsis-end');
-      }
-
-      if (!pages.includes(totalPages)) {
-        pages.push(totalPages);
-      }
+    // Last page + ellipsis if window doesn't include it
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push('ellipsis-end');
+      pages.push(totalPages);
     }
 
     return pages;
@@ -94,7 +107,7 @@ const Pagination: React.FC<PaginationProps> = ({
           }
 
           const isActive = page === currentPage;
-          
+
           return (
             <button
               key={page}
