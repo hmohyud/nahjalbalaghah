@@ -199,7 +199,8 @@ h6 {
 
 /* ── Hero ── */
 .hero-main {
-  background: url(https://miro.medium.com/v2/1*aBWmXuAqQR6cBjJhTAmP_A.jpeg);
+  background: url('./assets/images/hero-bg.jpg') center/cover;
+  /* https://miro.medium.com/v2/1*aBWmXuAqQR6cBjJhTAmP_A.jpeg */
   background-size: cover;
   background-position: center;
   justify-items: center;

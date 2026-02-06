@@ -35,31 +35,26 @@ const Dropdown: React.FC<DropdownProps> = ({ label, items, isActive }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="group relative px-4 py-2 flex items-center gap-1"
       >
-        <span className={`text-sm font-medium transition-colors duration-200 ${
-          isActive 
-            ? 'text-[var(--color-primary)]' 
-            : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
-        }`}>
+        <span className={`text-sm font-medium transition-colors duration-200 ${isActive
+          ? 'text-[var(--color-primary)]'
+          : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+          }`}>
           {label}
         </span>
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${
-          isOpen ? 'rotate-180' : ''
-        } ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'}`} />
-        
-        <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
-          isActive || isOpen ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-        }`} />
-        <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
-          isActive || isOpen ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-        }`} />
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''
+          } ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'}`} />
+
+        <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${isActive || isOpen ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+          }`} />
+        <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${isActive || isOpen ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+          }`} />
         {isActive && (
           <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
         )}
       </button>
 
-      <div className={`absolute top-full left-0 mt-1 bg-white border border-[var(--color-stone)] shadow-lg transition-all duration-200 ${
-        isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
-      }`}>
+      <div className={`absolute top-full left-0 mt-1 bg-white border border-[var(--color-stone)] shadow-lg transition-all duration-200 ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+        }`}>
         <div className="py-2 min-w-[200px]">
           {items.map((item) => (
             <Link
@@ -118,13 +113,12 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       <div className="h-[2px] bg-[var(--color-accent)]" />
-      
-      <div 
-        className={`transition-all duration-300 ${
-          isScrolled 
-            ? 'bg-white/98 backdrop-blur-md shadow-sm' 
-            : 'bg-[var(--color-parchment)]'
-        }`}
+
+      <div
+        className={`transition-all duration-300 ${isScrolled
+          ? 'bg-white/98 backdrop-blur-md shadow-sm'
+          : 'bg-[var(--color-parchment)]'
+          }`}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 lg:h-24">
@@ -151,73 +145,64 @@ const Header = () => {
 
             <nav className="hidden lg:flex items-center gap-1">
               <Link href="/" className="group relative px-4 py-2">
-                <span className={`text-sm font-medium transition-colors duration-200 ${
-                  pathname === '/' 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
-                }`}>
+                <span className={`text-sm font-medium transition-colors duration-200 ${pathname === '/'
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                  }`}>
                   Home
                 </span>
-                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
-                  pathname === '/' ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
-                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
-                  pathname === '/' ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
+                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${pathname === '/' ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                  }`} />
+                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${pathname === '/' ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                  }`} />
                 {pathname === '/' && (
                   <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
                 )}
               </Link>
 
-              <Dropdown 
-                label="Collections" 
-                items={collectionsItems} 
+              <Dropdown
+                label="Collections"
+                items={collectionsItems}
                 isActive={isCollectionsActive}
               />
 
               {/* Timeline */}
               <Link href="/timeline" className="group relative px-4 py-2">
-                <span className={`text-sm font-medium transition-colors duration-200 ${
-                  isActive('/timeline') 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
-                }`}>
+                <span className={`text-sm font-medium transition-colors duration-200 ${isActive('/timeline')
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                  }`}>
                   Timeline
                 </span>
-                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
-                  isActive('/timeline') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
-                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
-                  isActive('/timeline') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
+                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${isActive('/timeline') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                  }`} />
+                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${isActive('/timeline') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                  }`} />
                 {isActive('/timeline') && (
                   <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
                 )}
               </Link>
 
               <Link href="/manuscripts" className="group relative px-4 py-2">
-                <span className={`text-sm font-medium transition-colors duration-200 ${
-                  isActive('/manuscripts') 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
-                }`}>
+                <span className={`text-sm font-medium transition-colors duration-200 ${isActive('/manuscripts')
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-charcoal)] group-hover:text-[var(--color-primary)]'
+                  }`}>
                   Manuscripts
                 </span>
-                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${
-                  isActive('/manuscripts') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
-                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${
-                  isActive('/manuscripts') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
-                }`} />
+                <div className={`absolute top-1 left-1 border-l border-t border-[var(--color-accent)] transition-all duration-200 ${isActive('/manuscripts') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                  }`} />
+                <div className={`absolute bottom-1 right-1 border-r border-b border-[var(--color-accent)] transition-all duration-200 ${isActive('/manuscripts') ? 'w-2 h-2 opacity-100' : 'w-0 h-0 opacity-0 group-hover:w-2 group-hover:h-2 group-hover:opacity-100'
+                  }`} />
                 {isActive('/manuscripts') && (
                   <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
                 )}
               </Link>
 
               {/* About Dropdown */}
-              <Dropdown 
-                label="About" 
-                items={aboutItems} 
+              <Dropdown
+                label="About"
+                items={aboutItems}
                 isActive={isAboutActive}
               />
             </nav>
@@ -225,22 +210,21 @@ const Header = () => {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={`w-10 h-10 flex items-center justify-center transition-colors duration-200 ${
-                  isSearchOpen 
-                    ? 'bg-[var(--color-primary)] text-white' 
-                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                }`}
+                className={`flex items-center gap-2 px-3 h-9 rounded-sm transition-all duration-200 ${isSearchOpen
+                    ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white'
+                  }`}
                 aria-label="Search"
               >
-                <Search className="w-5 h-5" strokeWidth={1.5} />
+                <Search className="w-4 h-4" strokeWidth={1.5} />
+                <span className="text-xs tracking-[0.1em] uppercase hidden sm:inline">Search</span>
               </button>
 
               <button
-                className={`lg:hidden w-10 h-10 flex items-center justify-center transition-colors duration-200 ${
-                  isMenuOpen 
-                    ? 'bg-[var(--color-primary)] text-white' 
-                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                }`}
+                className={`lg:hidden w-10 h-10 flex items-center justify-center transition-colors duration-200 ${isMenuOpen
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                  }`}
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Toggle menu"
               >
@@ -254,10 +238,9 @@ const Header = () => {
           </div>
         </div>
 
-        <div 
-          className={`overflow-hidden transition-all duration-300 ${
-            isSearchOpen ? 'max-h-24' : 'max-h-0'
-          }`}
+        <div
+          className={`overflow-hidden transition-all duration-300 ${isSearchOpen ? 'max-h-24' : 'max-h-0'
+            }`}
         >
           <div className="border-t border-[var(--color-stone)]">
             <div className="max-w-2xl mx-auto px-6 py-5">
@@ -274,21 +257,19 @@ const Header = () => {
           </div>
         </div>
 
-        <div 
-          className={`lg:hidden overflow-hidden transition-all duration-300 ${
-            isMenuOpen ? 'max-h-[700px]' : 'max-h-0'
-          }`}
+        <div
+          className={`lg:hidden overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-[700px]' : 'max-h-0'
+            }`}
         >
           <div className="border-t border-[var(--color-stone)] bg-white">
             <nav className="px-6 py-4">
               <Link
                 href="/"
                 onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between py-3 transition-colors duration-200 ${
-                  pathname === '/' 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                }`}
+                className={`flex items-center justify-between py-3 transition-colors duration-200 ${pathname === '/'
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   {pathname === '/' && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
@@ -300,34 +281,30 @@ const Header = () => {
               <div className="border-t border-[var(--color-stone)]/50">
                 <button
                   onClick={() => toggleMobileDropdown('collections')}
-                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${
-                    isCollectionsActive 
-                      ? 'text-[var(--color-primary)]' 
-                      : 'text-[var(--color-charcoal)]'
-                  }`}
+                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${isCollectionsActive
+                    ? 'text-[var(--color-primary)]'
+                    : 'text-[var(--color-charcoal)]'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     {isCollectionsActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
                     <span className="font-display text-lg">Collections</span>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${
-                    mobileDropdown === 'collections' ? 'rotate-180' : ''
-                  }`} />
+                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${mobileDropdown === 'collections' ? 'rotate-180' : ''
+                    }`} />
                 </button>
-                <div className={`overflow-hidden transition-all duration-200 ${
-                  mobileDropdown === 'collections' ? 'max-h-40' : 'max-h-0'
-                }`}>
+                <div className={`overflow-hidden transition-all duration-200 ${mobileDropdown === 'collections' ? 'max-h-40' : 'max-h-0'
+                  }`}>
                   <div className="pl-6 pb-2">
                     {collectionsItems.map((item) => (
                       <Link
                         key={item.name}
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${
-                          isActive(item.href) 
-                            ? 'text-[var(--color-primary)]' 
-                            : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                        }`}
+                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${isActive(item.href)
+                          ? 'text-[var(--color-primary)]'
+                          : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                          }`}
                       >
                         <span className="font-body">{item.name}</span>
                       </Link>
@@ -340,11 +317,10 @@ const Header = () => {
               <Link
                 href="/timeline"
                 onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${
-                  isActive('/timeline') 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                }`}
+                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${isActive('/timeline')
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   {isActive('/timeline') && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
@@ -356,11 +332,10 @@ const Header = () => {
               <Link
                 href="/manuscripts"
                 onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${
-                  isActive('/manuscripts') 
-                    ? 'text-[var(--color-primary)]' 
-                    : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                }`}
+                className={`flex items-center justify-between py-3 border-t border-[var(--color-stone)]/50 transition-colors duration-200 ${isActive('/manuscripts')
+                  ? 'text-[var(--color-primary)]'
+                  : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   {isActive('/manuscripts') && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
@@ -373,34 +348,30 @@ const Header = () => {
               <div className="border-t border-[var(--color-stone)]/50">
                 <button
                   onClick={() => toggleMobileDropdown('about')}
-                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${
-                    isAboutActive 
-                      ? 'text-[var(--color-primary)]' 
-                      : 'text-[var(--color-charcoal)]'
-                  }`}
+                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${isAboutActive
+                    ? 'text-[var(--color-primary)]'
+                    : 'text-[var(--color-charcoal)]'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     {isAboutActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
                     <span className="font-display text-lg">About</span>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${
-                    mobileDropdown === 'about' ? 'rotate-180' : ''
-                  }`} />
+                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${mobileDropdown === 'about' ? 'rotate-180' : ''
+                    }`} />
                 </button>
-                <div className={`overflow-hidden transition-all duration-200 ${
-                  mobileDropdown === 'about' ? 'max-h-40' : 'max-h-0'
-                }`}>
+                <div className={`overflow-hidden transition-all duration-200 ${mobileDropdown === 'about' ? 'max-h-40' : 'max-h-0'
+                  }`}>
                   <div className="pl-6 pb-2">
                     {aboutItems.map((item) => (
                       <Link
                         key={item.name}
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${
-                          isActive(item.href) 
-                            ? 'text-[var(--color-primary)]' 
-                            : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
-                        }`}
+                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${isActive(item.href)
+                          ? 'text-[var(--color-primary)]'
+                          : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                          }`}
                       >
                         <span className="font-body">{item.name}</span>
                       </Link>
