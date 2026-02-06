@@ -41,9 +41,16 @@ const MainCardsSection = () => {
     },
     {
       icon: Info,
-      title: "About",
+      title: "About Nahj al-Balaghah",
       description: "Learn about the history, significance, and lasting impact of Nahj al-Balaghah",
       href: "/about-nahj-al-balaghah",
+      featured: false
+    },
+    {
+      icon: Info,
+      title: "About Us",
+      description: "Learn about us and our partners, and how we are working to make Nahj al-Balaghah accessible to all",
+      href: "/about-us",
       featured: false
     }
   ]
@@ -52,32 +59,32 @@ const MainCardsSection = () => {
     <section ref={sectionRef} className="relative py-24 lg:py-32 bg-white overflow-hidden">
       {/* Subtle background gradient */}
       <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-[var(--color-parchment)]/30 to-transparent" />
-      
+
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
         <div className="max-w-2xl mb-16 lg:mb-20">
-          <div 
+          <div
             className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <span className="text-xs tracking-[0.25em] uppercase text-[var(--color-accent)] font-medium">
               Scholarly Resources
             </span>
           </div>
-          
-          <h2 
+
+          <h2
             className={`font-display text-4xl lg:text-5xl xl:text-6xl font-light text-[var(--color-ink)] mt-4 mb-6 leading-[1.1] transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             Explore the Archive
           </h2>
-          
-          <div 
+
+          <div
             className={`w-16 h-[2px] bg-[var(--color-accent)] transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
           />
-          
-          <p 
+
+          <p
             className={`text-[var(--color-warm-gray)] text-lg leading-relaxed mt-6 max-w-xl transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            Access manuscripts, scholarly indexes, and supplementary materials 
+            Access manuscripts, scholarly indexes, and supplementary materials
             to deepen your understanding of this timeless text.
           </p>
         </div>
@@ -85,8 +92,8 @@ const MainCardsSection = () => {
         {/* Cards Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {cards.map((card, index) => (
-            <Link 
-              href={card.href} 
+            <Link
+              href={card.href}
               key={card.title}
               className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
               style={{ transitionDelay: `${400 + index * 80}ms` }}
@@ -97,14 +104,14 @@ const MainCardsSection = () => {
                   {/* Corner brackets for featured card */}
                   <div className="absolute -top-2 -left-2 w-10 h-10 border-l-2 border-t-2 border-white/30" />
                   <div className="absolute -bottom-2 -right-2 w-10 h-10 border-r-2 border-b-2 border-white/30" />
-                  
+
                   <div className="relative h-full p-8 lg:p-10 bg-[var(--color-primary)] text-white transition-all duration-300 hover:bg-[var(--color-primary-dark)] hover:shadow-xl hover:shadow-[var(--color-primary)]/15 hover:-translate-y-1">
                     <div className="mb-6 text-white/80">
                       <card.icon className="w-7 h-7" strokeWidth={1.5} />
                     </div>
                     <h3 className="font-display text-2xl text-white mb-3">{card.title}</h3>
                     <p className="text-sm leading-relaxed text-white/70">{card.description}</p>
-                    
+
                     <div className="mt-8 flex items-center gap-3 text-white/70">
                       <div className="h-[1px] w-0 bg-white/50 group-hover:w-6 transition-all duration-300" />
                       <span className="text-xs tracking-[0.15em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">View</span>
@@ -120,7 +127,7 @@ const MainCardsSection = () => {
                   </div>
                   <h3 className="font-display text-2xl text-[var(--color-ink)] mb-3">{card.title}</h3>
                   <p className="text-sm leading-relaxed text-[var(--color-warm-gray)]">{card.description}</p>
-                  
+
                   <div className="mt-8 flex items-center gap-3 text-[var(--color-primary)]">
                     <div className="h-[1px] w-0 bg-[var(--color-accent)] group-hover:w-6 transition-all duration-300" />
                     <span className="text-xs tracking-[0.15em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">View</span>
@@ -137,7 +144,7 @@ const MainCardsSection = () => {
         </div>
 
         {/* Bottom Ornament */}
-        <div 
+        <div
           className={`flex items-center justify-center gap-4 mt-20 transition-all duration-700 delay-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
         >
           <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-stone)]" />

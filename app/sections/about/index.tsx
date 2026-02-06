@@ -102,7 +102,7 @@ const AboutSection = () => {
             </div>
 
             {/* Stats */}
-            <div 
+            {/* <div 
               className={`relative mt-12 pt-10 border-t border-[var(--color-stone)] transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
             >
               <div className="absolute top-0 left-0 w-12 h-[2px] bg-[var(--color-accent)] -translate-y-[1px]" />
@@ -119,7 +119,7 @@ const AboutSection = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Right Column - Quote Card with corner framing */}

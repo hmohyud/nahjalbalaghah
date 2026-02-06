@@ -42,7 +42,7 @@ const BannerSection = () => {
             Nahj al-Balaghah is a collection of sermons, letters, and sayings of Imam Ali (AS),
           </p>
           <p className="font-body text-base lg:text-lg text-white/70 leading-relaxed">
-            compiled by al-Sharīf al-Raḍī. It represents one of the most important works
+            compiled by al-Sharīf al-Radi. It represents one of the most important works
             in Islamic literature, offering profound wisdom and timeless guidance.
           </p>
         </div>

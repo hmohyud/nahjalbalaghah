@@ -54,7 +54,7 @@ function RadisContent() {
       }
     } catch (err) {
       console.error('Error fetching radis introductions:', err);
-      setError("Failed to load Raḍī's introductions. Please try again later.");
+      setError("Failed to load Radi's introductions. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -132,7 +132,7 @@ function RadisContent() {
         <div className="max-w-6xl mx-auto px-6 py-32">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
-            <p className="mt-4 text-[var(--color-warm-gray)] font-body">Loading Raḍī's introductions...</p>
+            <p className="mt-4 text-[var(--color-warm-gray)] font-body">Loading Radi's introductions...</p>
           </div>
         </div>
       </div>
@@ -176,11 +176,11 @@ function RadisContent() {
           </div>
 
           <h1 className="font-display text-4xl lg:text-6xl font-light mb-6">
-            Raḍī's Introduction
+            Radi's Introduction
           </h1>
           
           <p className="font-body text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            The enlightening introduction by al-Sharīf al-Raḍī, compiler of Nahj al-Balaghah,
+            The enlightening introduction by al-Sharīf al-Radi, compiler of Nahj al-Balaghah,
             explaining his methodology and the profound wisdom contained within.
           </p>
         </div>

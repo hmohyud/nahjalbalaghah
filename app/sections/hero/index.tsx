@@ -90,70 +90,65 @@ const HeroSection = () => {
           <div className="absolute bottom-0 right-0 w-16 lg:w-20 h-16 lg:h-20 border-r border-b border-[var(--color-accent)]/15" />
         </div>
 
-{/* Main Content */}
-<div className="hero-main relative flex-1 flex items-center justify-center pt-28 pb-8 px-6 lg:px-8">
-  <div
-    className={`hero-backdrop max-w-3xl mx-auto text-center`}
-  >
-    {/* Arabic Title Image */}
-    <div className="mb-6">
-      <Image
-        src={TitleImage}
-        alt="نهج البلاغة"
-        className="h-20 sm:h-24 lg:h-32 w-auto mx-auto"
-        priority
-      />
-    </div>
+        {/* Main Content */}
+        <div className="hero-main relative flex-1 flex items-center justify-center pt-28 pb-8 px-6 lg:px-8">
+          <div
+            className={`hero-backdrop max-w-3xl mx-auto text-center`}
+          >
+            {/* Arabic Title Image */}
+            <div className="mb-6">
+              <Image
+                src={TitleImage}
+                alt="نهج البلاغة"
+                className="h-20 sm:h-24 lg:h-32 w-auto mx-auto"
+                priority
+              />
+            </div>
 
-    {/* Decorative Ornament */}
-    <div className={`flex items-center justify-center gap-4 mb-6 transition-all duration-1000 delay-200 ${
-      isVisible ? "opacity-100" : "opacity-0"
-    }`}>
-      <div className="w-12 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-      <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-      <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
-    </div>
+            {/* Decorative Ornament */}
+            <div className={`flex items-center justify-center gap-4 mb-6 transition-all duration-1000 delay-200 ${isVisible ? "opacity-100" : "opacity-0"
+              }`}>
+              <div className="w-12 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
+              <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
+              <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+            </div>
 
-    {/* English Title */}
-    <h1 className={`font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-light text-[var(--color-ink)] leading-[1.1] mb-4
-      transition-all duration-1000 delay-300 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
-    >
-      The Way of Eloquence
-    </h1>
+            {/* English Title */}
+            <h1 className={`font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-light text-[var(--color-ink)] leading-[1.1] mb-4
+      transition-all duration-1000 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+            >
+              The Way of Eloquence
+            </h1>
 
-    {/* Subtitle */}
-    <p className={`font-body text-sm sm:text-base text-[var(--color-charcoal)] max-w-2xl mx-auto leading-relaxed mb-2
-      transition-all duration-1000 delay-400 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
-    >
-      Selections from the Words of the Commander of the Faithful
-    </p>
+            {/* Subtitle */}
+            <p className={`font-body text-sm sm:text-base text-[var(--color-charcoal)] max-w-2xl mx-auto leading-relaxed mb-2
+      transition-all duration-1000 delay-400 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+            >
+              Selections from the Words of the Commander of the Faithful
+            </p>
 
-    {/* Name */}
-    <p className={`font-display text-lg sm:text-xl text-[var(--color-ink)] italic mb-8
-      transition-all duration-1000 delay-500 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
-    >
-      ʿAlī ibn Abī Ṭālib
-    </p>
+            {/* Name */}
+            <p className={`font-display text-lg sm:text-xl text-[var(--color-ink)] italic mb-8
+      transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+            >
+              ʿAlī ibn Abī Ṭālib
+            </p>
 
-    {/* Compiler Credit */}
-    <div className={`compiled-cred transition-all duration-1000 delay-600 ${
-      isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-    }`}>
-      <p className="text-xs tracking-[0.2em] uppercase text-[var(--color-charcoal)] mb-1">
-        Compiled by
-      </p>
-      <p className="font-display text-base text-[var(--color-ink)]">
-        al-Sharīf al-Raḍī
-      </p>
-    </div>
-  </div>
-</div>
+            {/* Compiler Credit */}
+            <div className={`compiled-cred transition-all duration-1000 delay-600 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}>
+              <p className="text-xs tracking-[0.2em] uppercase text-[var(--color-charcoal)] mb-1">
+                Compiled by
+              </p>
+              <p className="font-display text-base text-[var(--color-ink)]">
+                al-Sharīf al-Radi
+              </p>
+            </div>
+          </div>
+        </div>
 
 
 
@@ -205,7 +200,7 @@ const HeroSection = () => {
           </div>
         </div>
 
-        {/* Raḍī's Introduction & Conclusion */}
+        {/* Radi's Introduction & Conclusion */}
         <div className="relative bg-[var(--color-cream)] py-6">
           {/* Decorative top line */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] max-w-4xl h-[1px] bg-gradient-to-r from-transparent via-[var(--color-stone)] to-transparent" />
@@ -218,8 +213,8 @@ const HeroSection = () => {
                 href="/radis"
                 className="group text-right"
               >
-                <span className="font-display text-base text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
-                  Raḍī's Introduction
+                <span className="font-display text-base text-[var(--color-primary)] underline underline-offset-4 decoration-[var(--color-accent)] decoration-1 group-hover:decoration-2 transition-all duration-300">
+                  ← Radi's Introduction
                 </span>
               </Link>
 
@@ -235,8 +230,8 @@ const HeroSection = () => {
                 href="/conclusions"
                 className="group text-left"
               >
-                <span className="font-display text-base text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors duration-300">
-                  Raḍī's Conclusion
+                <span className="font-display text-base text-[var(--color-primary)] underline underline-offset-4 decoration-[var(--color-accent)] decoration-1 group-hover:decoration-2 transition-all duration-300">
+                  Radi's Conclusion →
                 </span>
               </Link>
             </div>
