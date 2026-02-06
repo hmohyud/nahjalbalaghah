@@ -6,12 +6,12 @@
   --color-primary: #2D5A47;
   --color-primary-light: #3D7A5F;
   --color-primary-dark: #1E3D30;
-  
+
   /* Accent - Antiqued Gold */
   --color-accent: #B8956B;
   --color-accent-light: #D4B896;
   --color-accent-dark: #8B6F4E;
-  
+
   /* Neutrals - Warm Parchment Scale */
   --color-cream: #FAF8F5;
   --color-parchment: #F5F1EB;
@@ -19,11 +19,11 @@
   --color-warm-gray: #9A9189;
   --color-charcoal: #2C2825;
   --color-ink: #1A1816;
-  
+
   /* Typography */
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Outfit', system-ui, sans-serif;
-  
+
   /* Spacing Scale */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
@@ -31,7 +31,7 @@
   --space-lg: 2rem;
   --space-xl: 4rem;
   --space-2xl: 8rem;
-  
+
   /* Transitions */
   --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -56,7 +56,12 @@ body {
 }
 
 /* Typography System */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   font-weight: 500;
   line-height: 1.2;
@@ -186,6 +191,49 @@ h1, h2, h3, h4, h5, h6 {
   align-self: center !important;
   align-items: center !important;
 }
+
+.title-subheader {
+  font-size: 0.65rem;
+  letter-spacing: 0.09rem;
+}
+
+/* ── Hero ── */
+.hero-main {
+  background: url(https://miro.medium.com/v2/1*aBWmXuAqQR6cBjJhTAmP_A.jpeg);
+  background-size: cover;
+  background-position: center;
+  justify-items: center;
+}
+
+/* Frosted light backdrop box behind hero text */
+/* .hero-backdrop {
+  background: rgba(250, 248, 245, 0.75);
+  backdrop-filter: blur(32px) saturate(1.2);
+  -webkit-backdrop-filter: blur(32px) saturate(1.2);
+  padding: 3rem 3.5rem;
+} */
+.hero-backdrop {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+  /* -webkit-backdrop-filter: blur(20px); */
+  padding: 3rem 3.5rem;
+}
+
+
+@media (max-width: 640px) {
+  .hero-backdrop {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.hero-subheader {
+  max-width: fit-content !important;
+}
+
+.compiled-cred {
+  justify-items: center;
+}
+
 /* Elegant Buttons */
 .btn-primary {
   display: inline-flex;
@@ -260,6 +308,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -267,8 +316,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -276,6 +330,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -287,6 +342,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
     transform: translateX(-40px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -294,8 +350,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes expandWidth {
-  from { width: 0; }
-  to { width: 100%; }
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
 }
 
 .animate-fade-in-up {
@@ -315,14 +376,37 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Stagger Animation Delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-.delay-600 { animation-delay: 600ms; }
-.delay-700 { animation-delay: 700ms; }
-.delay-800 { animation-delay: 800ms; }
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+.delay-600 {
+  animation-delay: 600ms;
+}
+
+.delay-700 {
+  animation-delay: 700ms;
+}
+
+.delay-800 {
+  animation-delay: 800ms;
+}
 
 /* Line Clamp Utilities */
 .line-clamp-2 {
@@ -362,8 +446,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes scrollBounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
-  50% { transform: translateX(-50%) translateY(10px); opacity: 0.3; }
+
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(10px);
+    opacity: 0.3;
+  }
 }
 
 /* Selection Styling */

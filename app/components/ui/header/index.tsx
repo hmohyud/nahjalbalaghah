@@ -143,8 +143,8 @@ const Header = () => {
                 <h1 className="font-display text-lg lg:text-xl font-medium text-[var(--color-ink)] transition-colors duration-300 group-hover:text-[var(--color-primary)]">
                   Nahj al-Balaghah
                 </h1>
-                <p className="text-[10px] lg:text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)]">
-                  Way of Eloquence
+                <p className="title-subheader text-[10px] lg:text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)]">
+                  The Way of Eloquence
                 </p>
               </div>
             </Link>
