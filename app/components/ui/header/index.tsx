@@ -174,7 +174,6 @@ const Header = () => {
                 isActive={isCollectionsActive}
               />
 
-              {/* Timeline */}
               <Link href="/timeline" className="group relative px-4 py-2">
                 <span className={`text-sm font-medium transition-colors duration-200 ${isActive('/timeline')
                   ? 'text-[var(--color-primary)]'
@@ -206,12 +205,13 @@ const Header = () => {
                   <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
                 )}
               </Link>
+
               <Dropdown
                 label="Indexes"
                 items={indexesItems}
                 isActive={isIndexesActive}
               />
-              {/* About Dropdown */}
+
               <Dropdown
                 label="About"
                 items={aboutItems}
@@ -290,9 +290,10 @@ const Header = () => {
                 <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
               </Link>
 
+              {/* Text & Translation Dropdown - Mobile */}
               <div className="border-t border-[var(--color-stone)]/50">
                 <button
-                  onClick={() => toggleMobileDropdown('Text & Translation')}
+                  onClick={() => toggleMobileDropdown('collections')}
                   className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${isCollectionsActive
                     ? 'text-[var(--color-primary)]'
                     : 'text-[var(--color-charcoal)]'
@@ -341,6 +342,7 @@ const Header = () => {
                 <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
               </Link>
 
+              {/* Manuscripts */}
               <Link
                 href="/manuscripts"
                 onClick={() => setIsMenuOpen(false)}
@@ -355,6 +357,42 @@ const Header = () => {
                 </div>
                 <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)]" />
               </Link>
+
+              {/* Indexes Dropdown - Mobile */}
+              <div className="border-t border-[var(--color-stone)]/50">
+                <button
+                  onClick={() => toggleMobileDropdown('indexes')}
+                  className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${isIndexesActive
+                    ? 'text-[var(--color-primary)]'
+                    : 'text-[var(--color-charcoal)]'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {isIndexesActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
+                    <span className="font-display text-lg">Indexes</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${mobileDropdown === 'indexes' ? 'rotate-180' : ''
+                    }`} />
+                </button>
+                <div className={`overflow-hidden transition-all duration-200 ${mobileDropdown === 'indexes' ? 'max-h-48' : 'max-h-0'
+                  }`}>
+                  <div className="pl-6 pb-2">
+                    {indexesItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={`flex items-center gap-3 py-2 transition-colors duration-200 ${isActive(item.href)
+                          ? 'text-[var(--color-primary)]'
+                          : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
+                          }`}
+                      >
+                        <span className="font-body">{item.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
               {/* About Dropdown - Mobile */}
               <div className="border-t border-[var(--color-stone)]/50">
