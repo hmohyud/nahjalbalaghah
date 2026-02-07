@@ -55,7 +55,7 @@ const Dropdown: React.FC<DropdownProps> = ({ label, items, isActive }) => {
 
       <div className={`absolute top-full left-0 mt-1 bg-white border border-[var(--color-stone)] shadow-lg transition-all duration-200 ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
         }`}>
-        <div className="py-2 min-w-[200px]">
+        <div className="py-2 min-w-[150px] w-max">
           {items.map((item) => (
             <Link
               key={item.name}
