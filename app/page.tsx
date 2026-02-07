@@ -26,8 +26,8 @@ export default function Page() {
     <div>
       <HeroSection />
       <AboutSection />
-      <MainCardsSection />
-      <FeaturedManuscriptsSection />
+      {/* <MainCardsSection /> */}
+      {/* <FeaturedManuscriptsSection /> */}
     </div>
   );
 }

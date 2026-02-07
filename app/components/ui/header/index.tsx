@@ -98,11 +98,19 @@ const Header = () => {
     { name: 'About Nahj al-Balaghah', href: '/about-nahj-al-balaghah' },
   ]
 
+  const indexesItems = [
+    { name: 'Names & Places', href: '/indexes/names-places' },
+    { name: 'Terms', href: '/indexes/terms' },
+    { name: 'Qur\'an, Hadith & Poetry', href: '/indexes/quran-hadith' },
+    { name: 'Religious & Ethical Concepts', href: '/indexes/concepts' },
+  ]
+
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
 
+  const isIndexesActive = indexesItems.some(item => isActive(item.href))
   const isCollectionsActive = collectionsItems.some(item => isActive(item.href))
   const isAboutActive = aboutItems.some(item => isActive(item.href))
 
@@ -143,7 +151,7 @@ const Header = () => {
               </div>
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden xl:flex items-center gap-1">
               <Link href="/" className="group relative px-4 py-2">
                 <span className={`text-sm font-medium transition-colors duration-200 ${pathname === '/'
                   ? 'text-[var(--color-primary)]'
@@ -198,7 +206,11 @@ const Header = () => {
                   <div className="absolute inset-0 bg-[var(--color-primary)]/5 -z-10" />
                 )}
               </Link>
-
+              <Dropdown
+                label="Indexes"
+                items={indexesItems}
+                isActive={isIndexesActive}
+              />
               {/* About Dropdown */}
               <Dropdown
                 label="About"
@@ -211,8 +223,8 @@ const Header = () => {
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className={`flex items-center gap-2 px-3 h-9 rounded-sm transition-all duration-200 ${isSearchOpen
-                    ? 'bg-[var(--color-primary)] text-white'
-                    : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white'
+                  ? 'bg-[var(--color-primary)] text-white'
+                  : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white'
                   }`}
                 aria-label="Search"
               >
@@ -221,7 +233,7 @@ const Header = () => {
               </button>
 
               <button
-                className={`lg:hidden w-10 h-10 flex items-center justify-center transition-colors duration-200 ${isMenuOpen
+                className={`xl:hidden w-10 h-10 flex items-center justify-center transition-colors duration-200 ${isMenuOpen
                   ? 'bg-[var(--color-primary)] text-white'
                   : 'text-[var(--color-charcoal)] hover:text-[var(--color-primary)]'
                   }`}
@@ -258,7 +270,7 @@ const Header = () => {
         </div>
 
         <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-[700px]' : 'max-h-0'
+          className={`xl:hidden overflow-hidden transition-all duration-300 ${isMenuOpen ? 'max-h-[700px]' : 'max-h-0'
             }`}
         >
           <div className="border-t border-[var(--color-stone)] bg-white">
