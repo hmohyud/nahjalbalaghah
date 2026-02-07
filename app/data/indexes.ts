@@ -45,7 +45,7 @@ export const indexCategories: IndexCategory[] = [
     description: "Discover the extensive references to the Holy Qur'an, prophetic traditions (Hadith), Arabic poetry, and traditional proverbs that Imam Ali (AS) incorporates into his eloquent discourse.",
     items: [
       { word: "Ammin (Amen)", references: ["1.1"] },
-      { word: "Bismillāh", references: ["1.1"] },
+      { word: "Bismillah", references: ["1.1"] },
       { word: "Hadith of the Cloak", references: ["2.2"] },
       { word: "Hadith of Two Weighty Things", references: ["3.3"] },
       { word: "Inna lillahi wa inna ilayhi raji'un", references: ["35.1"] },

@@ -25,8 +25,8 @@ export const formatTextWithBold = (text: string, isArabic: boolean = false): Rea
 };
 
 const applyItalicFormatting = (text: string): React.ReactNode => {
-  // e.g. (ashnaqahā), (ashnaqa l-nāqata), (Iṣlāḥ al-manṭiq)
-  const regex = /\(([^()]*[āīūḥṣṭẓḍʿʾ]+[^()]*)\)/g;
+  // e.g. (ashnaqaha), (ashnaqa l-naqata), (Iṣlaḥ al-manṭiq)
+  const regex = /\(([^()]*[aīūḥṣṭẓḍʿʾ]+[^()]*)\)/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match;
@@ -259,8 +259,8 @@ export const isArabicText = (text: string): boolean => {
 };
 
 export const HighlightArabicText = ({ text }: any) => {
-   // (ashnaqahā), (ashnaqa l-nāqata), (Iṣlāḥ al-manṭiq)
-  const regex = /\(([^()]*[āīūḥṣṭẓḍʿʾ]+[^()]*)\)/g;
+   // (ashnaqaha), (ashnaqa l-naqata), (Iṣlaḥ al-manṭiq)
+  const regex = /\(([^()]*[aīūḥṣṭẓḍʿʾ]+[^()]*)\)/g;
   const parts = [];
   let lastIndex = 0;
   let match;

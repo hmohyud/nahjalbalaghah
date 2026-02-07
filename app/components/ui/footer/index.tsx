@@ -76,7 +76,7 @@ const Footer = () => {
               {/* Collections */}
               <div>
                 <h3 className="text-xs tracking-[0.2em] uppercase text-white/40 mb-6">
-                  Collections
+                  Text & Translation
                 </h3>
                 <ul className="space-y-3">
                   {collections.map((item) => (

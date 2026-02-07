@@ -80,7 +80,7 @@ export default function ConclusionsPage() {
 
               <div className="space-y-6 font-body text-[var(--color-charcoal)] leading-relaxed">
                 <p className="text-lg">
-                  The compilation of <span className="font-display italic text-[var(--color-primary)]">Nahj al-Balaghah</span> represents one of the most significant achievements in Islamic literary history. Through the dedicated efforts of al-Sharīf al-Radi, the profound wisdom of Imam Ali has been preserved for generations of seekers.
+                  The compilation of <span className="font-display italic text-[var(--color-primary)]">Nahj al-Balaghah</span> represents one of the most significant achievements in Islamic literary history. Through the dedicated efforts of al-Sharif al-Radi, the profound wisdom of Imam Ali has been preserved for generations of seekers.
                 </p>
 
                 <p>

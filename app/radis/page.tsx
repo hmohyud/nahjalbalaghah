@@ -180,7 +180,7 @@ function RadisContent() {
           </h1>
           
           <p className="font-body text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            The enlightening introduction by al-Sharīf al-Radi, compiler of Nahj al-Balaghah,
+            The enlightening introduction by al-Sharif al-Radi, compiler of Nahj al-Balaghah,
             explaining his methodology and the profound wisdom contained within.
           </p>
         </div>

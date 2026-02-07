@@ -134,7 +134,7 @@ const HeroSection = () => {
       transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
             >
-              ʿAlī ibn Abī Ṭālib
+              ʿAli ibn Abi Talib
             </p>
 
             {/* Compiler Credit */}
@@ -144,7 +144,7 @@ const HeroSection = () => {
                 Compiled by
               </p>
               <p className="font-display text-base text-[var(--color-ink)]">
-                al-Sharīf al-Radi
+                al-Sharif al-Radi
               </p>
             </div>
           </div>

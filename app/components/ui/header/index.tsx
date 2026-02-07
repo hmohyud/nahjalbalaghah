@@ -161,7 +161,7 @@ const Header = () => {
               </Link>
 
               <Dropdown
-                label="Collections"
+                label="Text & Translation"
                 items={collectionsItems}
                 isActive={isCollectionsActive}
               />
@@ -280,7 +280,7 @@ const Header = () => {
 
               <div className="border-t border-[var(--color-stone)]/50">
                 <button
-                  onClick={() => toggleMobileDropdown('collections')}
+                  onClick={() => toggleMobileDropdown('Text & Translation')}
                   className={`w-full flex items-center justify-between py-3 transition-colors duration-200 ${isCollectionsActive
                     ? 'text-[var(--color-primary)]'
                     : 'text-[var(--color-charcoal)]'
@@ -288,7 +288,7 @@ const Header = () => {
                 >
                   <div className="flex items-center gap-3">
                     {isCollectionsActive && <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rotate-45" />}
-                    <span className="font-display text-lg">Collections</span>
+                    <span className="font-display text-lg">Text & Translation</span>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${mobileDropdown === 'collections' ? 'rotate-180' : ''
                     }`} />

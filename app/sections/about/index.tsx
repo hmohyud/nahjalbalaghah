@@ -45,12 +45,12 @@ const AboutSection = () => {
     fetchCounts()
   }, [])
 
-  const stats = [
-    { value: counts.orations.toString(), label: 'Sermons' },
-    { value: counts.letters.toString(), label: 'Letters' },
-    { value: counts.sayings.toString(), label: 'Sayings' },
-    { value: '1000+', label: 'Years' },
-  ]
+  // const stats = [
+  //   { value: counts.orations.toString(), label: 'Sermons' },
+  //   { value: counts.letters.toString(), label: 'Letters' },
+  //   { value: counts.sayings.toString(), label: 'Sayings' },
+  //   { value: '1000+', label: 'Years' },
+  // ]
 
   return (
     <section ref={sectionRef} className="relative py-24 lg:py-32 bg-[var(--color-parchment)] overflow-hidden">
