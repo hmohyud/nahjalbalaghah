@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import ListViewItem from '@/app/components/list-view-item';
-import Pagination from '@/app/components/pagination';
+import { ListViewItem, Pagination } from '@/app/components/content-widgets';
 import { type Post } from '@/api/posts';
 import { useInfiniteScroll } from '@/app/hooks/useInfiniteScroll';
 

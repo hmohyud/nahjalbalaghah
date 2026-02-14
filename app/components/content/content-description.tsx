@@ -4,7 +4,7 @@ import { Tag as TagIcon } from 'lucide-react';
 import { type Post } from '@/api/posts';
 import { formatTextWithFootnotes, isArabicText } from '@/app/utils/text-formatting';
 import { extractReferences, replaceReferencesWithSuperscripts } from '@/app/utils';
-import Select from '@/app/components/select';
+import { Select } from '@/app/components/ui';
 
 interface ContentDescriptionProps {
   content: Post;

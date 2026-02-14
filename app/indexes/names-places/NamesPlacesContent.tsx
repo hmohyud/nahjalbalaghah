@@ -4,11 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, X, Book, ArrowRight, MapPin } from 'lucide-react';
 import { namePlacesApi, NamePlace, NamePlacesFilters } from '@/api';
-import Button from '@/app/components/button';
-import Input from '@/app/components/input';
-import Select from '@/app/components/select';
-import Pagination from '@/app/components/pagination';
-import AlphabetChips from '@/app/components/alphabet-chips';
+import { Button, Input, Select } from '@/app/components/ui';
+import { Pagination, AlphabetChips } from '@/app/components/content-widgets';
 
 export default function NamesPlacesContent() {
   const router = useRouter();

@@ -2,7 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCategoryBySlug, indexCategories } from '@/app/data/indexes';
-import IndexListing from '@/app/components/index-listing';
+import { IndexListing } from '@/app/components/content-widgets';
 
 // Generate static params for all index categories at build time
 export async function generateStaticParams() {

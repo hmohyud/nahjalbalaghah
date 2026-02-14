@@ -1,107 +1,141 @@
 'use client';
 import React from 'react';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { Book, Tag as TagIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { type Post } from '@/api/posts';
+import { formatTextWithFootnotes, isArabicText } from '@/app/utils/text-formatting';
 
 interface ListingCardProps {
-  oration: Post;
+  sermon?: {
+    id: number;
+    title: string;
+    arabicTitle: string;
+    description: string;
+    chapter: number;
+    type: string;
+    date: string;
+  };
+  oration?: Post;
   onClick?: () => void;
-  contentType: 'orations' | 'letters' | 'sayings';
+  contentType?: 'orations' | 'letters' | 'sayings';
 }
 
-const ListingCard: React.FC<ListingCardProps> = ({
-  oration,
-  onClick,
-  contentType
-}) => {
+export default function ListingCard({ sermon, oration, onClick, contentType = 'orations' }: ListingCardProps) {
+  const searchParams = useSearchParams();
+  
   const truncateText = (text: string, maxLength: number) => {
-    if (!text) return '';
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + '...';
+    return text.substring(0, maxLength) + '...';
   };
 
+  const getCardLink = () => {
+    if (oration) {
+      const currentPage = searchParams.get('page');
+      const baseUrl = `/${contentType}/details/${oration.id}`;
+      return currentPage ? `${baseUrl}?returnPage=${currentPage}` : baseUrl;
+    } else if (sermon) {
+      return `/listings/details/${sermon.id}`;
+    }
+    return '#';
+  };
+
+  const isOration = !!oration;
+  const data = isOration ? oration : sermon;
+
+  if (!data) return null;
+
+  const tocData = isOration ? (() => {
+    const post = oration!;
+    
+    return {
+      heading: post.heading || '',
+      TocEnglish: post.TocEnglish || '',
+      TocArabic: post.TocArabic || ''
+    };
+  })() : null;
+  
+  const title = isOration ? oration!.title : sermon!.title;
+  const englishTranslation = isOration 
+    ? oration!.translations?.find((t: any) => t.type === 'en')?.text || ''
+    : sermon!.description;
+
+  const displayTitle = isOration ? (tocData?.heading || oration!.heading || englishTranslation || title) : title;
+  const displayNumber = isOration ? String(oration!.sermonNumber || '') : '';
+
   return (
-    <Link
-      href={`/${contentType}/details/${oration.id}`}
-      onClick={onClick}
-      className="group block"
-    >
-      <div className="listing-card relative h-full">
-        {/* Corner accents on hover */}
-        <div className="corner-accent-hover corner-accent-hover--top-left" />
-        <div className="corner-accent-hover corner-accent-hover--bottom-right" />
-
-        {/* Header with number */}
-        <div className="p-5 pb-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="listing-card__number-box flex items-center justify-center">
-                {oration.sermonNumber || oration.id}
+    <Link href={getCardLink()} className="block h-full">
+      <div className="listing-grid-card group h-full flex flex-col">
+        <div className="listing-grid-card__header relative overflow-hidden flex-shrink-0">
+          <div className="absolute inset-0 flex items-center justify-start pl-6">
+            {isOration && displayNumber ? (
+              <div className="relative">
+                <span className="listing-grid-card__number select-none">
+                  {displayNumber}
+                </span>
+                <div className="absolute inset-0 flex items-center justify-start">
+                  <span className="text-7xl font-black text-white/20 blur-sm group-hover:text-white/30 transition-all duration-300">
+                    {displayNumber}
+                  </span>
+                </div>
               </div>
-              <div className="listing-card__type-label">
-                {contentType === 'orations' ? 'Oration' : contentType === 'letters' ? 'Letter' : 'Saying'}
+            ) : (
+              <div className="listing-grid-card__icon-wrapper flex items-center justify-center">
+                <Book className="w-5 h-5 text-white" />
               </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-[var(--color-warm-gray)] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+            )}
           </div>
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
         </div>
-
-        {/* Content */}
-        <div className="p-5 pt-0">
-          {/* Heading */}
-          {oration.heading && (
-            <h3 className="listing-card__heading mb-3 leading-snug">
-              {truncateText(oration.heading, 80)}
-            </h3>
-          )}
-
-          {/* Arabic Preview */}
-          {oration.title && (
-            <p className="text-right text-base text-[var(--color-charcoal)] font-taha leading-relaxed mb-4 line-clamp-2" dir="rtl">
-              {truncateText(oration.title, 100)}
-            </p>
-          )}
-
-          {/* TocEnglish Preview */}
-          {oration.TocEnglish && (
-            <p className="text-sm text-[var(--color-warm-gray)] font-body leading-relaxed line-clamp-2">
-              {truncateText(oration.TocEnglish, 120)}
-            </p>
-          )}
-
-          {/* Tags */}
-          {oration.tags && oration.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[var(--color-stone)]">
-              {oration.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag.id}
-                  className="listing-card__tag"
-                >
-                  {tag.name}
-                </span>
-              ))}
-              {oration.tags.length > 3 && (
-                <span className="px-2 py-1 text-xs font-body text-[var(--color-warm-gray)]">
-                  +{oration.tags.length - 3} more
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer indicator */}
-        <div className="px-5 pb-5">
-          <div className="flex items-center gap-2">
-            <div className="h-[1px] w-0 bg-[var(--color-accent)] group-hover:w-8 transition-all duration-300" />
-            <span className="text-xs tracking-[0.1em] uppercase text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-body">
-              Read
-            </span>
+        <div className="p-4 flex-grow flex flex-col justify-between">
+          <div>
+            {isOration && tocData && (tocData.heading || tocData.TocEnglish || tocData.TocArabic) ? (
+              <div className="space-y-2">
+                {tocData.heading && (
+                  <h4 className="text-xs font-semibold text-[#43896B] line-clamp-1">
+                    {truncateText(tocData.heading, 80)}
+                  </h4>
+                )}
+                {tocData.TocEnglish && (
+                  <p className="text-sm text-gray-700 line-clamp-2 font-brill leading-snug">
+                    {truncateText(tocData.TocEnglish, 120)}
+                  </p>
+                )}
+                {tocData.TocArabic && (
+                  <p className="text-sm font-taha text-gray-800 line-clamp-2 leading-snug" dir="rtl">
+                    {truncateText(tocData.TocArabic, 120)}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <h3 className={`font-medium text-gray-900 text-base line-clamp-3 group-hover:text-[#43896B] transition-colors mb-3 leading-relaxed ${typeof displayTitle === 'string' && isArabicText(displayTitle) ? 'font-taha' : ''}`}>
+                {typeof displayTitle === 'string' 
+                  ? formatTextWithFootnotes(truncateText(displayTitle, 120), (oration?.footnotes || []), isArabicText(displayTitle), oration?.sermonNumber || undefined)
+                  : truncateText(displayTitle, 120)
+                }
+              </h3>
+            )}
+            {isOration && oration!.tags && oration!.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {oration!.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="listing-grid-card__tag"
+                  >
+                    <TagIcon className="w-3 h-3" />
+                    {tag.name}
+                  </span>
+                ))}
+                {oration!.tags.length > 3 && (
+                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                    +{oration!.tags.length - 3} more
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </Link>
   );
-};
-
-export default ListingCard;
+}

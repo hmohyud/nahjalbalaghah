@@ -11,7 +11,7 @@ import {
     NamePlace
 } from '@/api';
 import { ArrowLeft, ArrowRight, MapPin } from 'lucide-react';
-import Button from '@/app/components/button';
+import { Button } from '@/app/components/ui';
 import { parseTextReference } from '@/app/utils/text-reference';
 
 interface CombinedResult {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Footnote } from '@/api/orations';
-import { FootnoteTooltip } from '@/app/components/footnote-tooltip';
+import { FootnoteTooltip } from '@/app/components/content-widgets';
 import { wrapTextReferences } from './text-ref-wrapper';
 
 export const formatTextWithBold = (text: string, isArabic: boolean = false): React.ReactNode => {

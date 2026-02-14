@@ -3,10 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, X, Book, ArrowRight } from 'lucide-react';
-import Button from '@/app/components/button';
-import Input from '@/app/components/input';
-import Pagination from '@/app/components/pagination';
-import AlphabetChips from '@/app/components/alphabet-chips';
+import { Button, Input } from '@/app/components/ui';
+import { Pagination, AlphabetChips } from '@/app/components/content-widgets';
 import { IndexCategory } from '@/app/data/indexes';
 
 interface StaticIndexListProps {

@@ -4,12 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, X, Book, ArrowRight, Languages } from 'lucide-react';
 import { indexTermsApi, IndexTerm, IndexTermsFilters } from '@/api';
-import Button from '@/app/components/button';
-import Input from '@/app/components/input';
-import Select from '@/app/components/select';
-import Pagination from '@/app/components/pagination';
-import TextRefChip from '@/app/components/text-ref-chip';
-import AlphabetChips from '@/app/components/alphabet-chips';
+import { Button, Input, Select } from '@/app/components/ui';
+import { Pagination, TextRefChip, AlphabetChips } from '@/app/components/content-widgets';
 
 export default function IndexTermsContent() {
   const router = useRouter();

@@ -1,4 +1,4 @@
-import { ManuscriptLinkData } from '@/app/components/manuscript-reference';
+import { ManuscriptLinkData } from '@/app/components/manuscripts';
 
 export const getManuscriptReferencesForContent = (
   contentId: number,

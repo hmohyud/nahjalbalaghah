@@ -2,10 +2,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { radisApi, RadisIntroduction, RadisApiResponse } from '@/api/posts';
 import { Search, GitCompare, Book } from 'lucide-react';
-import Button from '@/app/components/button';
-import Input from '@/app/components/input';
+import { Button, Input } from '@/app/components/ui';
 import { useTextRefHighlight } from '@/app/hooks/useTextRefHighlight';
-import ManuscriptComparisonModal from '@/app/components/manuscript-comparison-modal';
+import { ManuscriptComparisonModal } from '@/app/components/manuscripts';
 import Link from 'next/link';
 
 function RadisContent() {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { lettersApi, type Post } from '@/api/posts';
-import Timeline from '@/app/components/timeline';
+import { Timeline } from '@/app/components/content-widgets';
 
 export default function LettersTimelinePage() {
   const [letters, setLetters] = useState<Post[]>([]);

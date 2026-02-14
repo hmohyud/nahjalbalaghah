@@ -11,7 +11,7 @@ import {
     IndexTerm
 } from '@/api';
 import { ArrowLeft, ArrowRight, Languages } from 'lucide-react';
-import Button from '@/app/components/button';
+import { Button } from '@/app/components/ui';
 import { parseTextReference } from '@/app/utils/text-reference';
 
 interface CombinedResult {

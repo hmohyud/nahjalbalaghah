@@ -9,7 +9,7 @@ import {
     RadisIntroduction
 } from '@/api';
 import { ArrowLeft } from 'lucide-react';
-import Button from '@/app/components/button';
+import { Button } from '@/app/components/ui';
 import { parseTextReference } from '@/app/utils/text-reference';
 import { getCategoryBySlug } from '@/app/data/indexes';
 

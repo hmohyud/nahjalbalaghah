@@ -5,8 +5,8 @@ import { type Post, orationsApi, lettersApi, sayingsApi } from '@/api/posts';
 import ContentDescription from './content-description';
 import { ArrowLeft, Book, GitCompare, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import Button from '../button';
-import ManuscriptComparisonModal from '../manuscript-comparison-modal';
+import { Button } from '../ui';
+import { ManuscriptComparisonModal } from '../manuscripts';
 
 interface ContentDetailsPageProps {
   contentType: 'orations' | 'letters' | 'sayings';
