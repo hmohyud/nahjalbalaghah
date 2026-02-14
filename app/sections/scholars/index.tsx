@@ -47,42 +47,42 @@ const IslamicScholarsSection = () => {
   ]
 
   return (
-    <section id="scholars-section" className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden relative">
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-40 left-20 w-64 h-64 rounded-full bg-[#43896B]"></div>
-        <div className="absolute bottom-40 right-20 w-80 h-80 rounded-full bg-[#43896B]"></div>
+    <section id="scholars-section" className="section-gradient-gray">
+      <div className="scholars-bg-blur">
+        <div className="scholars-bg-circle--left"></div>
+        <div className="scholars-bg-circle--right"></div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="section-container relative">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="section-centered-intro"
         >
-          <div className="inline-flex items-center gap-2 rounded-full mb-6">
-            <BookOpen className="w-5 h-5 text-[#43896B]" />
-            <span className="text-[#43896B] font-semibold text-sm tracking-wide">
+          <div className="scholars-badge">
+            <BookOpen className="scholars-badge__icon" />
+            <span className="scholars-badge__text">
               MEET THE EXPERTS
             </span>
           </div>
-          <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-6 tracking-tight">
-            Islamic <span className='text-gray-900'>Scholars</span>
+          <h1 className="scholars-title">
+            Islamic <span>Scholars</span>
           </h1>
-          <div className="flex justify-center mb-8">
+          <div className="scholars-divider-wrapper">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: "200px" }}
               transition={{ duration: 1.2, delay: 0.5 }}
-              className="relative"
+              className="scholars-divider"
             >
-              <div className="h-1 rounded-full bg-[#43896B]"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#43896B]"></div>
-              <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#43896B]"></div>
-              <div className="absolute top-1/2 right-1/4 transform translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#43896B]"></div>
+              <div className="scholars-divider__line"></div>
+              <div className="scholars-divider__dot scholars-divider__dot--center"></div>
+              <div className="scholars-divider__dot scholars-divider__dot--left"></div>
+              <div className="scholars-divider__dot scholars-divider__dot--right"></div>
             </motion.div>
           </div>
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-            Meet our dedicated team of Islamic scholars and experts who guide our mission 
+          <p className="scholars-description">
+            Meet our dedicated team of Islamic scholars and experts who guide our mission
             with their profound knowledge and unwavering commitment to serving humanity.
           </p>
         </motion.div>
@@ -90,7 +90,7 @@ const IslamicScholarsSection = () => {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid-1-2-3"
         >
           {scholars.map((scholar, index) => (
             <motion.div
@@ -99,21 +99,21 @@ const IslamicScholarsSection = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.6 + (index * 0.2) }}
               whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100"
+              className="group scholar-card"
             >
-              <div className="relative overflow-hidden">
-                <div className="aspect-square bg-gradient-to-br from-gray-200 to-gray-300">
-                  <img 
-                    src={scholar.image} 
+              <div className="scholar-card__image-wrapper">
+                <div className="scholar-card__image-gradient">
+                  <img
+                    src={scholar.image}
                     alt={scholar.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="scholar-card__image"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="scholar-card__hover-overlay"></div>
                 </div>
               </div>
-              <div className="p-8 text-center">
+              <div className="scholar-card__body">
                 <div className="mb-6">
-                  <h3 className="text-2xl font-black text-gray-900 mb-2 group-hover:text-[#43896B] transition-colors duration-300">
+                  <h3 className="scholar-card__name">
                     {scholar.name}
                   </h3>
                   <div className="flex justify-center mb-4">
@@ -121,45 +121,45 @@ const IslamicScholarsSection = () => {
                       initial={{ width: 0 }}
                       animate={{ width: "60px" }}
                       transition={{ duration: 1, delay: 1 + (index * 0.2) }}
-                      className="h-0.5 bg-[#43896B] rounded-full"
+                      className="scholar-card__name-divider"
                     />
                   </div>
-                  <p className="text-gray-500 font-medium text-lg">
+                  <p className="scholar-card__title">
                     {scholar.title}
                   </p>
                 </div>
-                <div className="flex justify-center space-x-4">
+                <div className="scholar-card__socials">
                   <motion.a
                     href={scholar.socialLinks.twitter}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 bg-gray-100 hover:bg-[#43896B] rounded-full flex items-center justify-center transition-all duration-300 group/social"
+                    className="scholar-card__social-link"
                   >
-                    <Twitter className="w-4 h-4 text-gray-600 group-hover/social:text-white transition-colors duration-300" />
+                    <Twitter className="scholar-card__social-icon" />
                   </motion.a>
                   <motion.a
                     href={scholar.socialLinks.facebook}
                     whileHover={{ scale: 1.1, rotate: -5 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 bg-gray-100 hover:bg-[#43896B] rounded-full flex items-center justify-center transition-all duration-300 group/social"
+                    className="scholar-card__social-link"
                   >
-                    <Facebook className="w-4 h-4 text-gray-600 group-hover/social:text-white transition-colors duration-300" />
+                    <Facebook className="scholar-card__social-icon" />
                   </motion.a>
                   <motion.a
                     href={scholar.socialLinks.linkedin}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 bg-gray-100 hover:bg-[#43896B] rounded-full flex items-center justify-center transition-all duration-300 group/social"
+                    className="scholar-card__social-link"
                   >
-                    <Linkedin className="w-4 h-4 text-gray-600 group-hover/social:text-white transition-colors duration-300" />
+                    <Linkedin className="scholar-card__social-icon" />
                   </motion.a>
                   <motion.a
                     href={scholar.socialLinks.youtube}
                     whileHover={{ scale: 1.1, rotate: -5 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 bg-gray-100 hover:bg-[#43896B] rounded-full flex items-center justify-center transition-all duration-300 group/social"
+                    className="scholar-card__social-link"
                   >
-                    <Youtube className="w-4 h-4 text-gray-600 group-hover/social:text-white transition-colors duration-300" />
+                    <Youtube className="scholar-card__social-icon" />
                   </motion.a>
                 </div>
               </div>
@@ -170,7 +170,7 @@ const IslamicScholarsSection = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 1.8 }}
-          className="text-center mt-16"
+          className="section-bottom-action"
         >
           <motion.div
             whileHover={{ scale: 1.05 }}

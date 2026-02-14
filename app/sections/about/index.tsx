@@ -45,119 +45,92 @@ const AboutSection = () => {
     fetchCounts()
   }, [])
 
-  // const stats = [
-  //   { value: counts.orations.toString(), label: 'Sermons' },
-  //   { value: counts.letters.toString(), label: 'Letters' },
-  //   { value: counts.sayings.toString(), label: 'Sayings' },
-  //   { value: '1000+', label: 'Years' },
-  // ]
-
   return (
-    <section ref={sectionRef} className="relative py-24 lg:py-32 bg-[var(--color-parchment)] overflow-hidden">
+    <section ref={sectionRef} className="section-parchment">
       {/* Subtle background texture */}
-      <div 
-        className="absolute inset-0 opacity-[0.015]"
+      <div
+        className="subtle-texture"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23000000' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+      <div className="section-container relative">
+        <div className="about-content-grid">
           {/* Left Column - Content */}
           <div>
-            <div 
-              className={`transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            <div
+              className={`fade-in-up ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
             >
-              <span className="text-xs tracking-[0.25em] uppercase text-[var(--color-accent)] font-medium">
+              <span className="section-label">
                 About the Text
               </span>
             </div>
 
-            <h2 
-              className={`font-display text-4xl lg:text-5xl font-light text-[var(--color-ink)] mt-4 mb-8 leading-[1.1] transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            <h2
+              className={`section-title mb-8 fade-in-up fade-delay-100 ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
             >
               A Treasury of<br />
               <span className="italic">Islamic Wisdom</span>
             </h2>
 
-            <div 
-              className={`w-16 h-[2px] bg-[var(--color-accent)] mb-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+            <div
+              className={`section-accent-bar mb-8 fade-in-up fade-delay-200 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
             />
 
-            <div 
-              className={`space-y-6 text-[var(--color-charcoal)] leading-relaxed transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            <div
+              className={`about-body-text fade-in-up fade-delay-300 ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
             >
               <p>
-                <span className="font-display text-xl italic text-[var(--color-primary)]">Nahj al-Balaghah</span>, 
-                meaning "Way of Eloquence," is a collection of sermons, letters, and sayings attributed 
+                <span className="about-lead-text">Nahj al-Balaghah</span>,
+                meaning "Way of Eloquence," is a collection of sermons, letters, and sayings attributed
                 to Imam Ali ibn Abi Talib, compiled by Sharif al-Radi in the 10th century CE.
               </p>
-              <p className="text-[var(--color-warm-gray)]">
-                This masterwork addresses themes of governance, justice, spirituality, and ethics 
-                with profound eloquence. Its Arabic prose is considered second only to the Quran 
-                in linguistic beauty and depth, transcending sectarian and cultural boundaries 
+              <p className="about-secondary-text">
+                This masterwork addresses themes of governance, justice, spirituality, and ethics
+                with profound eloquence. Its Arabic prose is considered second only to the Quran
+                in linguistic beauty and depth, transcending sectarian and cultural boundaries
                 to inspire readers across the centuries.
               </p>
             </div>
-
-            {/* Stats */}
-            {/* <div 
-              className={`relative mt-12 pt-10 border-t border-[var(--color-stone)] transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-            >
-              <div className="absolute top-0 left-0 w-12 h-[2px] bg-[var(--color-accent)] -translate-y-[1px]" />
-              
-              <div className="grid grid-cols-4 gap-4 lg:gap-6">
-                {stats.map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <div className="font-display text-2xl lg:text-3xl text-[var(--color-primary)] mb-1">
-                      {stat.value}
-                    </div>
-                    <div className="text-[10px] lg:text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)]">
-                      {stat.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
           </div>
 
           {/* Right Column - Quote Card with corner framing */}
-          <div 
-            className={`transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}
+          <div
+            className={`fade-in-up--slow fade-delay-400 ${isVisible ? 'fade-in-right--visible' : 'fade-in-right--hidden'}`}
           >
             {/* Outer wrapper for corner brackets */}
             <div className="relative">
               {/* Corner brackets - positioned outside the card */}
-              <div className="absolute -top-3 -left-3 w-16 h-16 border-l-2 border-t-2 border-[var(--color-accent)]" />
-              <div className="absolute -bottom-3 -right-3 w-16 h-16 border-r-2 border-b-2 border-[var(--color-accent)]" />
-              
+              <div className="about-quote-bracket about-quote-bracket--top-left" />
+              <div className="about-quote-bracket about-quote-bracket--bottom-right" />
+
               {/* The card itself */}
-              <div className="relative bg-white p-10 lg:p-12 border border-[var(--color-stone)]">
+              <div className="about-quote-card">
                 {/* Quote Icon */}
-                <Quote className="w-10 h-10 text-[var(--color-accent)]/30 mb-6" strokeWidth={1} />
-                
+                <Quote className="about-quote-icon" strokeWidth={1} />
+
                 {/* Quote Text */}
-                <blockquote className="font-display text-2xl lg:text-3xl text-[var(--color-ink)] leading-snug italic mb-8">
+                <blockquote className="about-quote-text">
                   "The worth of a man lies in what he does well."
                 </blockquote>
-                
+
                 {/* Attribution */}
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-[1px] bg-[var(--color-accent)]" />
+                <div className="about-quote-attribution">
+                  <div className="about-quote-attribution__line" />
                   <div>
-                    <p className="font-display text-base text-[var(--color-charcoal)]">
+                    <p className="about-attribution-name">
                       Imam Ali ibn Abi Talib
                     </p>
-                    <p className="text-sm text-[var(--color-warm-gray)]">
+                    <p className="about-attribution-source">
                       Nahj al-Balaghah, Saying 81
                     </p>
                   </div>
                 </div>
 
                 {/* Arabic text */}
-                <div className="mt-10 pt-8 border-t border-[var(--color-stone)]">
-                  <p className="font-taha text-2xl text-[var(--color-primary)] text-right leading-loose">
+                <div className="about-quote-arabic">
+                  <p className="about-quote-arabic-text">
                     قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ
                   </p>
                 </div>

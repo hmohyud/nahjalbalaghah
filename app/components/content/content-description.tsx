@@ -173,15 +173,15 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
   };
 
   return (
-    <div className="relative bg-white border border-[var(--color-stone)]">
+    <div className="content-panel">
       {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-4 h-4 lg:w-6 lg:h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-      <div className="absolute bottom-0 right-0 w-4 h-4 lg:w-6 lg:h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
+      <div className="content-panel__corner--tl" />
+      <div className="content-panel__corner--br" />
 
-      <div className="p-4 sm:p-6 lg:p-10">
+      <div className="content-panel__inner">
         {/* Header */}
-        <div className="mb-6 lg:mb-8 pb-4 lg:pb-6 border-b border-[var(--color-stone)]">
-          <h1 className="font-display text-xl sm:text-2xl lg:text-3xl text-[var(--color-ink)] mb-3 lg:mb-4 leading-relaxed">
+        <div className="content-panel__header">
+          <h1 className="content-panel__title">
             {heading || `${getContentLabel()} Details`}
           </h1>
           
@@ -191,7 +191,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
               {content.tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center gap-1 px-2 lg:px-3 py-0.5 lg:py-1 text-[10px] lg:text-xs font-body bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20"
+                  className="content-tag"
                 >
                   <TagIcon className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
                   {tag.name}
@@ -224,7 +224,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
         {/* Sermon Number Badge */}
         {content.sermonNumber && (
           <div className="mb-4 lg:mb-6">
-            <span className="inline-flex items-center px-2 lg:px-3 py-0.5 lg:py-1 text-xs lg:text-sm font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+            <span className="content-number-badge">
               {content.sermonNumber}
             </span>
           </div>
@@ -240,7 +240,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
               {/* Arabic Title */}
               {(displayMode === 'both' || displayMode === 'arabic-only') && content.title && (
                 <div className="mb-4 lg:mb-6">
-                  <div className="text-right bg-[var(--color-parchment)] p-4 lg:p-6 border-r-4 border-[var(--color-accent)]">
+                  <div className="arabic-text-block text-right">
                     <p className="text-base lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap" dir="rtl">
                       {formatTextWithFootnotes(cleanArabicText(content.title), allFootnotes, true, content.sermonNumber || 'main')}
                     </p>
@@ -255,7 +255,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                   allReferences = allReferences.concat(refs);
 
                   return (
-                    <div className="bg-[var(--color-cream)] p-4 lg:p-6 border border-[var(--color-stone)]">
+                    <div className="english-text-block">
                       <p className="text-sm lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
                         {formatTextWithFootnotes(mainTranslation.text, allFootnotes, false, content.sermonNumber || 'main')}
                       </p>
@@ -281,7 +281,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                   {/* Paragraph Number */}
                   {paragraph.number && (
                     <div className="mb-3 lg:mb-4">
-                      <span className="inline-flex items-center px-2 lg:px-3 py-0.5 lg:py-1 text-xs lg:text-sm font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+                      <span className="content-number-badge">
                         {paragraph.number}
                       </span>
                     </div>
@@ -293,7 +293,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
                     return (
                       <div className="mb-4 lg:mb-6">
-                        <div className="bg-[var(--color-parchment)] p-4 lg:p-6 border-r-4 border-[var(--color-accent)]">
+                        <div className="arabic-text-block">
                           {lines.map((line, index) => {
                             const isCentered = /<center>/i.test(line);
                             const cleanedLine = line
@@ -326,7 +326,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                     allReferences = allReferences.concat(refs);
 
                     return (
-                      <div className="bg-[var(--color-cream)] p-4 lg:p-6 border border-[var(--color-stone)]">
+                      <div className="english-text-block">
                         <p className="text-sm lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
                           {formatTextWithFootnotes(englishTranslation.text, allFootnotes, false, paragraph.number)}
                         </p>

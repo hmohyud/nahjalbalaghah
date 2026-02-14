@@ -71,11 +71,11 @@ const HeroSection = () => {
 
   return (
     <>
-      <section className="relative min-h-screen flex flex-col">
+      <section className="hero-section">
         {/* Background */}
-        <div className="absolute inset-0 bg-[var(--color-parchment)]">
+        <div className="hero-background">
           <div
-            className="absolute inset-0 opacity-[0.02]"
+            className="hero-background-texture"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
             }}
@@ -83,116 +83,98 @@ const HeroSection = () => {
         </div>
 
         {/* Decorative page frame - like manuscript edges */}
-        <div className="absolute inset-8 lg:inset-12 pointer-events-none">
-          <div className="absolute top-0 left-0 w-16 lg:w-20 h-16 lg:h-20 border-l border-t border-[var(--color-accent)]/15" />
-          <div className="absolute top-0 right-0 w-16 lg:w-20 h-16 lg:h-20 border-r border-t border-[var(--color-accent)]/15" />
-          <div className="absolute bottom-0 left-0 w-16 lg:w-20 h-16 lg:h-20 border-l border-b border-[var(--color-accent)]/15" />
-          <div className="absolute bottom-0 right-0 w-16 lg:w-20 h-16 lg:h-20 border-r border-b border-[var(--color-accent)]/15" />
+        <div className="hero-page-frame">
+          <div className="hero-page-frame__corner hero-page-frame__corner--tl" />
+          <div className="hero-page-frame__corner hero-page-frame__corner--tr" />
+          <div className="hero-page-frame__corner hero-page-frame__corner--bl" />
+          <div className="hero-page-frame__corner hero-page-frame__corner--br" />
         </div>
 
         {/* Main Content */}
-        <div className="hero-main relative flex-1 flex items-center justify-center pt-28 pb-8 px-6 lg:px-8">
-          <div
-            className={`hero-backdrop max-w-3xl mx-auto text-center`}
-          >
+        <div className="hero-main">
+          <div className="hero-backdrop">
             {/* Arabic Title Image */}
             <div className="mb-6">
               <Image
                 src={TitleImage}
                 alt="نهج البلاغة"
-                className="h-20 sm:h-24 lg:h-32 w-auto mx-auto"
+                className="hero-title-image"
                 priority
               />
             </div>
 
             {/* Decorative Ornament */}
-            <div className={`flex items-center justify-center gap-4 mb-6 transition-all duration-1000 delay-200 ${isVisible ? "opacity-100" : "opacity-0"
-              }`}>
-              <div className="w-12 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-              <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-              <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+            <div className={`flex items-center justify-center gap-4 mb-6 fade-in-up--slow ${isVisible ? "fade-in--visible" : "fade-in--hidden"}`}
+              style={{ transitionDelay: '200ms' }}
+            >
+              <div className="hero-ornament-line hero-ornament-line--right" />
+              <div className="hero-ornament-diamond" />
+              <div className="hero-ornament-line hero-ornament-line--left" />
             </div>
 
             {/* English Title */}
-            <h1 className={`font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-light text-[var(--color-ink)] leading-[1.1] mb-4
-      transition-all duration-1000 delay-300 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-            >
+            <h1 className={`hero-english-title fade-in-up--slow fade-delay-300 ${isVisible ? "fade-in-up--visible" : "fade-in-up--hidden"}`}>
               The Way of Eloquence
             </h1>
 
             {/* Subtitle */}
-            <p className={`font-body text-sm sm:text-base text-[var(--color-charcoal)] max-w-2xl mx-auto leading-relaxed mb-2
-      transition-all duration-1000 delay-400 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-            >
+            <p className={`hero-subtitle fade-in-up--slow fade-delay-400 ${isVisible ? "fade-in-up--visible" : "fade-in-up--hidden"}`}>
               Selections from the Words of the Commander of the Faithful
             </p>
 
             {/* Name */}
-            <p className={`font-display text-lg sm:text-xl text-[var(--color-ink)] italic mb-8
-      transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-            >
+            <p className={`hero-author-name fade-in-up--slow fade-delay-500 ${isVisible ? "fade-in-up--visible" : "fade-in-up--hidden"}`}>
               ʿAli ibn Abi Talib
             </p>
 
             {/* Compiler Credit */}
-            <div className={`compiled-cred transition-all duration-1000 delay-600 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}>
-              <p className="text-xs tracking-[0.2em] uppercase text-[var(--color-charcoal)] mb-1">
+            <div className={`compiled-cred fade-in-up--slow fade-delay-600 ${isVisible ? "fade-in-up--visible" : "fade-in-up--hidden"}`}>
+              <p className="hero-compiler-label">
                 Compiled by
               </p>
-              <p className="font-display text-base text-[var(--color-ink)]">
+              <p className="hero-compiler-name">
                 al-Sharif al-Radi
               </p>
             </div>
           </div>
         </div>
 
-
-
         {/* Content Type Cards */}
-        <div className="hero-content-cards relative bg-[var(--color-cream)] py-8 lg:py-10">
-          <div className="max-w-6xl mx-auto px-6 lg:px-8">
-            <div className="grid md:grid-cols-3 gap-4 lg:gap-6">
+        <div className="hero-cards-section hero-content-cards">
+          <div className="hero-cards-container">
+            <div className="hero-cards-grid">
               {contentTypes.map((content, index) => (
                 <Link
                   href={content.href}
                   key={content.label}
-                  className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+                  className={`group block fade-in-up ${isVisible ? 'fade-in-up--visible' : 'fade-in-up-lg--hidden'}`}
                   style={{ transitionDelay: `${800 + index * 100}ms` }}
                 >
-                  <div className="hero-content-card relative bg-white border border-[var(--color-stone)] p-6 lg:p-8 transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:shadow-black/[0.04] hover:-translate-y-1">
-                    {/* Count badge */}
-                    {/* <div className="absolute top-4 right-4 text-xs tracking-[0.15em] text-[var(--color-warm-gray)]">
-                      {content.count}
-                    </div> */}
-
+                  <div className="hero-content-card">
                     {/* Arabic */}
-                    <div className="font-taha text-3xl text-[var(--color-primary)] mb-3 transition-colors duration-300 group-hover:text-[var(--color-primary-dark)]">
+                    <div className="hero-content-card-arabic">
                       {content.arabic}
                     </div>
 
                     {/* English */}
-                    <h3 className="font-display text-xl text-[var(--color-ink)] mb-1">
+                    <h3 className="hero-content-card-title">
                       {content.label}
                     </h3>
-                    <p className="text-sm text-[var(--color-warm-gray)]">
+                    <p className="hero-content-card-desc">
                       {content.description}
                     </p>
 
                     {/* Hover indicator line */}
-                    <div className="mt-6 flex items-center gap-3">
-                      <div className="h-[1px] w-0 bg-[var(--color-accent)] group-hover:w-8 transition-all duration-300" />
-                      <span className="text-xs tracking-[0.15em] uppercase text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="hero-hover-indicator">
+                      <div className="hero-hover-indicator__line" />
+                      <span className="hero-hover-indicator__text">
                         Explore
                       </span>
                     </div>
 
                     {/* Corner accents - appear on hover */}
-                    <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-6 group-hover:h-6 transition-all duration-300" />
-                    <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-6 group-hover:h-6 transition-all duration-300" />
+                    <div className="corner-accent-hover corner-accent-hover--top-left" />
+                    <div className="corner-accent-hover corner-accent-hover--bottom-right" />
                   </div>
                 </Link>
               ))}
@@ -201,54 +183,44 @@ const HeroSection = () => {
         </div>
 
         {/* Radi's Introduction & Conclusion */}
-        <div className="relative bg-[var(--color-cream)] py-6">
+        <div className="hero-radi-section">
           {/* Decorative top line */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] max-w-4xl h-[1px] bg-gradient-to-r from-transparent via-[var(--color-stone)] to-transparent" />
+          <div className="hero-radi-divider" />
 
-          <div className="max-w-2xl mx-auto px-6">
-            {/* Grid: 3 columns with diamond fixed in center */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="hero-radi-container">
+            <div className="hero-radi-grid">
               {/* Left link - right aligned */}
-              <Link
-                href="/radis"
-                className="group text-right"
-              >
-                <span className="font-display text-base text-[var(--color-primary)] underline underline-offset-4 decoration-[var(--color-accent)] decoration-1 group-hover:decoration-2 transition-all duration-300">
+              <Link href="/radis" className="group text-right">
+                <span className="hero-radi-link">
                   ← Radi's Introduction
                 </span>
               </Link>
 
               {/* Center ornament */}
               <div className="flex items-center gap-3">
-                <div className="w-8 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-                <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-                <div className="w-8 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+                <div className="hero-ornament-line hero-ornament-line--right" />
+                <div className="hero-ornament-diamond" />
+                <div className="hero-ornament-line hero-ornament-line--left" />
               </div>
 
               {/* Right link - left aligned */}
-              <Link
-                href="/conclusions"
-                className="group text-left"
-              >
-                <span className="font-display text-base text-[var(--color-primary)] underline underline-offset-4 decoration-[var(--color-accent)] decoration-1 group-hover:decoration-2 transition-all duration-300">
+              <Link href="/conclusions" className="group text-left">
+                <span className="hero-radi-link">
                   Radi's Conclusion →
                 </span>
               </Link>
             </div>
           </div>
 
-          {/* Scroll Indicator - same grid centering approach */}
-          <div className="max-w-2xl mx-auto px-6 mt-6">
-            <div
-              className={`grid grid-cols-[1fr_auto_1fr] transition-all duration-1000 delay-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-            >
+          {/* Scroll Indicator */}
+          <div className="hero-radi-container mt-6">
+            <div className={`hero-radi-grid fade-in-up--slow fade-delay-1000 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}>
               <div />
-              <ChevronDown className="w-5 h-5 text-[var(--color-warm-gray)] opacity-50 animate-bounce" />
+              <ChevronDown className="hero-scroll-indicator animate-bounce" />
               <div />
             </div>
           </div>
         </div>
-
       </section>
     </>
   )

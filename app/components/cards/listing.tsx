@@ -27,19 +27,19 @@ const ListingCard: React.FC<ListingCardProps> = ({
       onClick={onClick}
       className="group block"
     >
-      <div className="relative h-full bg-white border border-[var(--color-stone)] transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-lg hover:-translate-y-1">
+      <div className="listing-card relative h-full">
         {/* Corner accents on hover */}
-        <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-5 group-hover:h-5 transition-all duration-300" />
-        <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-5 group-hover:h-5 transition-all duration-300" />
+        <div className="corner-accent-hover corner-accent-hover--top-left" />
+        <div className="corner-accent-hover corner-accent-hover--bottom-right" />
 
         {/* Header with number */}
         <div className="p-5 pb-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[var(--color-primary)] text-white flex items-center justify-center font-body text-sm">
+              <div className="listing-card__number-box flex items-center justify-center">
                 {oration.sermonNumber || oration.id}
               </div>
-              <div className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body">
+              <div className="listing-card__type-label">
                 {contentType === 'orations' ? 'Oration' : contentType === 'letters' ? 'Letter' : 'Saying'}
               </div>
             </div>
@@ -51,7 +51,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
         <div className="p-5 pt-0">
           {/* Heading */}
           {oration.heading && (
-            <h3 className="font-display text-lg text-[var(--color-ink)] mb-3 leading-snug group-hover:text-[var(--color-primary)] transition-colors duration-300">
+            <h3 className="listing-card__heading mb-3 leading-snug">
               {truncateText(oration.heading, 80)}
             </h3>
           )}
@@ -76,7 +76,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
               {oration.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag.id}
-                  className="px-2 py-1 text-xs font-body text-[var(--color-primary)] bg-[var(--color-primary)]/10"
+                  className="listing-card__tag"
                 >
                   {tag.name}
                 </span>

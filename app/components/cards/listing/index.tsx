@@ -65,12 +65,12 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
 
   return (
     <Link href={getCardLink()} className="block h-full">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg hover:border-[#43896B]/20 transition-all duration-300 cursor-pointer group h-full flex flex-col">
-        <div className="h-28 bg-gradient-to-b from-[#43896B] via-[#43896B]/80 to-white relative overflow-hidden flex-shrink-0">
+      <div className="listing-grid-card group h-full flex flex-col">
+        <div className="listing-grid-card__header relative overflow-hidden flex-shrink-0">
           <div className="absolute inset-0 flex items-center justify-start pl-6">
             {isOration && displayNumber ? (
               <div className="relative">
-                <span className="text-7xl font-black text-white/90 group-hover:text-white group-hover:scale-105 transition-all duration-300 select-none">
+                <span className="listing-grid-card__number select-none">
                   {displayNumber}
                 </span>
                 <div className="absolute inset-0 flex items-center justify-start">
@@ -80,7 +80,7 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
                 </div>
               </div>
             ) : (
-              <div className="w-14 h-16 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <div className="listing-grid-card__icon-wrapper flex items-center justify-center">
                 <Book className="w-5 h-5 text-white" />
               </div>
             )}
@@ -120,7 +120,7 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
                 {oration!.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag.id}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-[#43896B]/10 text-[#43896B] rounded-full border border-[#43896B]/20 group-hover:bg-[#43896B]/20 transition-colors"
+                    className="listing-grid-card__tag"
                   >
                     <TagIcon className="w-3 h-3" />
                     {tag.name}

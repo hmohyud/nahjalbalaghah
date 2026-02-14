@@ -433,13 +433,13 @@ function ContentPageContent({ config }: ContentPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
+      <div className="content-details-page flex items-center justify-center">
         <div className="text-center">
           <h2 className="font-display text-2xl text-[var(--color-ink)] mb-4">Error Loading {config.title}</h2>
           <p className="font-body text-[var(--color-warm-gray)] mb-6">{error}</p>
           <button
             onClick={() => loadContent()}
-            className="px-6 py-3 bg-[var(--color-primary)] text-white font-body hover:bg-[var(--color-primary-dark)] transition-colors"
+            className="content-error-button"
           >
             Try Again
           </button>
@@ -449,15 +449,15 @@ function ContentPageContent({ config }: ContentPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="content-page">
+      <div className="content-page__container">
         {/* Header */}
-        <div className="mb-6 lg:mb-10">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-ink)] mb-2 lg:mb-3">{config.title}</h1>
-          <p className="font-body text-sm lg:text-base text-[var(--color-warm-gray)] max-w-2xl">
+        <div className="content-page__header">
+          <h1 className="content-page__title">{config.title}</h1>
+          <p className="content-page__subtitle max-w-2xl">
             {config.subtitle}
           </p>
-          <div className="w-12 lg:w-16 h-[2px] bg-[var(--color-accent)] mt-4 lg:mt-6" />
+          <div className="content-page__accent" />
         </div>
 
         {/* Filter Bar */}
@@ -477,7 +477,7 @@ function ContentPageContent({ config }: ContentPageProps) {
         <div className="flex flex-col gap-8">
           {/* Transitioning indicator */}
           {isTransitioning && (
-            <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-[var(--color-primary)] text-white px-4 py-2 text-sm font-body">
+            <div className="loading-transition-banner">
               Loading...
             </div>
           )}
@@ -505,14 +505,14 @@ function ContentPageContent({ config }: ContentPageProps) {
 
 function ContentPageFallback({ config }: ContentPageProps) {
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="mb-6 lg:mb-10">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-ink)] mb-2 lg:mb-3">{config.title}</h1>
-          <p className="font-body text-sm lg:text-base text-[var(--color-warm-gray)] max-w-2xl">
+    <div className="content-page">
+      <div className="content-page__container">
+        <div className="content-page__header">
+          <h1 className="content-page__title">{config.title}</h1>
+          <p className="content-page__subtitle max-w-2xl">
             {config.subtitle}
           </p>
-          <div className="w-12 lg:w-16 h-[2px] bg-[var(--color-accent)] mt-4 lg:mt-6" />
+          <div className="content-page__accent" />
         </div>
         <div className="animate-pulse">
           <div className="h-12 lg:h-14 bg-white border border-[var(--color-stone)] mb-6 lg:mb-8"></div>

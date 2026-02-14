@@ -34,14 +34,14 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   };
 
   return (
-    <div 
-      className="border-b border-[var(--color-stone)] last:border-b-0"
+    <div
+      className="collapsible-section"
       style={{ backgroundColor: isEven ? '#FFFFFF' : '#EDE8DF' }}
     >
       {/* Header - always visible, clickable */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-3 lg:p-4 flex items-start gap-2 lg:gap-3 text-left hover:bg-[var(--color-cream)]/30 transition-colors"
+        className="collapsible-section__header flex items-start gap-2 lg:gap-3 text-left"
       >
         <div className="flex-shrink-0 mt-0.5 flex items-center gap-1">
           {isOpen ? (
@@ -74,10 +74,10 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       
       {/* Content - shown when expanded */}
       {isOpen && (
-        <div className="px-3 lg:px-4 pb-3 lg:pb-4 pl-8 lg:pl-11">
+        <div className="collapsible-section__body">
           {/* Arabic text */}
           {(displayMode === 'both' || displayMode === 'arabic-only') && arabic && (
-            <div className="mb-2 lg:mb-3 p-3 lg:p-4 border-r-2 border-[var(--color-primary)]">
+            <div className="collapsible-section__arabic-block mb-2 lg:mb-3">
               <p className="text-[var(--color-ink)] font-taha text-base lg:text-lg leading-loose whitespace-pre-wrap" dir="rtl">
                 {arabic}
               </p>
@@ -86,7 +86,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           
           {/* English text */}
           {(displayMode === 'both' || displayMode === 'english-only') && english && (
-            <div className="p-3 lg:p-4 border-l-2 border-[var(--color-stone)]">
+            <div className="collapsible-section__english-block">
               <p className="text-[var(--color-charcoal)] font-body text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
                 {english}
               </p>
@@ -237,16 +237,16 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
       id={displayNumber ? `listing-${displayNumber}` : undefined}
       className="group block"
     >
-      <div className="relative bg-white border border-[var(--color-stone)] hover:border-[var(--color-primary)]/30 hover:shadow-lg transition-all duration-300">
+      <div className="list-item relative">
         {/* Corner accents on hover */}
-        <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-3 group-hover:h-3 lg:group-hover:w-4 lg:group-hover:h-4 transition-all duration-300" />
-        <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-3 group-hover:h-3 lg:group-hover:w-4 lg:group-hover:h-4 transition-all duration-300" />
+        <div className="corner-accent-hover corner-accent-hover--top-left" />
+        <div className="corner-accent-hover corner-accent-hover--bottom-right" />
 
         <div className="flex">
           {/* Number Badge */}
           {displayNumber && (
-            <div className="flex-shrink-0 w-12 sm:w-14 lg:w-20 bg-[var(--color-primary)] flex items-center justify-center">
-              <span className="font-display text-lg sm:text-xl lg:text-2xl text-white font-medium">
+            <div className="list-item__number-badge flex items-center justify-center">
+              <span className="list-item__number-text">
                 {displayNumber}
               </span>
             </div>
@@ -255,10 +255,10 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
           {/* Content - Links to detail page */}
           <Link 
             href={detailUrl}
-            className="flex-grow p-3 sm:p-4 lg:p-6 min-w-0 hover:bg-[var(--color-cream)]/30 transition-colors"
+            className="list-item__content-link flex-grow min-w-0"
           >
             {/* Heading */}
-            <h3 className="font-display text-base sm:text-lg lg:text-xl text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors duration-200 mb-1 lg:mb-2 line-clamp-2">
+            <h3 className="list-item__heading line-clamp-2">
               {item.heading || 'Untitled'}
             </h3>
 
@@ -304,7 +304,7 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
                 e.stopPropagation();
                 onToggleExpand();
               }}
-              className="flex-shrink-0 w-14 sm:w-16 lg:w-20 flex flex-col items-center justify-center gap-0.5 border-l border-[var(--color-stone)] hover:bg-[var(--color-cream)] transition-colors"
+              className="list-item__expand-button flex flex-col items-center justify-center gap-0.5"
               aria-label={isExpanded ? 'Hide content' : 'Show content'}
             >
               {isExpanded ? (
@@ -340,12 +340,12 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
 
         {/* Expanded Content */}
         {isExpanded && (
-          <div className="border-t border-[var(--color-stone)] bg-[var(--color-parchment)]/50 p-3 sm:p-4 lg:p-6">
+          <div className="list-item__expanded-content">
             {/* English Summary */}
             {(displayMode === 'both' || displayMode === 'english-only') && item.TocEnglish && (
               <div className="mb-4 lg:mb-6">
-                <h4 className="text-[10px] lg:text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-2 lg:mb-3">Summary</h4>
-                <div className="bg-white p-3 lg:p-4 border border-[var(--color-stone)]">
+                <h4 className="list-item__summary-label">Summary</h4>
+                <div className="list-item__summary-box">
                   <p className="text-[var(--color-charcoal)] font-body text-sm lg:text-base leading-relaxed">
                     {item.TocEnglish}
                   </p>
@@ -356,8 +356,8 @@ const ListViewItem: React.FC<ListViewItemProps> = ({
             {/* Arabic Summary */}
             {(displayMode === 'both' || displayMode === 'arabic-only') && item.TocArabic && (
               <div className="mb-4 lg:mb-6">
-                <h4 className="text-[10px] lg:text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] font-body mb-2 lg:mb-3">ملخص</h4>
-                <div className="bg-white p-3 lg:p-4 border-r-2 border-[var(--color-primary)]">
+                <h4 className="list-item__summary-label">ملخص</h4>
+                <div className="list-item__arabic-summary-box">
                   <p className="text-[var(--color-ink)] font-taha text-lg lg:text-xl leading-loose" dir="rtl">
                     {item.TocArabic}
                   </p>

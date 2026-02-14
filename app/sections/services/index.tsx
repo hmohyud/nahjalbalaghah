@@ -51,13 +51,13 @@ const ServicesSection = () => {
   ]
 
   return (
-    <section id="services-section" className="py-24 bg-gradient-to-br from-gray-50 via-white to-gray-50 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="services-section" className="section-gradient-gray">
+      <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-20"
+          className="services-section-intro"
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -65,23 +65,23 @@ const ServicesSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex items-center justify-center gap-3 mb-4"
           >
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#43896B] rounded-full"></div>
-              <div className="w-2 h-2 bg-[#43896B]/60 rounded-full"></div>
-              <div className="w-2 h-2 bg-[#43896B] rounded-full"></div>
+            <div className="services-dots">
+              <div className="services-dot"></div>
+              <div className="services-dot services-dot--faded"></div>
+              <div className="services-dot"></div>
             </div>
-            <span className="text-[#43896B] font-bold text-lg tracking-wide">What We Offer</span>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#43896B] rounded-full"></div>
-              <div className="w-2 h-2 bg-[#43896B]/60 rounded-full"></div>
-              <div className="w-2 h-2 bg-[#43896B] rounded-full"></div>
+            <span className="services-label">What We Offer</span>
+            <div className="services-dots">
+              <div className="services-dot"></div>
+              <div className="services-dot services-dot--faded"></div>
+              <div className="services-dot"></div>
             </div>
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-5xl lg:text-6xl font-black text-gray-800 tracking-tight leading-tight mb-6"
+            className="services-title"
           >
             Our Services
           </motion.h2>
@@ -89,10 +89,10 @@ const ServicesSection = () => {
             initial={{ width: 0 }}
             animate={{ width: "120px" }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="h-1 bg-[#43896B] rounded-full mx-auto"
+            className="services-accent-bar"
           ></motion.div>
         </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid-1-2-4">
           {services.map((service, index) => (
             <motion.div
               key={service.id}
@@ -101,31 +101,31 @@ const ServicesSection = () => {
               transition={{ duration: 0.8, delay: 0.2 + (index * 0.1) }}
               className="group relative h-full flex"
             >
-              <div className="relative overflow-hidden rounded-3xl bg-white shadow-xl hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 flex flex-col w-full">
-                <div className="relative h-48 overflow-hidden flex-shrink-0">
+              <div className="service-card">
+                <div className="service-card__image-wrapper">
                   <Image
                     src={service.image}
                     alt={service.title}
                     width={100}
                     height={100}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="service-card__image"
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${service.gradient} opacity-80 group-hover:opacity-70 transition-opacity duration-500`}></div>
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ duration: 0.6, delay: 0.4 + (index * 0.1) }}
-                    className="absolute top-6 left-6 w-16 h-16 bg-white/95 backdrop-blur-xl rounded-2xl flex items-center justify-center shadow-xl border border-white/50 group-hover:scale-110 transition-transform duration-300"
+                    className="service-card__icon-box"
                   >
-                    <service.icon className="w-8 h-8 text-gray-700" />
+                    <service.icon className="service-card__icon" />
                   </motion.div>
                 </div>
-                <div className="p-6 space-y-4 flex flex-col flex-grow">
+                <div className="service-card__body">
                   <motion.h3
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 + (index * 0.1) }}
-                    className="text-xl font-bold text-gray-800 group-hover:text-[#43896B] transition-colors duration-300"
+                    className="service-card__title"
                   >
                     {service.title}
                   </motion.h3>
@@ -133,7 +133,7 @@ const ServicesSection = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.6 + (index * 0.1) }}
-                    className="text-gray-600 leading-relaxed text-sm flex-grow"
+                    className="service-card__desc"
                   >
                     {service.description}
                   </motion.p>
@@ -141,10 +141,10 @@ const ServicesSection = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.7 + (index * 0.1) }}
-                    className="flex items-center gap-2 text-[#43896B] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-10px] group-hover:translate-x-0 mt-auto"
+                    className="service-card__link"
                   >
-                    <span className="text-sm font-semibold">Learn More</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="service-card__learn-more-text">Learn More</span>
+                    <svg className="service-card__learn-more-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </motion.div>

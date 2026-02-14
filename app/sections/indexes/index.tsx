@@ -30,14 +30,13 @@ const IndexesSection = () => {
   ]
 
   return (
-    <section id="indexes-section" className="py-24 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <section id="indexes-section" className="section-white">
+      <div className="section-container relative">
         <div className="grid gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            className="space-y-8"
           >
             <div className="space-y-4">
               <motion.div
@@ -46,39 +45,39 @@ const IndexesSection = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="flex items-center gap-3"
               >
-                <ScrollText className="w-6 h-6 text-[#43896B]" />
-                <span className="text-[#43896B] font-bold text-lg tracking-wide">Deeper Exploration</span>
+                <ScrollText className="green-section-icon" />
+                <span className="section-label--green">Deeper Exploration</span>
               </motion.div>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-3xl lg:text-5xl font-black text-black tracking-tight leading-tight"
+                className="section-title--green"
               >
-               Islamic <span className='text-[#43896B]'>Manuscripts and Maps.</span>
+               Islamic <span className="green-section-title-accent">Manuscripts and Maps.</span>
               </motion.h2>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: "120px" }}
                 transition={{ duration: 0.8, delay: 0.5 }}
-                className="h-1 bg-[#43896B] rounded-full"
+                className="section-accent-bar--green"
               ></motion.div>
             </div>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
-              className="grid grid-cols-1 gap-6 mt-8"
+              className="indexes-grid"
             >
               {indexes.map((index, i) => {
                 const content = (
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-[#43896B]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <index.icon className="w-6 h-6 text-[#43896B]" />
+                    <div className="index-item-card__icon-wrapper">
+                      <index.icon className="index-item-card__icon" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800 text-lg mb-2">{index.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{index.description}</p>
+                      <h3 className="index-item-card__title">{index.title}</h3>
+                      <p className="index-item-card__description">{index.description}</p>
                     </div>
                   </div>
                 );
@@ -88,8 +87,8 @@ const IndexesSection = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.8 + (i * 0.1) }}
-                  >                    
-                    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl hover:bg-white/80 transition-all duration-300 group">
+                  >
+                    <div className="index-item-card group">
                       {content}
                     </div>
                   </motion.div>

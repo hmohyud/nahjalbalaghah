@@ -95,11 +95,11 @@ export default function ContentListing({
       {[...Array(6)].map((_, index) => (
         <div 
           key={index} 
-          className="bg-white border border-[var(--color-stone)] overflow-hidden animate-pulse"
+          className="content-listing-skeleton overflow-hidden animate-pulse"
           style={{ animationDelay: `${index * 80}ms` }}
         >
           <div className="flex items-center gap-0">
-            <div className="w-12 sm:w-14 lg:w-20 h-16 lg:h-20 bg-[var(--color-parchment)]"></div>
+            <div className="content-listing-skeleton__badge"></div>
             <div className="flex-grow py-3 lg:py-5 pr-4 lg:pr-6 pl-3 lg:pl-6">
               <div className="flex items-center justify-between">
                 <div className="flex-grow">

@@ -125,8 +125,8 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <div className="content-details-page">
+        <div className="content-details-container">
           <div className="animate-pulse">
             <div className="h-6 bg-white border border-[var(--color-stone)] w-32 mb-6"></div>
             <div className="bg-white border border-[var(--color-stone)] p-6 lg:p-8">
@@ -146,14 +146,14 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center px-4">
+      <div className="content-details-page flex items-center justify-center px-4">
         <div className="text-center">
           <h2 className="font-display text-xl lg:text-2xl text-[var(--color-ink)] mb-4">
             {error}
           </h2>
           <button
             onClick={handleBackNavigation}
-            className="inline-flex items-center gap-2 px-4 lg:px-6 py-2 lg:py-3 bg-[var(--color-primary)] text-white text-sm lg:text-base font-body hover:bg-[var(--color-primary-dark)] transition-colors"
+            className="content-error-button"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
@@ -165,7 +165,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (!content) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center px-4">
+      <div className="content-details-page flex items-center justify-center px-4">
         <div className="text-center">
           <h2 className="font-display text-xl lg:text-2xl text-[var(--color-ink)] mb-4">
             {title.slice(0, -1)} not found
@@ -173,7 +173,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
           <p className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base mb-6">The requested {contentType.slice(0, -1)} could not be found.</p>
           <button
             onClick={handleBackNavigation}
-            className="inline-flex items-center gap-2 px-4 lg:px-6 py-2 lg:py-3 bg-[var(--color-primary)] text-white text-sm lg:text-base font-body hover:bg-[var(--color-primary-dark)] transition-colors"
+            className="content-error-button"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
@@ -184,13 +184,13 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="content-details-page">
+      <div className="content-details-container">
         {/* Header with back button and action buttons */}
         <div className="flex flex-col gap-4 mb-6 lg:mb-8">
           <button
             onClick={handleBackNavigation}
-            className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-body text-sm lg:text-base transition-colors self-start"
+            className="content-back-button self-start"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
@@ -244,25 +244,25 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
         />
 
         {/* Next/Previous Navigation */}
-        <div className="mt-8 lg:mt-10 pt-6 lg:pt-8 border-t border-[var(--color-stone)]">
+        <div className="adjacent-post-nav">
           <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
             {/* Previous Post */}
             <div className="flex-1">
               {adjacentPosts.previous ? (
                 <button
                   onClick={() => navigateToPost(adjacentPosts.previous!)}
-                  className="group w-full p-4 lg:p-5 border border-[var(--color-stone)] bg-white hover:border-[var(--color-primary)]/40 hover:shadow-lg transition-all text-left relative"
+                  className="adjacent-post-card group w-full text-left relative"
                 >
                   {/* Hover corners */}
-                  <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-3 group-hover:h-3 lg:group-hover:w-4 lg:group-hover:h-4 transition-all duration-200" />
-                  
-                  <div className="flex items-center gap-1 lg:gap-2 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] mb-2 transition-colors">
+                  <div className="corner-accent-hover corner-accent-hover--top-left" />
+
+                  <div className="adjacent-post-label">
                     <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
-                    <span className="text-[10px] lg:text-xs tracking-[0.1em] uppercase">Previous</span>
+                    <span className="adjacent-post-label__text">Previous</span>
                   </div>
                   
                   {/* Heading/Title */}
-                  <div className="font-display text-sm lg:text-base text-[var(--color-ink)] group-hover:text-[var(--color-primary)] line-clamp-2 transition-colors mb-1">
+                  <div className="adjacent-post-heading line-clamp-2 mb-1">
                     {truncateText(adjacentPosts.previous.heading, 60)}
                   </div>
                   
@@ -288,10 +288,10 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
                   )}
                 </button>
               ) : (
-                <div className="w-full p-4 lg:p-5 border border-[var(--color-stone)] bg-[var(--color-parchment)] opacity-50">
+                <div className="adjacent-post-card adjacent-post-card--disabled">
                   <div className="flex items-center gap-1 lg:gap-2 text-[var(--color-warm-gray)] mb-2">
                     <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
-                    <span className="text-[10px] lg:text-xs tracking-[0.1em] uppercase">Previous</span>
+                    <span className="adjacent-post-label__text">Previous</span>
                   </div>
                   <div className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base">No previous {getContentTypeLabel().toLowerCase()}</div>
                 </div>
@@ -303,10 +303,10 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
               {adjacentPosts.next ? (
                 <button
                   onClick={() => navigateToPost(adjacentPosts.next!)}
-                  className="group w-full p-4 lg:p-5 border border-[var(--color-stone)] bg-white hover:border-[var(--color-primary)]/40 hover:shadow-lg transition-all text-right relative"
+                  className="adjacent-post-card adjacent-post-card--next group w-full text-right relative"
                 >
                   {/* Hover corners */}
-                  <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-3 group-hover:h-3 lg:group-hover:w-4 lg:group-hover:h-4 transition-all duration-200" />
+                  <div className="corner-accent-hover corner-accent-hover--bottom-right" />
                   
                   <div className="flex items-center justify-end gap-1 lg:gap-2 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] mb-2 transition-colors">
                     <span className="text-[10px] lg:text-xs tracking-[0.1em] uppercase">Next</span>
@@ -314,7 +314,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
                   </div>
                   
                   {/* Heading/Title */}
-                  <div className="font-display text-sm lg:text-base text-[var(--color-ink)] group-hover:text-[var(--color-primary)] line-clamp-2 transition-colors mb-1">
+                  <div className="adjacent-post-heading line-clamp-2 mb-1">
                     {truncateText(adjacentPosts.next.heading, 60)}
                   </div>
                   
@@ -340,9 +340,9 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
                   )}
                 </button>
               ) : (
-                <div className="w-full p-4 lg:p-5 border border-[var(--color-stone)] bg-[var(--color-parchment)] opacity-50">
+                <div className="adjacent-post-card adjacent-post-card--disabled adjacent-post-card--next">
                   <div className="flex items-center justify-end gap-1 lg:gap-2 text-[var(--color-warm-gray)] mb-2">
-                    <span className="text-[10px] lg:text-xs tracking-[0.1em] uppercase">Next</span>
+                    <span className="adjacent-post-label__text">Next</span>
                     <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
                   </div>
                   <div className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base">No next {getContentTypeLabel().toLowerCase()}</div>
