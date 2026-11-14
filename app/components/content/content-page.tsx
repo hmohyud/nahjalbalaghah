@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { SlidersHorizontal, Search } from 'lucide-react';
 import SidebarFilter from '@/app/components/sidebar-filter';
 import ContentListing from './content-listing';
-import { type Post, type ApiResponse } from '@/api/posts';
+import { postsApi, type Post, type ApiResponse, type Edition } from '@/api/posts';
 
 import { normalizeTextForSearch } from '@/app/utils/text-formatting';
 import { getPreference, setPreference, parseDisplayMode, type DisplayMode } from '@/app/utils/preferences';
@@ -51,6 +51,21 @@ function ContentPageContent({ config }: ContentPageProps) {
     setDisplayMode(value);
     setPreference('display', value);
   };
+
+  // Changing the edition reloads the list (see the sortBy/selectedEdition effect below).
+  // null until loaded; the first content load waits for it so a saved edition that was
+  // renamed or removed in Strapi can be replaced before it's used.
+  const [editions, setEditions] = useState<Edition[] | null>(null);
+  useEffect(() => {
+    postsApi.getEditions()
+      .then(res => setEditions(res.data || []))
+      .catch((err) => { console.error(err); setEditions([]); });
+  }, []);
+
+  const handleEditionChange = (value: string) => {
+    setSelectedEdition(value);
+    setPreference('edition', value);
+  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [content, setContent] = useState<Post[]>([]);
   const [allContent, setAllContent] = useState<Post[]>([]);
@@ -69,7 +84,7 @@ function ContentPageContent({ config }: ContentPageProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isRestoringState, setIsRestoringState] = useState(false);
 
-  const aboutEditionHref = selectedEdition
+  const aboutEditionHref = selectedEdition && editions !== null
     ? `/editions/about?edition=${encodeURIComponent(selectedEdition)}`
     : '/editions/about';
 
@@ -391,16 +406,26 @@ function ContentPageContent({ config }: ContentPageProps) {
       loadContent(urlPage, urlSearch, false, false).finally(() => {
         setIsRestoringState(false);
       });
-    } else if (!isInitialized) {
-      // Initial load
-      setDisplayMode(urlDisplay);
-      setAppliedSearchTerm(urlSearch);
-      loadContent(urlPage, urlSearch, false, false).finally(() => {
-        setIsInitialized(true);
-      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Initial load, once the editions are known
+  useEffect(() => {
+    if (isInitialized || editions === null) return;
+    if (editions.length > 0 && !editions.some(ed => ed.title === selectedEdition)) {
+      const fallback = editions.find(ed => ed.title === 'Qutbuddin')?.title || editions[0].title;
+      handleEditionChange(fallback); // re-runs this effect with the valid edition
+      return;
+    }
+    const urlSearch = searchParams.get('search') || '';
+    const urlPage = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
+    setAppliedSearchTerm(urlSearch);
+    loadContent(urlPage, urlSearch, false, false).finally(() => {
+      setIsInitialized(true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editions, selectedEdition]);
 
   // Manual search handler (triggered by search button)
   const handleSearch = () => {
@@ -593,11 +618,16 @@ function ContentPageContent({ config }: ContentPageProps) {
               )}
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 justify-start">
                 <span className="text-sm text-gray-600">
-                  Edition: <span className="font-semibold text-gray-900">{selectedEdition}</span>
+                  {/* Nothing edition-specific until editions load: the server can't read the saved preference */}
+                  Edition: <span className="font-semibold text-gray-900">{editions === null ? '' : selectedEdition}</span>
                   {' · '}
-                  <Link href="/" className="font-semibold text-[#43896B] hover:text-[#367556] underline underline-offset-4">
+                  <button
+                    type="button"
+                    onClick={() => setSidebarOpen(true)}
+                    className="font-semibold text-[#43896B] hover:text-[#367556] underline underline-offset-4 cursor-pointer"
+                  >
                     Change
-                  </Link>
+                  </button>
                 </span>
                 <Link
                   href={aboutEditionHref}
@@ -622,6 +652,8 @@ function ContentPageContent({ config }: ContentPageProps) {
           onGoToNumber={handleGoToNumber}
           totalItems={total}
           onSearch={handleSearch}
+          selectedEdition={selectedEdition}
+          onEditionChange={handleEditionChange}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
         />

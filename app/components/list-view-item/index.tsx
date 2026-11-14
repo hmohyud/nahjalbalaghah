@@ -54,10 +54,12 @@ export default function ListViewItem({ item, contentType, displayMode = 'both', 
 
   const tocHeading = item.heading || item.TocEnglish || '';
   const tocEnglish = item.TocEnglish || '';
-  const tocArabic = item.TocArabic || '';
+  // Arabic-only editions (e.g. Attar) have the Arabic heading in `heading` -- show it once, as Arabic
+  const headingIsArabic = isArabicText(tocHeading) && !/[A-Za-z]/.test(tocHeading);
+  const tocArabic = item.TocArabic || (headingIsArabic ? tocHeading : '');
 
   const arabicTitle = tocArabic || item.title || '';
-  const englishHeading = tocHeading || '';
+  const englishHeading = headingIsArabic ? '' : tocHeading;
 
   const headingTranslation = item.translations?.find((t: any) => t.type === 'en')?.text || '';
 
