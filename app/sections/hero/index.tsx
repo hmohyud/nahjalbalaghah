@@ -1,7 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react'
 import { ArrowRightCircle } from 'lucide-react'
-import ArabicTitleImage from '@/app/assets/images/arabic-title.png'
+// Calligraphy from public/calligraphy, resized and (for the cards) tinted green in public/calligraphy/web
+import TitleCalligraphy from '@/public/calligraphy/web/title.png'
+import OrationsCalligraphy from '@/public/calligraphy/web/orations.png'
+import LettersCalligraphy from '@/public/calligraphy/web/letters.png'
+import SayingsCalligraphy from '@/public/calligraphy/web/sayings.png'
 import Image from 'next/image';
 import Link from 'next/link';
 import Button from '@/app/components/button';
@@ -82,18 +86,21 @@ const HeroSection = () => {
   const contentTypes = [
     {
       arabic: "الخطب",
+      image: OrationsCalligraphy,
       label: "Orations",
       href: "/orations",
       type: "Oration"
     },
     {
       arabic: "الكتب",
+      image: LettersCalligraphy,
       label: "Letters",
       href: "/letters",
       type: "Letter"
     },
     {
       arabic: "الحِكَم",
+      image: SayingsCalligraphy,
       label: "Sayings",
       href: "/sayings",
       type: "Saying"
@@ -109,9 +116,10 @@ const HeroSection = () => {
             <div className="mb-8">
               <div className="flex justify-center items-center mb-4">
                 <Image
-                  src={ArabicTitleImage}
-                  alt="نهج البلاغة"
-                  className="h-auto w-[400px] sm:w-[500px] lg:w-[600px] max-w-full"
+                  src={TitleCalligraphy}
+                  alt="نهج البلاغة من كلام أمير المؤمنين علي بن أبي طالب صلوات الله عليه للشريف الرضي محمد بن الحسين بن موسى"
+                  priority
+                  className="h-auto w-[300px] sm:w-[380px] lg:w-[460px] max-w-full"
                 />
               </div>
             </div>
@@ -166,8 +174,8 @@ const HeroSection = () => {
                       <div className="text-lg sm:text-xl lg:text-2xl font-bold text-[#43896B] mb-2 lg:mb-5 group-hover:scale-110 transition-transform duration-500 px-2 min-h-12 flex items-center justify-center" style={{ lineHeight: '1.2' }}>
                         {content.label}
                       </div>
-                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-[#43896B] mb-2 font-taha group-hover:scale-110 transition-transform duration-500 px-2 min-h-12 flex items-center justify-center" dir="rtl" style={{ lineHeight: '1.2' }}>
-                        {content.arabic}
+                      <div className="mb-4 group-hover:scale-110 transition-transform duration-500 px-2 h-20 sm:h-24 flex items-center justify-center">
+                        <Image src={content.image} alt={content.arabic} className="h-full w-auto object-contain" />
                       </div>
                       <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#43896B]/40 to-transparent rounded-full mb-4"></div>
                       <div className="mt-auto">

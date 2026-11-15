@@ -1,6 +1,8 @@
 'use client'
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
+import LogoCalligraphy from '@/public/calligraphy/web/logo-white.png'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -13,11 +15,10 @@ const Footer = () => {
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
             <div className="flex items-center gap-4 group">
               <div className="relative transform transition-transform duration-300 group-hover:scale-105">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center shadow-lg border border-white/10">
-                  <div className="text-center leading-none font-taha" dir="rtl">
-                    <div className="text-white font-bold text-base mb-1">نهج</div>
-                    <div className="text-white font-bold text-base -mt-1">البلاغة</div>
-                  </div>
+                {/* The calligraphy's hairlines need ~96px of height to stay visible on the green */}
+                <div className="h-24 flex items-center justify-center">
+                  {/* White copy of public/calligraphy/logo.png */}
+                  <Image src={LogoCalligraphy} alt="نهج البلاغة" className="h-full w-auto object-contain" />
                 </div>
               </div>
               <div className="text-left">

@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react'
 import { Menu, X, MapPin, Clock, Phone, Mail, ChevronDown, Home, Calendar, Headphones, GraduationCap, FileText, MessageCircle, Facebook, Twitter, Youtube, Star, List } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
+import LogoCalligraphy from '@/public/calligraphy/web/logo-green.png'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -30,7 +32,7 @@ const Header = () => {
       hasDropdown: false
     },
     {
-      name: 'About',
+      name: 'About Us',
       icon: List,
       href: '/about-us',
       hasDropdown: false
@@ -67,11 +69,9 @@ const Header = () => {
             <Link href="/">
               <div className="flex items-center gap-3 cursor-pointer">
                 <div className="relative">
-                  <div className="w-16 h-14 bg-[#43896B] rounded-2xl flex items-center justify-center shadow-lg border border-[#43896B]/20">
-                    <div className="text-center leading-none font-taha" dir="rtl">
-                      <div className="text-white font-bold text-lg mb-0.5">نهج</div>
-                      <div className="text-white font-bold text-base -mt-1">البلاغة</div>
-                    </div>
+                  <div className="h-16 flex items-center justify-center">
+                    {/* Green copy of public/calligraphy/logo.png */}
+                    <Image src={LogoCalligraphy} alt="نهج البلاغة" priority className="h-full w-auto object-contain" />
                   </div>
                 </div>
                 <div>

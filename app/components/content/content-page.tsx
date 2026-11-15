@@ -455,6 +455,17 @@ function ContentPageContent({ config }: ContentPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayMode]);
 
+  // Arabic-only editions (e.g. Attar) have no English headings or translations. Until content
+  // loads, assume English is available so the option doesn't flicker away.
+  const englishAvailable = content.length === 0 || content.some(item =>
+    !!item.TocEnglish ||
+    (!!item.heading && item.heading !== 'Untitled' && /[A-Za-z]/.test(item.heading)) ||
+    (item.translations?.length ?? 0) > 0
+  );
+  // A saved "English Only" preference would show empty cards here, so fall back to both
+  // without overwriting the preference (it applies again on editions with English)
+  const effectiveDisplayMode: DisplayMode = !englishAvailable && displayMode === 'english-only' ? 'both' : displayMode;
+
   const sortOptions = [
     { value: 'sermon-asc', label: 'Sermon Number (Ascending)' },
     { value: 'sermon-desc', label: 'Sermon Number (Descending)' },
@@ -646,10 +657,11 @@ function ContentPageContent({ config }: ContentPageProps) {
           sortBy={sortBy}
           setSortBy={handleSortChange}
           sortOptions={sortOptions}
-          displayMode={displayMode}
+          displayMode={effectiveDisplayMode}
           setDisplayMode={handleDisplayModeChange}
           selectedEdition={selectedEdition}
           onEditionChange={handleEditionChange}
+          englishAvailable={englishAvailable}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
         />
@@ -734,13 +746,13 @@ function ContentPageContent({ config }: ContentPageProps) {
             hasNextPage={hasNextPage}
             isInfiniteLoading={isInfiniteLoading}
             isTransitioning={isTransitioning}
-            displayMode={displayMode}
+            displayMode={effectiveDisplayMode}
             listingParams={{
               page: currentPage > 1 ? currentPage.toString() : '',
               search: appliedSearchTerm,
               sort: sortBy,
               edition: selectedEdition,
-              display: displayMode
+              display: effectiveDisplayMode
             }}
             showTopPagination={true}
           />

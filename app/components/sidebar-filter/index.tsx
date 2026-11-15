@@ -12,6 +12,8 @@ interface SidebarFilterProps {
   setDisplayMode: (value: 'both' | 'english-only' | 'arabic-only') => void;
   selectedEdition?: string;
   onEditionChange?: (edition: string) => void;
+  // false hides "English Only" (e.g. Arabic-only editions such as Attar)
+  englishAvailable?: boolean;
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
 }
@@ -24,6 +26,7 @@ export default function SidebarFilter({
   setDisplayMode,
   selectedEdition = '',
   onEditionChange,
+  englishAvailable = true,
   isOpen,
   setIsOpen
 }: SidebarFilterProps) {
@@ -46,7 +49,7 @@ export default function SidebarFilter({
     { value: 'both', label: 'Both Titles' },
     { value: 'english-only', label: 'English Only' },
     { value: 'arabic-only', label: 'Arabic Only' },
-  ];
+  ].filter(opt => englishAvailable || opt.value !== 'english-only');
 
   const editionOptions = editions.map(ed => ({
     value: ed.title,
