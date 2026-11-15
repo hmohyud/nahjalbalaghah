@@ -258,7 +258,7 @@ function ConclusionsContent() {
                         >
                           Compare Manuscripts
                         </Button>
-                        <Link href={`/manuscripts?section=${conclusion.number.startsWith('0.') ? conclusion.number : `0.${conclusion.number}`}`}>
+                        <Link href={`/manuscripts/view?section=${conclusion.number.startsWith('0.') ? conclusion.number : `0.${conclusion.number}`}`}>
                           <Button variant='outlined' icon={<Book className='w-4 h-4' />}>
                             View Manuscripts
                           </Button>

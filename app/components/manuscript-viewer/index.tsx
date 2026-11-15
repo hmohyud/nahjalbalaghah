@@ -7,6 +7,11 @@ type ViewMode = 'single' | 'gallery';
 interface ManuscriptViewerProps {
   pages: (string | null)[];
   bookName: string;
+  // Optional controlled page index (e.g. when the parent maps pages to sections)
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
+  // Shown under the page counter, e.g. which sections are on the current page
+  caption?: string;
 }
 
 type ZoomPanHandle = {
@@ -376,8 +381,15 @@ const MissingPagePlaceholder: React.FC<{ pageNumber: number }> = ({ pageNumber }
   </div>
 );
 
-const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName }) => {
-  const [currentPage, setCurrentPage] = useState(0);
+const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName, currentPage: controlledPage, onPageChange, caption }) => {
+  const [internalPage, setInternalPage] = useState(0);
+  const currentPage = Math.min(controlledPage ?? internalPage, Math.max(0, pages.length - 1));
+  const setCurrentPage = (next: number | ((prev: number) => number)) => {
+    const value = typeof next === 'function' ? next(currentPage) : next;
+    if (onPageChange) onPageChange(value);
+    else setInternalPage(value);
+  };
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('single');
   const [isExpanded, setIsExpanded] = useState(false);
   const [zoom, setZoom] = useState(100);
@@ -431,6 +443,8 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName }) 
   useEffect(() => {
     zoomPanRef.current?.reset();
     setZoom(100);
+    // Keep the active thumbnail visible when paging through a long manuscript
+    thumbnailRefs.current[currentPage]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [currentPage]);
 
   return (
@@ -507,6 +521,7 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName }) 
               {pages.map((page, index) => (
                 <button
                   key={index}
+                  ref={(el) => { thumbnailRefs.current[index] = el; }}
                   onClick={() => handleThumbnailClick(index)}
                   className={`flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${currentPage === index
                       ? 'border-[#43896B] shadow-md'
@@ -517,6 +532,7 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName }) 
                   {page ? (
                     <img
                       src={page}
+                      loading="lazy"
                       alt={`Page ${index + 1} thumbnail`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -574,6 +590,7 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName }) 
                       <>
                         <img
                           src={page}
+                          loading="lazy"
                           alt={`${bookName} - Page ${index + 1}`}
                           className="w-full h-auto block"
                           onError={(e) => {
@@ -617,8 +634,9 @@ const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName }) 
               <span className="text-sm font-medium">Previous</span>
             </button>
 
-            <div className="text-sm font-medium text-gray-700">
+            <div className="text-sm font-medium text-gray-700 text-center">
               Page {currentPage + 1} of {pages.length}
+              {caption && <div className="text-xs font-normal text-gray-500 mt-0.5">{caption}</div>}
             </div>
 
             <button

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { SlidersHorizontal, Search } from 'lucide-react';
+import { SlidersHorizontal, Search, Hash } from 'lucide-react';
 import SidebarFilter from '@/app/components/sidebar-filter';
 import ContentListing from './content-listing';
 import { postsApi, type Post, type ApiResponse, type Edition } from '@/api/posts';
@@ -67,6 +67,7 @@ function ContentPageContent({ config }: ContentPageProps) {
     setPreference('edition', value);
   };
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [goToValue, setGoToValue] = useState('');
   const [content, setContent] = useState<Post[]>([]);
   const [allContent, setAllContent] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -642,16 +643,11 @@ function ContentPageContent({ config }: ContentPageProps) {
 
         {/* Sidebar Filter - rendered as overlay modal */}
         <SidebarFilter
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
           sortBy={sortBy}
           setSortBy={handleSortChange}
           sortOptions={sortOptions}
           displayMode={displayMode}
           setDisplayMode={handleDisplayModeChange}
-          onGoToNumber={handleGoToNumber}
-          totalItems={total}
-          onSearch={handleSearch}
           selectedEdition={selectedEdition}
           onEditionChange={handleEditionChange}
           isOpen={sidebarOpen}
@@ -677,6 +673,37 @@ function ContentPageContent({ config }: ContentPageProps) {
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
               </div>
             </div>
+            <form
+              className="flex items-center"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const num = parseInt(goToValue, 10);
+                if (num > 0) {
+                  handleGoToNumber(num);
+                  setGoToValue('');
+                }
+              }}
+            >
+              <div className="relative">
+                <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="No."
+                  aria-label="Go to number"
+                  value={goToValue}
+                  onChange={(e) => setGoToValue(e.target.value)}
+                  className="w-24 pl-8 pr-2 py-2.5 text-base border border-[#D7DEE9] rounded-l-lg focus:outline-none focus:ring-2 focus:ring-[#43896B]/20 focus:border-[#43896B] transition-all duration-200 placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!goToValue || parseInt(goToValue, 10) <= 0}
+                className="px-3 py-2.5 bg-[#43896B] text-white text-base font-medium rounded-r-lg hover:bg-[#367556] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
+              >
+                Go
+              </button>
+            </form>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2.5 bg-[#43896B] text-white rounded-lg hover:bg-[#367556] transition-all duration-200 cursor-pointer"

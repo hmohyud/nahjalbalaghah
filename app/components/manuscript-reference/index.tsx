@@ -70,7 +70,7 @@ const ManuscriptReference: React.FC<ManuscriptReferenceProps> = ({ manuscripts, 
               </div>
 
               <Link
-                href={`/manuscripts?id=${manuscript.id}`}
+                href={`/manuscripts/view?id=${manuscript.id}`}
               >
                 <Button icon={<ExternalLink className="w-4 h-4 hidden lg:block" />} className='w-full' >
                     View Manuscript

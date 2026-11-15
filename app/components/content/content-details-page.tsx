@@ -490,7 +490,7 @@ export default function ContentDetailsPage({ contentType, title, api, id: propId
               >
                 Compare Manuscripts
               </Button>
-              <Link href={content?.sermonNumber ? `/manuscripts?section=${content.sermonNumber}` : '/manuscripts'}>
+              <Link href={content?.sermonNumber ? `/manuscripts/view?section=${content.sermonNumber}` : '/manuscripts'}>
                 <Button variant='outlined' icon={<Book className='w-4 h-4' />} className="h-11">
                   View Manuscripts
                 </Button>

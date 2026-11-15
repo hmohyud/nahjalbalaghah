@@ -1,8 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Menu, X, MapPin, Clock, Phone, Mail, Search, ChevronDown, Home, Calendar, Headphones, GraduationCap, FileText, MessageCircle, Facebook, Twitter, Youtube, Star, List } from 'lucide-react'
+import { Menu, X, MapPin, Clock, Phone, Mail, ChevronDown, Home, Calendar, Headphones, GraduationCap, FileText, MessageCircle, Facebook, Twitter, Youtube, Star, List } from 'lucide-react'
 import Link from 'next/link'
-import Input from '../../input'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -113,9 +112,6 @@ const Header = () => {
               ))}
             </nav>
             <div className="flex items-center gap-3">
-              <div className='hidden lg:block'>
-                <Input placeholder='Search sermons...' icon={<Search size={16} />} />
-              </div>
               <button
                 className="lg:hidden p-2.5 rounded-xl border border-gray-200"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -136,14 +132,6 @@ const Header = () => {
         {isMenuOpen && (
           <div className="lg:hidden bg-gradient-to-b from-white to-gray-50 border-t border-gray-100 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-3">
-              <div className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 mb-6 shadow-sm border border-gray-200">
-                <Search className="w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search sermons, scholars..."
-                  className="bg-transparent outline-none text-sm flex-1 placeholder-gray-500"
-                />
-              </div>
               {menuItems.map((item, index) => (
                 <div
                   key={item.name}

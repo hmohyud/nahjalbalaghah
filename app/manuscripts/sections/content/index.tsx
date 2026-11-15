@@ -21,6 +21,9 @@ import { Post, orationsApi, lettersApi, sayingsApi } from '@/api/posts';
 const ManuscriptsContent = () => {
   const searchParams = useSearchParams();
   const sectionFromUrl = searchParams.get('section');
+  // Set by the cards on /manuscripts and the "View manuscript" links on /manuscripts/information
+  const modeFromUrl = searchParams.get('mode');
+  const libraryFromUrl = searchParams.get('library');
 
   const [allManuscripts, setAllManuscripts] = useState<Manuscript[]>([]);
   const [selectedManuscript, setSelectedManuscript] = useState<Manuscript | null>(null);
@@ -33,7 +36,9 @@ const ManuscriptsContent = () => {
   const [urlSection, setUrlSection] = useState<string | null>(null);
 
   // New states for Parallel Reading and Comparison
-  const [viewMode, setViewMode] = useState<'single' | 'reading' | 'comparison'>('single');
+  const [viewMode, setViewMode] = useState<'single' | 'reading' | 'comparison'>(
+    modeFromUrl === 'reading' || modeFromUrl === 'comparison' ? modeFromUrl : 'single'
+  );
   const [normalizedContent, setNormalizedContent] = useState<Post | null>(null);
   const [isContentLoading, setIsContentLoading] = useState(false);
   const [secondManuscript, setSecondManuscript] = useState<Manuscript | null>(null);
@@ -172,6 +177,66 @@ const ManuscriptsContent = () => {
     });
   }, [thirdFilteredByLibraryAndType, getSectionDisplayNumber]);
 
+  // The whole manuscript of the selected library as one page sequence, so Next/Previous in
+  // single view walk through every page. Sections share pages (several short sayings on one
+  // page), so pages are listed once, in the order sections first reach them.
+  const fullManuscript = useMemo(() => {
+    if (!selectedLibrary) return { pages: [] as { url: string; sections: string[] }[], startIndex: new Map<string, number>() };
+    const sectionKey = (s: string) => s.split('.').map(n => parseInt(n, 10) || 0);
+    const ordered = allManuscripts
+      .filter(m => manuscriptBelongsToLibrary(m, selectedLibrary) && m.files?.length)
+      .sort((a, b) => {
+        const [a1, a2] = sectionKey(a.section), [b1, b2] = sectionKey(b.section);
+        return a1 - b1 || a2 - b2;
+      });
+    const pages: { url: string; sections: string[] }[] = [];
+    const indexByUrl = new Map<string, number>();
+    const startIndex = new Map<string, number>(); // section -> index of its first page
+    for (const m of ordered) {
+      for (const file of m.files || []) {
+        let i = indexByUrl.get(file.url);
+        if (i === undefined) {
+          i = pages.push({ url: file.url, sections: [] }) - 1;
+          indexByUrl.set(file.url, i);
+        }
+        if (!pages[i].sections.includes(m.section)) pages[i].sections.push(m.section);
+        if (!startIndex.has(m.section)) startIndex.set(m.section, i);
+      }
+    }
+    return { pages, startIndex };
+  }, [allManuscripts, selectedLibrary, manuscriptBelongsToLibrary]);
+
+  const [fullPageIndex, setFullPageIndex] = useState(0);
+
+  // Choosing a section from the dropdowns jumps to its first page, unless the current page
+  // already belongs to it (which is the case when the selection followed the page, below)
+  useEffect(() => {
+    if (!selectedManuscript) return;
+    const onCurrentPage = fullManuscript.pages[fullPageIndex]?.sections.includes(selectedManuscript.section);
+    if (onCurrentPage) return;
+    const start = fullManuscript.startIndex.get(selectedManuscript.section);
+    if (start !== undefined) setFullPageIndex(start);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedManuscript, fullManuscript]);
+
+  // Paging past the end of a section moves the Type/Number selection to the section on the new page
+  const handleFullPageChange = (index: number) => {
+    setFullPageIndex(index);
+    const sections = fullManuscript.pages[index]?.sections || [];
+    if (!sections.length || (selectedManuscript && sections.includes(selectedManuscript.section))) return;
+    const section = sections[0];
+    const type = getTypeFromSection(section);
+    if (type && type !== selectedType && !(type === 'introduction' && selectedType === 'conclusion')) setSelectedType(type);
+    setSelectedNumber(getSectionDisplayNumber(section));
+    setUrlSection(null);
+  };
+
+  const sectionLabel = (section: string) => {
+    const type = getTypeFromSection(section);
+    const label = type === 'oration' ? 'Oration' : type === 'letter' ? 'Letter' : type === 'saying' ? 'Saying' : 'Introduction';
+    return `${label} ${getSectionDisplayNumber(section)}`;
+  };
+
   const comparisonNumbers = useMemo(() => {
     const nums1 = availableSections.map(m => getSectionDisplayNumber(m.section));
     const nums2 = secondAvailableSections.map(m => getSectionDisplayNumber(m.section));
@@ -251,7 +316,8 @@ const ManuscriptsContent = () => {
           });
 
           const libraryWithItems = fetchedLibraries.find(l => l.library_items.length > 0);
-          const first = libraryWithManuscripts || libraryWithItems || fetchedLibraries[0];
+          const requestedLibrary = libraryFromUrl ? fetchedLibraries.find(l => l.documentId === libraryFromUrl) : undefined;
+          const first = requestedLibrary || libraryWithManuscripts || libraryWithItems || fetchedLibraries[0];
           const second = fetchedLibraries.find(l => l.documentId !== first.documentId) || first;
           const third = fetchedLibraries.find(l => l.documentId !== first.documentId && l.documentId !== second.documentId) || second;
           setSelectedLibrary(first);
@@ -638,6 +704,14 @@ const ManuscriptsContent = () => {
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">No {contentTypeLabel} Available</h3>
                 <p className="text-gray-500 max-w-md">Manuscript images for <span className="font-medium">{selectedLibrary?.name || 'this library'}</span> are currently being digitized and will be available soon.</p>
               </div>
+            ) : viewMode === 'single' && fullManuscript.pages.length > 0 ? (
+              <ManuscriptViewer
+                pages={fullManuscript.pages.map(p => getManuscriptImageUrl(p.url))}
+                bookName={selectedManuscript?.bookName || selectedLibrary?.name || ''}
+                currentPage={fullPageIndex}
+                onPageChange={handleFullPageChange}
+                caption={(fullManuscript.pages[fullPageIndex]?.sections || []).map(sectionLabel).join(', ')}
+              />
             ) : selectedManuscript && manuscriptPages.length > 0 ? (
               <ManuscriptViewer pages={manuscriptPages} bookName={selectedManuscript.bookName || ''} />
             ) : (

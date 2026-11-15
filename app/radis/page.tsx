@@ -260,7 +260,7 @@ function RadisContent() {
                           >
                             Compare Manuscripts
                           </Button>
-                          <Link href="/manuscripts?section=0.1">
+                          <Link href="/manuscripts/view?section=0.1">
                             <Button variant='outlined' icon={<Book className='w-4 h-4' />}>
                               View Manuscripts
                             </Button>
