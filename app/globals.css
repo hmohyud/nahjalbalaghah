@@ -18913,15 +18913,10 @@ ul.about-prose__body {
   border: 1px solid var(--color-stone);
 }
 
-@media (max-width: 1279px) {
+/* Beside the pages from 1024px (narrower until 1280px); under them below 1024px (end of file) */
+@media (min-width: 1024px) and (max-width: 1279px) {
   .mss-info {
-    position: absolute;
-    z-index: 6;
-    top: 0.75rem;
-    right: 1rem;
-    bottom: 1rem;
-    width: min(22rem, calc(100% - 2rem));
-    box-shadow: 0 18px 44px rgba(26, 24, 22, 0.22);
+    flex-basis: 17rem;
   }
 }
 
@@ -19277,9 +19272,22 @@ ul.about-prose__body {
   gap: 1.25rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .ms-hub-ways__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1120px) {
+  .ms-hub-ways__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Titles take two lines' room, so the descriptions line up across the row */
+  .ms-hub-ways__grid .ms-hub-way__title {
+    min-height: 2.5em;
+    font-size: 1.3125rem;
+    line-height: 1.25;
   }
 }
 
@@ -19404,6 +19412,42 @@ ul.about-prose__body {
 
 .ms-hub-way:hover .ms-hub-way__art--compare .ms-hub-way__page:last-child {
   transform: rotate(4deg) translateX(3px);
+}
+
+/* A catalogue record beside a page: label and value lines */
+.ms-hub-way__record {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  align-content: center;
+  gap: 0.5rem 0.375rem;
+  width: 5.25rem;
+  padding: 0.5rem 0.5rem;
+  background: #ffffff;
+  border: 1px solid var(--color-stone);
+  box-shadow: 0 3px 8px rgba(26, 24, 22, 0.12);
+  transition: transform 0.3s ease;
+}
+
+.ms-hub-way__record i,
+.ms-hub-way__record b {
+  display: block;
+  height: 2px;
+}
+
+.ms-hub-way__record i {
+  background: var(--color-accent);
+}
+
+.ms-hub-way__record b {
+  background: rgba(26, 24, 22, 0.45);
+}
+
+.ms-hub-way__record b:nth-of-type(2n) {
+  width: 65%;
+}
+
+.ms-hub-way:hover .ms-hub-way__art--details .ms-hub-way__record {
+  transform: translateY(-3px);
 }
 
 /* Collection */
@@ -19806,20 +19850,6 @@ ul.about-prose__body {
   }
 }
 
-/* Edition cards that can't be shown for this section */
-.mss-card--unavailable {
-  opacity: 0.55;
-}
-
-.mss-card--unavailable:hover {
-  border-color: var(--color-stone);
-  transform: none;
-}
-
-.mss-card--unavailable .mss-card__main {
-  cursor: help;
-}
-
 /* Text panes in narrow columns: the controls drop to a second row before the title is lost */
 .mss-pane--text .mss-pane__header {
   flex-wrap: wrap;
@@ -19914,4 +19944,62 @@ ul.about-prose__body {
 .mss-info,
 .mss-compare-details__scroll {
   contain: size;
+}
+
+/* Narrow screens: the manuscript details sit under the pages at their natural height */
+@media (max-width: 1023px) {
+  .mss-stage--with-info {
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  .mss-stage--with-info .mss-stage__main {
+    flex: 1 0 auto;
+  }
+
+  .mss-stage--with-info .mss-info {
+    flex: none;
+    min-height: 0;
+    overflow: visible;
+    contain: none;
+    scroll-margin-top: 6rem;
+  }
+}
+
+/* Tablets: the pages still fill the screen, and the details follow below it */
+@media (min-width: 768px) and (max-width: 1023px) and (min-height: 541px) {
+  .mss-stage--with-info .mss-stage__main {
+    min-height: max(var(--mss-panel-min), calc(100svh - 19rem));
+  }
+}
+
+/* The pane's Details button (Single, and Manuscript + text) */
+.mss-pane__details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  height: 2rem;
+  padding: 0 0.625rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: #ffffff;
+  border: 1px solid var(--color-stone);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.mss-pane__details-btn svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.mss-pane__details-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.mss-pane__details-btn--active {
+  background: rgba(45, 90, 71, 0.08);
+  border-color: var(--color-primary);
 }

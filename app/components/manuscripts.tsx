@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   ZoomIn, ZoomOut, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X, Loader2, Check,
   Maximize2, Minimize2, Expand, Shrink, Search, Image as ImageIcon, BookOpenText, Columns2,
-  Images, Table2, PanelRightOpen, PanelRightClose, RotateCcw, Plus, Minus,
+  Images, Table2, Info, RotateCcw, Plus, Minus,
 } from 'lucide-react';
 import {
   manuscriptCatalogApi,
@@ -521,13 +521,15 @@ interface ManuscriptPaneProps {
   order?: number;
   expanded?: boolean;
   onToggleExpand?: () => void;
+  /** The manuscript's details panel (Single, and Manuscript + text) */
   infoOpen?: boolean;
+  infoId?: string;
   onToggleInfo?: () => void;
 }
 
 const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
   entry, pages, sectionText, page, onPageChange, continuation, onContinue,
-  order, expanded, onToggleExpand, infoOpen, onToggleInfo,
+  order, expanded, onToggleExpand, infoOpen, infoId, onToggleInfo,
 }) => {
   const zoomRef = useRef<ZoomPanHandle | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
@@ -601,13 +603,13 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
           {onToggleInfo && (
             <button
               type="button"
-              className={`mss-icon-btn ${infoOpen ? 'mss-icon-btn--active' : ''}`}
+              className={`mss-pane__details-btn ${infoOpen ? 'mss-pane__details-btn--active' : ''}`}
               onClick={onToggleInfo}
-              aria-pressed={infoOpen}
-              title={infoOpen ? 'Hide details' : 'Show details'}
+              aria-expanded={!!infoOpen}
+              aria-controls={infoOpen ? infoId : undefined}
+              title="Manuscript details"
             >
-              {infoOpen ? <PanelRightClose /> : <PanelRightOpen />}
-              <span className="sr-only">{infoOpen ? 'Hide details' : 'Show details'}</span>
+              <Info /><span>Details</span>
             </button>
           )}
           {onToggleExpand && (
@@ -808,10 +810,17 @@ const EditionTextPane: React.FC<{
 // Details: one manuscript (side panel) or several (aligned comparison table)
 // ============================================================================
 
-const DetailsPanel: React.FC<{ entry: ManuscriptCatalogEntry; pages: number; sectionText: string; onClose: () => void }> = ({ entry, pages, sectionText, onClose }) => {
+const DetailsPanel: React.FC<{
+  id: string;
+  panelRef: React.Ref<HTMLElement>;
+  entry: ManuscriptCatalogEntry;
+  pages: number;
+  sectionText: string;
+  onClose: () => void;
+}> = ({ id, panelRef, entry, pages, sectionText, onClose }) => {
   const fields = DETAIL_FIELDS.map(field => ({ field, value: field.value(entry) })).filter(row => row.value);
   return (
-    <aside className="mss-info" aria-label={`Details of ${entry.name}`}>
+    <aside id={id} ref={panelRef} className="mss-info" aria-label={`Details of ${entry.name}`}>
       <div className="mss-info__head">
         <p className="mss-info__eyebrow">Manuscript details</p>
         <button type="button" className="mss-icon-btn" onClick={onClose} title="Hide details"><X /><span className="sr-only">Hide details</span></button>
@@ -917,9 +926,9 @@ type PickerCard = {
   title: string;
   meta: string;
   thumb?: string;
-  /** A manuscript on screen that has no pages for this section */
+  /** On screen but with nothing for this section: a manuscript without pages, an edition without text */
   missing?: boolean;
-  /** Why this card can't be shown here (an edition with no text for the section, or numbered differently) */
+  /** Why this card can't be opened here (an edition on screen that has no text for the section) */
   unavailable?: string;
 };
 
@@ -936,6 +945,8 @@ const ManuscriptPicker: React.FC<{
   compareKeys: string[];
   sectionText: string;
   loading: boolean;
+  /** Still finding out which editions have text for this section */
+  editionsLoading: boolean;
   open: boolean;
   notice: string | null;
   onToggleOpen: () => void;
@@ -945,7 +956,7 @@ const ManuscriptPicker: React.FC<{
   onToggleCompare: (key: string) => void;
 }> = ({
   manuscripts, editions, manuscriptCount, mode, canSingle, shownKeys, compareKeys, sectionText,
-  loading, open, notice, onToggleOpen, onShow, onToggleCompare,
+  loading, editionsLoading, open, notice, onToggleOpen, onShow, onToggleCompare,
 }) => {
   const hint = mode === 'compare'
     ? `+ to add (up to ${MAX_COMPARE}), − to remove · select one to ${canSingle ? 'view it alone' : 'read it beside the text'}`
@@ -968,7 +979,6 @@ const ManuscriptPicker: React.FC<{
           card.kind === 'ed' ? 'mss-card--edition' : '',
           isShown ? 'mss-card--selected' : '',
           card.missing ? 'mss-card--missing' : '',
-          card.unavailable && !isShown ? 'mss-card--unavailable' : '',
         ].filter(Boolean).join(' ')}
       >
         <button
@@ -1042,10 +1052,14 @@ const ManuscriptPicker: React.FC<{
                 : manuscripts.map(renderCard)}
             </div>
           </div>
-          {editions.length > 0 && (
+          {(editionsLoading || editions.length > 0) && (
             <div className="mss-picker__group mss-picker__group--editions" role="group" aria-label="Edition texts">
               <p className="mss-picker__group-label">Edition texts</p>
-              <div className="mss-picker__cards">{editions.map(renderCard)}</div>
+              <div className="mss-picker__cards">
+                {editionsLoading
+                  ? Array.from({ length: 2 }, (_, i) => <span key={i} className="mss-card mss-card--skeleton" />)
+                  : editions.map(renderCard)}
+              </div>
             </div>
           )}
         </div>
@@ -1300,12 +1314,17 @@ export function ManuscriptStudio({
   const [expanded, setExpanded] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(true);
-  const [infoOpen, setInfoOpen] = useState(false);
+  // The manuscript's details: open from the start when reading one manuscript, on request beside a text
+  const [infoPrefs, setInfoPrefs] = useState<Record<'single' | 'edition', boolean>>({ single: true, edition: false });
   const [notice, setNotice] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [sectionIndex, setSectionIndex] = useState<{ type: ManuscriptSectionType; entries: SectionIndexEntry[]; failed?: boolean } | null>(null);
 
   const catalogRef = useRef<ManuscriptCatalogEntry[] | null>(null);
+  const infoRef = useRef<HTMLElement | null>(null);
+  const infoId = React.useId();
+  // Set when the Details button opened the panel under the pages (narrow screens), so it scrolls into view
+  const revealInfoRef = useRef(false);
   const defaultsApplied = useRef(!!initialManuscript || (initialCompare?.length ?? 0) > 0);
   // Where paging past the end of a section should land, tagged with the section it was meant for
   const continuationRef = useRef<{ section: string; direction: 1 | -1; urls: Record<string, string> } | null>(null);
@@ -1321,11 +1340,6 @@ export function ManuscriptStudio({
   const textLabelFor = useCallback((edition: string) => (edition === INTRO_TEXT ? introTextLabel : editionLabel(edition)), [introTextLabel]);
   // The dialog on a 0.x section already has the passage's own text (a conclusion is not in the introduction)
   const useProvidedText = !!textSource && isIntro;
-
-  // Show the details panel by default on wide screens (after mount, to match the server render)
-  useEffect(() => {
-    if (window.matchMedia('(min-width: 1280px)').matches) setInfoOpen(true);
-  }, []);
 
   // ---- Data: the catalogue and the edition list once, then each section's records and texts ----
   useEffect(() => {
@@ -1496,7 +1510,6 @@ export function ManuscriptStudio({
 
   // ---- Edition texts ----
   const providedText = useMemo(() => (useProvidedText ? normalizeEditionText(textSource) : null), [useProvidedText, textSource]);
-  const textsReady = !useProvidedText && sectionTexts?.section === section && sectionTexts.status === 'ready';
   const normalizedTexts = useMemo(() => {
     const result = new Map<string, EditionText | null>();
     if (sectionTexts) for (const [edition, source] of sectionTexts.texts) result.set(edition, normalizeEditionText(source));
@@ -1514,25 +1527,6 @@ export function ManuscriptStudio({
     ?? (editionsFailed
       ? uniqueKeys([DEFAULT_EDITION, viewEd, ...compareKeys.filter(key => keyKind(key) === 'ed').map(keyId)].filter(edition => edition !== INTRO_TEXT))
       : []);
-
-  const editionCards: PickerCard[] = isIntro
-    ? [{ key: edKey(INTRO_TEXT), kind: 'ed', title: introTextLabel, meta: 'Raḍī’s text' }]
-    : editionList.map(edition => {
-        const separate = isSeparatelyNumbered(edition);
-        const noText = textsReady && !separate && !normalizedTexts.has(edition);
-        return {
-          key: edKey(edition),
-          kind: 'ed' as const,
-          title: edition,
-          meta: separate ? 'Own numbering' : noText ? 'No text here yet' : 'Edited text',
-          unavailable: separate
-            ? `${edition} numbers the text differently, so its passages can’t be lined up with these manuscripts yet.`
-            : noText
-              ? `The ${edition} edition has no text for ${sectionText} yet.`
-              : undefined,
-        };
-      });
-  const unavailableReason = (key: string) => editionCards.find(card => card.key === key)?.unavailable;
 
   // ---- Columns on screen ----
   const columnKeys: string[] = useMemo(() => {
@@ -1563,6 +1557,29 @@ export function ManuscriptStudio({
     }
     return result;
   }, [columnKeys, catalogById, resolveEdition]);
+
+  // ---- Edition cards: like the manuscripts, only those with text for this section ----
+  const textsStatus = useProvidedText ? 'ready' : sectionTexts?.section === section ? sectionTexts.status : 'loading';
+  const editionsLoading = !isIntro && (textsStatus === 'loading' || (!editions && !editionsFailed));
+  const onScreenEditions = new Set(columns.flatMap(column => (column.kind === 'ed' ? [column.edition] : [])));
+  const editionCards: PickerCard[] = isIntro
+    ? [{ key: edKey(INTRO_TEXT), kind: 'ed', title: introTextLabel, meta: 'Raḍī’s text' }]
+    : editionList.flatMap(edition => {
+        const onScreen = onScreenEditions.has(edition);
+        // An edition without text here is left out, unless it is already on screen (so it can be swapped or removed).
+        // ʿAṭṭār never has text here: it numbers the work on its own, so its passages can't be lined up with these pages yet.
+        const noText = isSeparatelyNumbered(edition) || (textsStatus === 'ready' && !normalizedTexts.get(edition)?.blocks.length);
+        if (noText && !onScreen) return [];
+        return [{
+          key: edKey(edition),
+          kind: 'ed' as const,
+          title: edition,
+          meta: noText ? 'No text here' : 'Edited text',
+          missing: noText,
+          unavailable: noText ? `The ${edition} edition has no text for ${sectionText}.` : undefined,
+        }];
+      });
+  const unavailableReason = (key: string) => editionCards.find(card => card.key === key)?.unavailable;
 
   // ---- Report state (the page keeps it in the URL) ----
   useEffect(() => {
@@ -1707,8 +1724,34 @@ export function ManuscriptStudio({
   // Below 1024px only the active column shows, so it must be the enlarged one when there is one
   const activeTab = expandedKey ?? (mobileTab && columns.some(c => c.key === mobileTab) ? mobileTab : columns[0]?.key);
   const primaryEntry = viewMs ? catalogById.get(viewMs) : undefined;
-  const showInfo = mode === 'single' && infoOpen && !!primaryEntry;
+  const infoMode = mode === 'single' || mode === 'edition' ? mode : null;
+  const infoOpen = !!infoMode && infoPrefs[infoMode];
+  const showInfo = infoOpen && !!primaryEntry;
   const showDetailsTable = mode === 'compare' && compareView === 'details';
+
+  const setInfoOpen = (open: boolean) => {
+    if (infoMode) setInfoPrefs(prev => ({ ...prev, [infoMode]: open }));
+  };
+  // Beside the pages (1024px and up) the button shows and hides the details. Below that they sit
+  // under the pages, so the button takes the reader to them instead of hiding them out of sight.
+  const toggleInfo = () => {
+    if (!window.matchMedia('(max-width: 1023px)').matches) {
+      setInfoOpen(!infoOpen);
+      return;
+    }
+    if (infoOpen && infoRef.current) {
+      infoRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      revealInfoRef.current = true;
+      setInfoOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!showInfo || !revealInfoRef.current) return;
+    revealInfoRef.current = false;
+    infoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [showInfo]);
   const columnLabel = (column: Column) => (column.kind === 'ed' ? textLabelFor(column.edition) : column.entry.name);
 
   const renderColumn = (column: Column, index: number) => {
@@ -1744,8 +1787,9 @@ export function ManuscriptStudio({
         order={order}
         expanded={expandedKey === column.key}
         onToggleExpand={toggleExpand}
-        infoOpen={mode === 'single' ? infoOpen : undefined}
-        onToggleInfo={mode === 'single' ? () => setInfoOpen(o => !o) : undefined}
+        infoOpen={infoMode && column.entry.id === viewMs ? infoOpen : undefined}
+        infoId={infoId}
+        onToggleInfo={infoMode && column.entry.id === viewMs ? toggleInfo : undefined}
       />
     );
   };
@@ -1944,6 +1988,7 @@ export function ManuscriptStudio({
         compareKeys={columns.map(c => c.key)}
         sectionText={sectionText}
         loading={!ready && !loadError}
+        editionsLoading={editionsLoading}
         open={pickerOpen}
         notice={notice}
         onToggleOpen={() => setPickerOpen(o => !o)}
@@ -1955,6 +2000,8 @@ export function ManuscriptStudio({
         <div className="mss-stage__main">{stageBody()}</div>
         {showInfo && primaryEntry && (
           <DetailsPanel
+            id={infoId}
+            panelRef={infoRef}
             entry={primaryEntry}
             pages={itemById.get(primaryEntry.id)?.pages.length ?? 0}
             sectionText={sectionText}

@@ -26,7 +26,7 @@ const ways = [
   {
     key: 'edition',
     title: 'Manuscript + text',
-    description: 'Set a manuscript page beside an edition’s text: Qutbuddin, ʿAṭṭār, Milani and more.',
+    description: 'Set a manuscript page beside an edition’s text of the same passage, in Arabic and English.',
     href: '/manuscripts/view?section=1.1&mode=edition',
     action: 'Read with a text',
   },
@@ -37,14 +37,22 @@ const ways = [
     href: '/manuscripts/view?section=1.1&mode=compare',
     action: 'Compare manuscripts',
   },
+  {
+    key: 'details',
+    title: 'Manuscript information',
+    description: 'Details of each manuscript: holding library, date, sigla, catalogue number, scribe and completeness.',
+    href: '/manuscripts/information',
+    action: 'View the details',
+  },
 ] as const;
 
-/** Small page diagrams for the three ways of studying */
+/** Small page diagrams for each way of studying */
 const WayIllustration = ({ kind }: { kind: typeof ways[number]['key'] }) => (
   <span className={`ms-hub-way__art ms-hub-way__art--${kind}`} aria-hidden="true">
     <span className="ms-hub-way__page"><i /><i /><i /><i /><i /></span>
     {kind === 'edition' && <span className="ms-hub-way__text"><i /><i /><i /><i /></span>}
     {kind === 'compare' && <span className="ms-hub-way__page"><i /><i /><i /><i /><i /></span>}
+    {kind === 'details' && <span className="ms-hub-way__record"><i /><b /><i /><b /><i /><b /><i /><b /></span>}
   </span>
 );
 
