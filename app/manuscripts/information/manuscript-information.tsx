@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Loader2, BookOpen, ArrowRight } from 'lucide-react';
-import { manuscriptCatalogApi, type ManuscriptCatalogEntry } from '@/api/manuscripts';
+import { manuscriptCatalogApi, getManuscriptOpenings, type ManuscriptCatalogEntry, type ManuscriptOpening } from '@/api/manuscripts';
 
 const Field = ({ label, value, arabic = false, wide = false }: { label: string; value?: string; arabic?: boolean; wide?: boolean }) =>
   value && value !== 'n/a' ? (
@@ -14,11 +14,20 @@ const Field = ({ label, value, arabic = false, wide = false }: { label: string; 
 
 export default function ManuscriptInformation() {
   const [entries, setEntries] = useState<ManuscriptCatalogEntry[] | null>(null);
+  const [openings, setOpenings] = useState<Map<string, ManuscriptOpening | null> | null>(null);
+  const [openingsFailed, setOpeningsFailed] = useState(false);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     manuscriptCatalogApi.getCatalog()
-      .then(setEntries)
+      .then(catalog => {
+        setEntries(catalog);
+        // Where each manuscript's pages start (some lack Oration 1; some aren't digitized yet).
+        // Kept separate so a failure here never hides the catalogue itself.
+        getManuscriptOpenings(catalog)
+          .then(setOpenings)
+          .catch(err => { console.error(err); setOpeningsFailed(true); });
+      })
       .catch((err) => { console.error(err); setError(true); });
   }, []);
 
@@ -86,14 +95,20 @@ export default function ManuscriptInformation() {
                 <Field label="Completeness" value={ms.completeness} wide />
                 <Field label="Features" value={ms.features} wide />
               </dl>
-              <Link
-                href={`/manuscripts/view?section=1.1&ms=${ms.id}`}
-                className="ms-info__link"
-              >
-                <BookOpen className="w-4 h-4" />
-                View manuscript
-                <ArrowRight className="w-4 h-4 ms-info__link-arrow" />
-              </Link>
+              {!openings && !openingsFailed ? (
+                <p className="ms-info__not-digitized">Finding pages…</p>
+              ) : openings?.get(ms.id) === null ? (
+                <p className="ms-info__not-digitized">Not yet digitized here</p>
+              ) : (
+                <Link
+                  href={`/manuscripts/view?section=${openings?.get(ms.id)?.section ?? '1.1'}&ms=${ms.id}`}
+                  className="ms-info__link"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  View manuscript
+                  <ArrowRight className="w-4 h-4 ms-info__link-arrow" />
+                </Link>
+              )}
             </article>
           ))}
         </div>

@@ -4,19 +4,15 @@ import Link from 'next/link';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import {
   manuscriptCatalogApi,
-  groupSectionRecords,
-  toPageImage,
+  getManuscriptOpenings,
   type ManuscriptCatalogEntry,
+  type ManuscriptOpening,
 } from '@/api/manuscripts';
 
 type CollectionItem = {
   entry: ManuscriptCatalogEntry;
-  cover: string | null;
-  /** Section the card opens; null when no pages have been digitized yet */
-  section: string | null;
+  opening: ManuscriptOpening | null;
 };
-
-const OPENING_SECTION = '1.1';
 
 /** The manuscripts, each with the first page of Oration 1 (or of its first digitized section). */
 export default function ManuscriptCollection() {
@@ -27,29 +23,15 @@ export default function ManuscriptCollection() {
     let cancelled = false;
     (async () => {
       try {
-        const [catalog, records] = await Promise.all([
-          manuscriptCatalogApi.getCatalog(),
-          manuscriptCatalogApi.getSectionRecords(OPENING_SECTION),
-        ]);
-        const opening = new Map(groupSectionRecords(records, catalog).map(item => [item.entry.id, item]));
-        const others = catalog.filter(entry => !opening.has(entry.id));
-        const samples = await Promise.all(
-          others.map(entry => manuscriptCatalogApi.getSampleRecord(entry.id).catch(() => null))
-        );
-        const sampleById = new Map(others.map((entry, i) => [entry.id, samples[i]]));
-
-        const result = catalog.map<CollectionItem>(entry => {
-          const atOpening = opening.get(entry.id);
-          if (atOpening?.pages[0]) {
-            return { entry, cover: atOpening.pages[0].preview, section: OPENING_SECTION };
-          }
-          const sample = sampleById.get(entry.id);
-          if (sample?.files?.length) {
-            return { entry, cover: toPageImage(sample.files[0]).preview, section: (sample.section || OPENING_SECTION).trim() };
-          }
-          return { entry, cover: null, section: null };
-        });
-        if (!cancelled) setItems(result);
+        const catalog = await manuscriptCatalogApi.getCatalog();
+        const openings = await getManuscriptOpenings(catalog);
+        if (!cancelled) {
+          setItems(catalog.map(entry => ({
+            entry,
+            // A manuscript whose lookup failed is still offered (from Oration 1) rather than hidden
+            opening: openings.has(entry.id) ? openings.get(entry.id) ?? null : { section: '1.1', cover: null },
+          })));
+        }
       } catch (err) {
         console.error('Error loading the manuscript collection:', err);
         if (!cancelled) setError(true);
@@ -75,23 +57,23 @@ export default function ManuscriptCollection() {
     );
   }
 
-  const digitized = items.filter(item => item.section);
-  const catalogued = items.filter(item => !item.section);
+  const digitized = items.filter(item => item.opening);
+  const catalogued = items.filter(item => !item.opening);
 
   return (
     <>
       <div className="ms-hub-collection__grid">
-        {digitized.map(({ entry, cover, section }) => {
+        {digitized.map(({ entry, opening }) => {
           const facts = [entry.date, [entry.city, entry.country].filter(Boolean).join(', ')].filter(Boolean);
           return (
             <Link
               key={entry.id}
-              href={`/manuscripts/view?section=${section}&ms=${entry.id}`}
+              href={`/manuscripts/view?section=${opening!.section}&ms=${entry.id}`}
               className="ms-col-card group"
             >
               <span className="ms-col-card__cover">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {cover && <img src={cover} alt={`First page of ${entry.name}`} loading="lazy" />}
+                {opening!.cover && <img src={opening!.cover.preview} alt={`First page of ${entry.name}`} loading="lazy" />}
               </span>
               <span className="ms-col-card__body">
                 <span className="ms-col-card__title">

@@ -596,6 +596,8 @@ export const manuscriptCatalogApi = {
         'populate[0]': 'files',
         'populate[1]': 'library',
         'pagination[pageSize]': 100,
+        // Stable order, so the same record wins every time when a manuscript has two
+        'sort[0]': 'id:asc',
       },
     });
     return response.data?.data || [];
@@ -615,6 +617,44 @@ export const manuscriptCatalogApi = {
   },
 };
 
+/** Where to open a manuscript: Oration 1 when it has it, else its first digitized section. */
+export interface ManuscriptOpening {
+  section: string;
+  cover: ManuscriptPageImage | null;
+}
+
+const OPENING_SECTION = '1.1';
+
+/** For each manuscript, where to open it (null when nothing has been digitized yet). */
+export async function getManuscriptOpenings(catalog: ManuscriptCatalogEntry[]): Promise<Map<string, ManuscriptOpening | null>> {
+  const records = await manuscriptCatalogApi.getSectionRecords(OPENING_SECTION);
+  const opening = new Map(groupSectionRecords(records, catalog).map(item => [item.entry.id, item]));
+  const others = catalog.filter(entry => !opening.has(entry.id));
+  // A failed lookup is left unknown (undefined), not reported as "nothing digitized" (null)
+  const samples = await Promise.all(
+    others.map(entry => manuscriptCatalogApi.getSampleRecord(entry.id).catch(() => undefined))
+  );
+  const sampleById = new Map(others.map((entry, i) => [entry.id, samples[i]]));
+
+  const result = new Map<string, ManuscriptOpening | null>();
+  for (const entry of catalog) {
+    const atOpening = opening.get(entry.id);
+    if (atOpening?.pages[0]) {
+      result.set(entry.id, { section: OPENING_SECTION, cover: atOpening.pages[0] });
+      continue;
+    }
+    const sample = sampleById.get(entry.id);
+    if (sample === undefined) continue;
+    result.set(
+      entry.id,
+      sample?.files?.length
+        ? { section: (sample.section || OPENING_SECTION).trim(), cover: toPageImage(sample.files[0]) }
+        : null
+    );
+  }
+  return result;
+}
+
 /** The pages one manuscript holds for a section. */
 export interface SectionManuscript {
   entry: ManuscriptCatalogEntry;
@@ -623,8 +663,12 @@ export interface SectionManuscript {
 
 /**
  * Groups a section's page records by manuscript. Records not linked to a library are
- * matched by their file names. Where a manuscript has duplicate records for a section,
- * the one with the most pages wins (the extras are stray uploads).
+ * matched by their file names.
+ *
+ * A manuscript can have two records for a section. Sometimes the second re-uploads the same
+ * pages (keep the fuller one). Sometimes it is a different scan linked to the wrong library in
+ * the CMS (e.g. Ya'qubi 1782 pages linked to Naṣīrī); then the earliest record is kept, so a
+ * manuscript shows the same scan in every section.
  */
 export function groupSectionRecords(records: Manuscript[], catalog: ManuscriptCatalogEntry[]): SectionManuscript[] {
   const best = new Map<string, Manuscript>();
@@ -633,7 +677,8 @@ export function groupSectionRecords(records: Manuscript[], catalog: ManuscriptCa
     const entry = catalog.find(candidate => manuscriptMatchesLibrary(record, candidate.library));
     if (!entry) continue;
     const current = best.get(entry.id);
-    if (!current || record.files.length > current.files.length) best.set(entry.id, record);
+    const reupload = !!current && record.files.some(file => current.files.some(kept => kept.name === file.name));
+    if (!current || (reupload && record.files.length > current.files.length)) best.set(entry.id, record);
   }
   return catalog
     .filter(entry => best.has(entry.id))
@@ -681,8 +726,27 @@ const POST_TYPE: Record<Exclude<ManuscriptSectionType, 'introduction'>, string> 
   saying: 'Saying',
 };
 
+/**
+ * Editions whose text is numbered independently of Qutbuddin's (they sit in their own post-bases),
+ * so their "Oration 12" is not necessarily the manuscripts' Oration 12. See
+ * scripts/edition-import/load-attar.mjs.
+ */
+export const SEPARATELY_NUMBERED_EDITIONS = new Set(['attar']);
+
+export const isSeparatelyNumbered = (edition: string) => SEPARATELY_NUMBERED_EDITIONS.has(edition.trim().toLowerCase());
+
+const postEditionTitles = (post: any): string[] => {
+  const editions = post?.editions;
+  const list = Array.isArray(editions) ? editions : editions ? [editions] : [];
+  return list.map((edition: any) => edition?.title).filter(Boolean);
+};
+
 export const sectionIndexApi = {
-  /** Every section of a type with its heading, from the Qutbuddin edition (~30 KB per 100). */
+  /**
+   * Every section of a type, with its heading. Built from all editions, so sections only in
+   * Qutbuddin (Minimal) are included; headings come from the shared (Qutbuddin-numbered)
+   * post-bases, and numbers known only from separately numbered editions get no heading.
+   */
   async getSections(type: ManuscriptSectionType): Promise<SectionIndexEntry[]> {
     if (type === 'introduction') {
       return [{ section: '0.1', number: '1', heading: 'Raḍī’s Introduction' }];
@@ -692,11 +756,10 @@ export const sectionIndexApi = {
       api.get('/api/post-bases', {
         params: {
           'filters[posts][type][$eq]': POST_TYPE[type],
-          'filters[posts][editions][title][$eqi]': 'Qutbuddin',
           'fields[0]': 'heading',
-          'fields[1]': 'TocEnglish',
           'populate[posts][fields][0]': 'sermonNumber',
-          'populate[posts][filters][editions][title][$eqi]': 'Qutbuddin',
+          'populate[posts][filters][type][$eq]': POST_TYPE[type],
+          'populate[posts][populate][editions][fields][0]': 'title',
           'pagination[pageSize]': 100,
           'pagination[page]': page,
         },
@@ -708,20 +771,50 @@ export const sectionIndexApi = {
       Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) => fetchPage(i + 2))
     );
 
+    const prefix = SECTION_TYPE_PREFIX[type];
     const bySection = new Map<string, SectionIndexEntry>();
+    const sharedSections = new Set<string>();
     for (const response of [first, ...rest]) {
       for (const base of response.data?.data || []) {
         for (const post of base.posts || []) {
           const section = (post.sermonNumber || '').trim();
-          if (!section || bySection.has(section)) continue;
-          bySection.set(section, {
-            section,
-            number: section.split('.')[1] || section,
-            heading: base.heading || base.TocEnglish || '',
-          });
+          if (!section || section.split('.')[0] !== prefix) continue;
+          const shared = !postEditionTitles(post).every(isSeparatelyNumbered);
+          if (shared) sharedSections.add(section);
+          const heading = shared ? base.heading || '' : '';
+          const existing = bySection.get(section);
+          if (!existing) {
+            bySection.set(section, { section, number: section.split('.')[1] || section, heading });
+          } else if (!existing.heading && heading) {
+            existing.heading = heading;
+          }
         }
       }
     }
+    // Numbers known only from separately numbered editions stay only when manuscripts have pages
+    // under them (some do); the rest are that edition's own numbering and lead nowhere
+    const unshared = Array.from(bySection.keys()).filter(section => !sharedSections.has(section));
+    if (unshared.length) {
+      const withPages = await sectionsWithPages(unshared);
+      for (const section of unshared) if (!withPages.has(section)) bySection.delete(section);
+    }
+
     return Array.from(bySection.values()).sort((a, b) => compareSections(a.section, b.section));
   },
 };
+
+/** Which of these section numbers have any manuscript page records. */
+async function sectionsWithPages(sections: string[]): Promise<Set<string>> {
+  const found = new Set<string>();
+  const params: Record<string, string | number> = { 'fields[0]': 'section', 'pagination[pageSize]': 100 };
+  sections.forEach((section, i) => { params[`filters[section][$in][${i}]`] = section; });
+  let page = 1;
+  let pageCount = 1;
+  do {
+    const response = await api.get('/api/manuscripts', { params: { ...params, 'pagination[page]': page } });
+    for (const record of response.data?.data || []) found.add((record.section || '').trim());
+    pageCount = response.data?.meta?.pagination?.pageCount || 1;
+    page += 1;
+  } while (page <= pageCount);
+  return found;
+}

@@ -17929,6 +17929,7 @@ ul.about-prose__body {
 .mss:fullscreen {
   height: 100dvh;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .mss-spin {
@@ -18120,7 +18121,7 @@ ul.about-prose__body {
 }
 
 .mss-section-picker {
-  position: relative;
+  position: static;
   flex: 1;
   min-width: 0;
 }
@@ -19598,8 +19599,8 @@ ul.about-prose__body {
   color: var(--color-warm-gray);
 }
 
-/* Phones: let the viewer scroll as a page and give the page image most of the screen */
-@media (max-width: 767px) {
+/* Phones (and landscape phones): let the viewer scroll as a page and give the page image most of the screen */
+@media (max-width: 767px), (max-height: 540px) {
   .mss--page,
   .mss--modal {
     height: auto;
@@ -19611,7 +19612,6 @@ ul.about-prose__body {
   }
 
   .mss-stage,
-  .mss-stage__main,
   .mss-columns,
   .mss-column {
     flex: none;
@@ -19650,4 +19650,215 @@ ul.about-prose__body {
   .mss-card__compare {
     top: 2.875rem;
   }
+}
+
+/* Picker groups: manuscripts and edition texts */
+.mss-picker__row {
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.mss-picker__group {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.mss-picker__group--editions {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--color-stone);
+}
+
+.mss-picker__group-label {
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-warm-gray);
+}
+
+.mss-picker__cards {
+  display: flex;
+  gap: 0.625rem;
+}
+
+.mss-card--edition .mss-card__thumb {
+  background: var(--color-cream);
+}
+
+/* A small illustrated page of text, standing in for a scan on edition cards */
+.mss-card__text-art {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 3.25rem;
+  height: 4.25rem;
+  padding: 0.4rem 0.45rem;
+  background: #ffffff;
+  border: 1px solid var(--color-stone);
+  box-shadow: 0 2px 6px rgba(26, 24, 22, 0.1);
+}
+
+.mss-card__text-art b {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  line-height: 1;
+  color: var(--color-accent-dark);
+}
+
+.mss-card__text-art i {
+  display: block;
+  height: 2px;
+  background: var(--color-primary);
+  opacity: 0.5;
+}
+
+.mss-card__text-art i:nth-of-type(odd) {
+  width: 75%;
+  margin-left: auto;
+}
+
+@media (max-width: 767px), (max-height: 540px) {
+  .mss-card__text-art {
+    width: 2.75rem;
+    height: 3.5rem;
+  }
+
+  .mss-picker__group--editions {
+    padding-left: 0.875rem;
+  }
+}
+
+/* Review fixes ---------------------------------------------------------- */
+
+/* The section list is anchored to the whole section bar */
+.mss-sectionnav {
+  position: relative;
+}
+
+.mss-section-picker__panel {
+  right: 0;
+  width: auto;
+  max-width: 30rem;
+}
+
+.mss-section-picker__status {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Thumbnails are measured from the strip itself, so the active one scrolls to the centre */
+.mss-strip {
+  position: relative;
+}
+
+/* Edition texts stay in view: only the manuscript cards scroll sideways */
+.mss-picker__row {
+  overflow-x: visible;
+  scroll-snap-type: none;
+}
+
+.mss-picker__group:not(.mss-picker__group--editions) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mss-picker__cards {
+  overflow-x: auto;
+  padding: 0.125rem 0.125rem 0.25rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+/* Stack the two groups only where the viewer scrolls as a page (phones, landscape phones) */
+@media (max-width: 767px), (max-width: 1023px) and (max-height: 540px) {
+  .mss-picker__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+  }
+
+  .mss-picker__group {
+    min-width: 0;
+  }
+
+  .mss-picker__group--editions {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* Tablets and narrow windows keep a fixed-height viewer, so the picker stays one row that scrolls as a whole */
+@media (min-width: 768px) and (max-width: 1023px) and (min-height: 541px) {
+  .mss-picker__row {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .mss-picker__group:not(.mss-picker__group--editions) {
+    flex: none;
+  }
+
+  .mss-picker__cards {
+    overflow-x: visible;
+  }
+}
+
+/* Edition cards that can't be shown for this section */
+.mss-card--unavailable {
+  opacity: 0.55;
+}
+
+.mss-card--unavailable:hover {
+  border-color: var(--color-stone);
+  transform: none;
+}
+
+.mss-card--unavailable .mss-card__main {
+  cursor: help;
+}
+
+/* Text panes in narrow columns: the controls drop to a second row before the title is lost */
+.mss-pane--text .mss-pane__header {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+}
+
+.mss-pane--text .mss-pane__titles {
+  flex: 1 1 8rem;
+}
+
+.mss-pane--text .mss-pane__actions {
+  margin-left: auto;
+}
+
+/* The dialog panel takes focus when it opens */
+.mss-modal__panel:focus {
+  outline: none;
+}
+
+/* Catalogue page: manuscripts with no pages yet */
+.ms-info__not-digitized {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-warm-gray);
+}
+
+/* A page image that failed to load */
+.mss-zoom__failed {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: default;
 }

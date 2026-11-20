@@ -4,6 +4,14 @@ import { ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { manuscriptsApi, Manuscript, toPageImage } from '@/api/manuscripts'
 
+// Opens the viewer on this record's section, with its manuscript selected when the record is linked to one
+function featuredManuscriptHref(manuscript: Manuscript) {
+  const section = encodeURIComponent((manuscript.section || '1.1').trim());
+  const linked = Array.isArray(manuscript.library) ? manuscript.library[0] : manuscript.library;
+  const libraryId = linked && typeof linked === 'object' ? linked.documentId : undefined;
+  return `/manuscripts/view?section=${section}${libraryId ? `&ms=${libraryId}` : ''}`;
+}
+
 const FeaturedManuscriptsSection = () => {
   const [isVisible, setIsVisible] = useState(false)
   const [manuscripts, setManuscripts] = useState<Manuscript[]>([])
@@ -89,7 +97,7 @@ const FeaturedManuscriptsSection = () => {
           <div className="grid-3">
             {manuscripts.map((manuscript, index) => (
               <Link
-                href={`/manuscripts/${manuscript.id}`}
+                href={featuredManuscriptHref(manuscript)}
                 key={manuscript.id}
                 className={`group block fade-in-up ${isVisible ? 'fade-in-up--visible' : 'fade-in-up-lg--hidden'}`}
                 style={{ transitionDelay: `${400 + index * 150}ms` }}

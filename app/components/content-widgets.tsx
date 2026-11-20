@@ -1268,7 +1268,8 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
       >
         {children}
       </span>
-      {mounted && tooltipContent && createPortal(tooltipContent, document.body)}
+      {/* In full screen only the full-screen element is visible, so render the tooltip inside it */}
+      {mounted && tooltipContent && createPortal(tooltipContent, document.fullscreenElement ?? document.body)}
     </>
   );
 };

@@ -8,7 +8,8 @@ import ParallelView from './parallel-view';
 import { ArrowLeft, Book, GitCompare, ChevronLeft, ChevronRight, ScrollText, Split } from 'lucide-react';
 import Link from 'next/link';
 import { Button, Select } from '../ui';
-import { ManuscriptComparisonModal } from '../manuscripts';
+import { ManuscriptComparisonModal, comparisonSection } from '../manuscripts';
+import { isSeparatelyNumbered } from '@/api/manuscripts';
 import AudioPlayer from './audio-player';
 import { getPostEditionTitles, postHasEdition } from '@/app/utils/preferences';
 
@@ -63,6 +64,12 @@ export default function ContentDetailsPage({ contentType, title, api, id: propId
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
+  // Manuscript pages are filed under Qutbuddin's numbering; editions numbered on their own
+  // (ʿAṭṭār) can't be matched to them by number
+  const manuscriptSection = comparisonSection(content, contentType);
+  const contentEditions = getPostEditionTitles(content);
+  const hasManuscriptSection = !!manuscriptSection
+    && !(contentEditions.length > 0 && contentEditions.every(isSeparatelyNumbered));
   const [adjacentPosts, setAdjacentPosts] = useState<{ previous: Post | null; next: Post | null }>({
     previous: null,
     next: null
@@ -478,15 +485,18 @@ export default function ContentDetailsPage({ contentType, title, api, id: propId
             >
               Parallel View
             </Button>
-            <Button
-              variant='outlined'
-              icon={<GitCompare className='w-4 h-4' />}
-              onClick={() => setIsComparisonModalOpen(true)}
-              className="content-details__action-btn"
-            >
-              Compare
-            </Button>
-            <Link href={content?.sermonNumber ? `/manuscripts/view?section=${content.sermonNumber}` : '/manuscripts'}>
+            {/* Manuscripts follow Qutbuddin's numbering, so they're only linked from posts that share it */}
+            {hasManuscriptSection && (
+              <Button
+                variant='outlined'
+                icon={<GitCompare className='w-4 h-4' />}
+                onClick={() => setIsComparisonModalOpen(true)}
+                className="content-details__action-btn"
+              >
+                Compare
+              </Button>
+            )}
+            <Link href={hasManuscriptSection ? `/manuscripts/view?section=${manuscriptSection}` : '/manuscripts'}>
               <Button variant='outlined' icon={<Book className='w-4 h-4' />} className="content-details__action-btn">
                 Manuscripts
               </Button>

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
@@ -13,14 +13,17 @@ import {
   sectionIndexApi,
   sectionTypeOf,
   compareSections,
+  isSeparatelyNumbered,
+  SECTION_TYPE_PREFIX,
   type ManuscriptCatalogEntry,
   type ManuscriptPageImage,
   type ManuscriptSectionType,
   type SectionIndexEntry,
   type SectionManuscript,
 } from '@/api/manuscripts';
-import { orationsApi, lettersApi, sayingsApi, radisApi, type Post } from '@/api/posts';
+import { postsApi, radisApi, type Post } from '@/api/posts';
 import { formatTextWithFootnotes } from '@/app/utils/text-formatting';
+import { getPreference, getPostEditionTitles } from '@/app/utils/preferences';
 
 // ============================================================================
 // Labels and small helpers
@@ -31,7 +34,7 @@ export type CompareView = 'pages' | 'details';
 
 const MODE_META: Record<StudyMode, { label: string; icon: React.ElementType }> = {
   single: { label: 'Single', icon: ImageIcon },
-  edition: { label: 'With edition', icon: BookOpenText },
+  edition: { label: 'Manuscript + text', icon: BookOpenText },
   compare: { label: 'Compare', icon: Columns2 },
 };
 
@@ -50,7 +53,17 @@ export function sectionLabel(section: string) {
   return `${TYPE_LABELS[type].singular} ${section.split('.')[1] ?? section}`;
 }
 
-const MAX_COMPARE = 3;
+const MAX_COMPARE = 4;
+const DEFAULT_EDITION = 'Qutbuddin';
+/** Raḍī's introduction has one text, not one per edition */
+const INTRO_TEXT = 'Introduction';
+
+// Columns are identified by slot keys: "ms:<library documentId>" or "ed:<edition title>"
+const msKey = (id: string) => `ms:${id}`;
+const edKey = (edition: string) => `ed:${edition}`;
+const keyKind = (key: string): 'ms' | 'ed' | null => (key.startsWith('ms:') ? 'ms' : key.startsWith('ed:') ? 'ed' : null);
+const keyId = (key: string) => key.slice(3);
+const editionLabel = (edition: string) => (edition === INTRO_TEXT ? 'Introduction text' : `${edition} edition`);
 
 const shortDate = (entry: ManuscriptCatalogEntry) =>
   entry.date.split('/')[0].replace(/\s*\(.*?\)\s*/g, ' ').trim();
@@ -95,9 +108,11 @@ export interface EditionTextSource {
   translation?: string;
   number?: string;
   sermonNumber?: string;
+  /** Which edition(s) a post belongs to */
+  editions?: { title?: string }[] | { title?: string } | null;
 }
 
-type TextBlock = { key: string; number?: string; arabic?: string; english?: string };
+type TextBlock ={ key: string; number?: string; arabic?: string; english?: string };
 type EditionText = { blocks: TextBlock[]; footnotes: any[] };
 
 const cleanArabic = (text?: string) =>
@@ -149,15 +164,44 @@ function normalizeEditionText(source: EditionTextSource | EditionTextSource[] | 
   return { blocks: blocks.filter(block => block.arabic || block.english), footnotes };
 }
 
-async function fetchEditionText(section: string): Promise<EditionTextSource | EditionTextSource[] | null> {
+type SectionTexts = Map<string, EditionTextSource | EditionTextSource[]>;
+
+/**
+ * Every aligned edition's text for a section, keyed by edition title, in one request.
+ * Editions numbered independently of Qutbuddin (ʿAṭṭār) are left out: their "Oration 12" is not
+ * necessarily the manuscripts' Oration 12. Raḍī's introduction has a single text.
+ */
+async function fetchSectionTexts(section: string): Promise<SectionTexts> {
+  const texts: SectionTexts = new Map();
   const type = sectionTypeOf(section);
   if (type === 'introduction') {
     const response = await radisApi.getRadisIntroductions(1, 100);
-    return response.data as EditionTextSource[];
+    // The collection holds the introduction three times (the 0.x paragraphs, a 00.xx copy and
+    // the whole Arabic text as 000.01); keep the 0.x paragraphs
+    const paragraphs = (response.data || []).filter(item => (item.number || '').split('.')[0] === '0');
+    texts.set(INTRO_TEXT, paragraphs as EditionTextSource[]);
+    return texts;
   }
-  if (type === 'oration') return orationsApi.getOrationBySermonNumber(section) as Promise<EditionTextSource | null>;
-  if (type === 'letter') return lettersApi.getLetterBySermonNumber(section) as Promise<EditionTextSource | null>;
-  return sayingsApi.getSayingBySermonNumber(section) as Promise<EditionTextSource | null>;
+  const postType = type === 'oration' ? 'Oration' : type === 'letter' ? 'Letter' : 'Saying';
+  const number = section.split('.')[1];
+  // One request for every post numbered ".N", so texts filed under another prefix are found too
+  const response = await postsApi.getPosts({ pageSize: 25, filters: { sermonNumberEndsWith: `.${number}`, type: postType } });
+  const posts = (response.data || []).filter(post => !post.type || post.type === postType);
+  const add = (post: Post) => {
+    for (const edition of getPostEditionTitles(post)) {
+      if (isSeparatelyNumbered(edition) || texts.has(edition)) continue;
+      texts.set(edition, post as EditionTextSource);
+    }
+  };
+  // Exact numbers first; then numbers under a prefix other than 0-3 (e.g. "4.1")
+  posts.filter(post => (post.sermonNumber || '').trim() === section).forEach(add);
+  posts
+    .filter(post => {
+      const [prefix, n] = (post.sermonNumber || '').trim().split('.');
+      return n === number && !['0', '1', '2', '3'].includes(prefix);
+    })
+    .forEach(add);
+  return texts;
 }
 
 // ============================================================================
@@ -198,8 +242,15 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
   const [scale, setScale] = useState(1);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const [hiResReady, setHiResReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const imageSize = imageSizeForSrc?.src === src ? imageSizeForSrc : null;
   const totalScale = baseScale * scale;
+
+  // Latest view, for effects that must not re-run when it changes
+  const viewRef = useRef({ baseScale, scale, translate });
+  viewRef.current = { baseScale, scale, translate };
+  const fittedRef = useRef<{ image: { w: number; h: number }; container: { w: number; h: number } } | null>(null);
 
   const centerImage = useCallback((nextBase: number, nextScale: number, imgW: number, imgH: number, cW: number, cH: number) => {
     const total = nextBase * nextScale;
@@ -238,10 +289,29 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     if (w > 0 && h > 0) setImageSizeForSrc({ src, w, h });
   }, [src, onLoadingChange]);
 
-  useEffect(() => {
+  // A layout effect, so the fitted size is applied before the browser first paints the image
+  useLayoutEffect(() => {
     if (!imageSize) return;
     const fit = Math.min(containerSize.w / imageSize.w, containerSize.h / imageSize.h);
     const nextBase = isFinite(fit) && fit > 0 ? clamp(fit, 0.01, 5) : 1;
+    const previous = fittedRef.current;
+    fittedRef.current = { image: imageSize, container: containerSize };
+    const view = viewRef.current;
+
+    // The pane was resized (picker hidden, details panel, full screen) while zoomed in:
+    // keep the zoom and the point at the centre of the pane
+    if (previous && previous.image === imageSize && view.scale > 1) {
+      const total = view.baseScale * view.scale;
+      const contentX = (previous.container.w / 2 - view.translate.x) / total;
+      const contentY = (previous.container.h / 2 - view.translate.y) / total;
+      setBaseScale(nextBase);
+      setTranslate({
+        x: containerSize.w / 2 - contentX * nextBase * view.scale,
+        y: containerSize.h / 2 - contentY * nextBase * view.scale,
+      });
+      return;
+    }
+
     setBaseScale(nextBase);
     setScale(1);
     centerImage(nextBase, 1, imageSize.w, imageSize.h, containerSize.w, containerSize.h);
@@ -336,9 +406,12 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (pinchRef.current.active && pointersRef.current.size >= 2) {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
       const [a, b] = Array.from(pointersRef.current.values());
-      const cx = (a.x + b.x) / 2;
-      const cy = (a.y + b.y) / 2;
+      // Translate is relative to the pane, so measure the pinch centre from the pane too
+      const cx = (a.x + b.x) / 2 - rect.left;
+      const cy = (a.y + b.y) / 2 - rect.top;
       const startTotal = baseScale * pinchRef.current.startScale;
       const contentX = (cx - pinchRef.current.startTx) / startTotal;
       const contentY = (cy - pinchRef.current.startTy) / startTotal;
@@ -382,17 +455,35 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
       onPointerCancel={onPointerUp}
       onDoubleClick={onDoubleClick}
     >
+      {failed && (
+        <div className="mss-zoom__failed" role="alert" onPointerDown={e => e.stopPropagation()}>
+          <p className="mss-empty__title">This page couldn’t be loaded</p>
+          <button
+            type="button"
+            className="mss-text-btn"
+            onClick={() => {
+              setFailed(false);
+              onLoadingChange?.(true);
+              setAttempt(a => a + 1);
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      )}
       <div
         className="mss-zoom__layer"
         style={{ transform: `translate(${translate.x}px, ${translate.y}px) scale(${totalScale})`, transformOrigin: '0 0' }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          key={attempt}
           ref={imgRef}
           src={hiResReady && hiResSrc ? hiResSrc : src}
           alt={alt}
           className="mss-zoom__img"
-          style={imageSize ? { width: imageSize.w, height: imageSize.h } : undefined}
+          // Hidden until measured, so a half-loaded image never paints unscaled in the corner
+          style={imageSize ? { width: imageSize.w, height: imageSize.h } : { visibility: 'hidden' }}
           draggable={false}
           onLoad={(e) => {
             if (imageSize) return; // the original scan replacing the display rendition
@@ -401,7 +492,11 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
             const h = img.naturalHeight || img.height;
             setImageSizeForSrc({ src, w, h });
           }}
-          onError={() => onLoadingChange?.(false)}
+          onError={() => {
+            // A failed swap to the original scan keeps the page already shown
+            if (!imageSize) setFailed(true);
+            onLoadingChange?.(false);
+          }}
         />
       </div>
     </div>
@@ -436,8 +531,12 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
 }) => {
   const zoomRef = useRef<ZoomPanHandle | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  // Set when the keyboard carried the reader into the next section, so focus follows
+  const refocusRef = useRef(false);
   const [zoom, setZoom] = useState(100);
   const [loading, setLoading] = useState(true);
+  const hintId = React.useId();
 
   const count = pages?.length ?? 0;
   const index = clamp(page, 0, Math.max(0, count - 1));
@@ -447,8 +546,23 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
   const prevLabel = isFirst ? continuation?.prev : undefined;
   const nextLabel = isLast ? continuation?.next : undefined;
 
-  const goPrev = () => (isFirst ? prevLabel && onContinue?.(-1) : onPageChange(index - 1));
-  const goNext = () => (isLast ? nextLabel && onContinue?.(1) : onPageChange(index + 1));
+  const footerRef = useRef<HTMLElement | null>(null);
+  const emptyRef = useRef<HTMLDivElement | null>(null);
+
+  // Remember whether focus was in this pane, so it can follow the reader into the next section
+  const continueFrom = (direction: 1 | -1) => {
+    refocusRef.current = [stageRef, footerRef, emptyRef].some(r => !!r.current?.contains(document.activeElement));
+    onContinue?.(direction);
+  };
+  const goPrev = () => (isFirst ? prevLabel && continueFrom(-1) : onPageChange(index - 1));
+  const goNext = () => (isLast ? nextLabel && continueFrom(1) : onPageChange(index + 1));
+
+  useEffect(() => {
+    if (!refocusRef.current || pages === null) return;
+    refocusRef.current = false;
+    if (current) stageRef.current?.focus({ preventScroll: true });
+    else emptyRef.current?.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
+  }, [current, pages]);
 
   // Keep the active thumbnail in view without scrolling the page
   useEffect(() => {
@@ -459,8 +573,15 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
   }, [index, count]);
 
   const onStageKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+    // Leave browser shortcuts (Ctrl/Cmd + zoom, Alt + arrows for history) alone
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      goNext();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goPrev();
+    }
     else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomRef.current?.zoomIn(); }
     else if (e.key === '-') { e.preventDefault(); zoomRef.current?.zoomOut(); }
     else if (e.key === '0') { e.preventDefault(); zoomRef.current?.reset(); }
@@ -501,12 +622,12 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
       {pages === null ? (
         <div className="mss-pane__stage mss-pane__stage--empty"><Loader2 className="mss-spin" /></div>
       ) : !current ? (
-        <div className="mss-pane__stage mss-pane__stage--empty">
+        <div className="mss-pane__stage mss-pane__stage--empty" ref={emptyRef}>
           <div className="mss-empty">
             <p className="mss-empty__title">No pages for {sectionText}</p>
             <p className="mss-empty__text">This manuscript has no digitized pages for this section. Choose another manuscript above{continuation?.next ? ' or continue to the next section' : ''}.</p>
             {continuation?.next && onContinue && (
-              <button type="button" className="mss-text-btn" onClick={() => onContinue(1)}>
+              <button type="button" className="mss-text-btn" onClick={() => continueFrom(1)}>
                 {continuation.next} <ChevronRight />
               </button>
             )}
@@ -515,11 +636,18 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
       ) : (
         <>
           <div
+            ref={stageRef}
             className="mss-pane__stage"
             tabIndex={0}
+            role="application"
+            aria-roledescription="page viewer"
+            aria-label={`${entry.name}, page ${index + 1} of ${count}`}
+            aria-describedby={hintId}
             onKeyDown={onStageKeyDown}
-            aria-label={`${entry.name}, page ${index + 1} of ${count}. Use the arrow keys to turn pages and plus or minus to zoom.`}
           >
+            <span id={hintId} className="sr-only">
+              Use the left and right arrow keys to turn pages, plus and minus to zoom, and 0 to fit the page.
+            </span>
             <ZoomPanImage
               key={current.id}
               ref={zoomRef}
@@ -539,7 +667,7 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
             </div>
           </div>
 
-          <footer className="mss-pane__footer">
+          <footer className="mss-pane__footer" ref={footerRef}>
             <button
               type="button"
               className="mss-pager"
@@ -594,20 +722,27 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
 type TextDisplay = 'both' | 'arabic' | 'english';
 
 const EditionTextPane: React.FC<{
+  edition: string;
+  label: string;
   text: EditionText | null;
   loading: boolean;
+  /** The request failed (as opposed to the edition having no text for the section) */
+  error?: boolean;
+  onRetry?: () => void;
   sectionText: string;
+  order?: number;
   expanded?: boolean;
   onToggleExpand?: () => void;
-}> = ({ text, loading, sectionText, expanded, onToggleExpand }) => {
+}> = ({ edition, label, text, loading, error, onRetry, sectionText, order, expanded, onToggleExpand }) => {
   const [display, setDisplay] = useState<TextDisplay>('both');
 
   return (
-    <section className="mss-pane mss-pane--text" aria-label="Critical edition text">
+    <section className="mss-pane mss-pane--text" aria-label={label}>
       <header className="mss-pane__header">
+        {order !== undefined && <span className="mss-pane__order">{order}</span>}
         <div className="mss-pane__titles">
-          <h3 className="mss-pane__title">Critical edition</h3>
-          <p className="mss-pane__meta">{sectionText}</p>
+          <h3 className="mss-pane__title" title={label}>{label}</h3>
+          <p className="mss-pane__meta">Edited text · {sectionText}</p>
         </div>
         <div className="mss-pane__actions">
           <div className="mss-seg mss-seg--small" role="group" aria-label="Language">
@@ -634,10 +769,18 @@ const EditionTextPane: React.FC<{
       <div className="mss-text">
         {loading ? (
           <div className="mss-pane__stage--empty"><Loader2 className="mss-spin" /></div>
+        ) : error ? (
+          <div className="mss-empty">
+            <p className="mss-empty__title">The text couldn’t be loaded</p>
+            <p className="mss-empty__text">Check your connection and try again.</p>
+            {onRetry && <button type="button" className="mss-text-btn" onClick={onRetry}>Try again</button>}
+          </div>
         ) : !text || text.blocks.length === 0 ? (
           <div className="mss-empty">
-            <p className="mss-empty__title">No edition text</p>
-            <p className="mss-empty__text">The critical edition text for {sectionText} isn’t available.</p>
+            <p className="mss-empty__title">No text for {sectionText}</p>
+            <p className="mss-empty__text">
+              {edition === INTRO_TEXT ? `The ${label.toLowerCase()} isn’t available.` : `The ${edition} edition has no text for this section yet.`}
+            </p>
           </div>
         ) : (
           text.blocks.map(block => (
@@ -697,9 +840,10 @@ const DetailsPanel: React.FC<{ entry: ManuscriptCatalogEntry; pages: number; sec
 };
 
 const DetailsComparison: React.FC<{
-  columns: { entry: ManuscriptCatalogEntry; item: SectionManuscript | undefined }[];
+  columns: { entry: ManuscriptCatalogEntry; item: SectionManuscript | undefined; order: number }[];
   sectionText: string;
-}> = ({ columns, sectionText }) => {
+  note?: string;
+}> = ({ columns, sectionText, note }) => {
   const rows = DETAIL_FIELDS.filter(field => columns.some(col => field.value(col.entry)));
   const withoutDetails = columns.filter(col => !hasCatalogueDetails(col.entry)).map(col => col.entry.name);
 
@@ -710,7 +854,7 @@ const DetailsComparison: React.FC<{
           <thead>
             <tr>
               <th scope="col" className="mss-table__corner"><span className="sr-only">Field</span></th>
-              {columns.map(({ entry, item }, i) => (
+              {columns.map(({ entry, item, order }) => (
                 <th scope="col" key={entry.id}>
                   <div className="mss-table__colhead">
                     <span className="mss-table__thumb">
@@ -720,7 +864,7 @@ const DetailsComparison: React.FC<{
                       ) : null}
                     </span>
                     <span className="mss-table__colname">
-                      <span className="mss-pane__order">{i + 1}</span>
+                      <span className="mss-pane__order">{order}</span>
                       {entry.name}
                     </span>
                   </div>
@@ -753,9 +897,10 @@ const DetailsComparison: React.FC<{
           </tbody>
         </table>
       </div>
-      {withoutDetails.length > 0 && (
+      {(withoutDetails.length > 0 || note) && (
         <p className="mss-compare-details__note">
-          Catalogue details haven’t been added yet for {withoutDetails.join(', ')}.
+          {withoutDetails.length > 0 && `Catalogue details haven’t been added yet for ${withoutDetails.join(', ')}. `}
+          {note}
         </p>
       )}
     </div>
@@ -763,76 +908,105 @@ const DetailsComparison: React.FC<{
 };
 
 // ============================================================================
-// Manuscript picker (thumbnail cards for the current section)
+// Picker: manuscripts (first page of the section) and edition texts
 // ============================================================================
 
+type PickerCard = {
+  key: string;
+  kind: 'ms' | 'ed';
+  title: string;
+  meta: string;
+  thumb?: string;
+  /** A manuscript on screen that has no pages for this section */
+  missing?: boolean;
+  /** Why this card can't be shown here (an edition with no text for the section, or numbered differently) */
+  unavailable?: string;
+};
+
 const ManuscriptPicker: React.FC<{
-  items: SectionManuscript[];
-  missing: ManuscriptCatalogEntry[];
-  selected: string[];
+  manuscripts: PickerCard[];
+  editions: PickerCard[];
+  manuscriptCount: number;
   mode: StudyMode;
+  /** False in the dialog, which has no Single mode */
+  canSingle: boolean;
+  /** Columns currently on screen */
+  shownKeys: string[];
+  /** Column order in Compare */
+  compareKeys: string[];
   sectionText: string;
   loading: boolean;
   open: boolean;
   notice: string | null;
   onToggleOpen: () => void;
-  /** Plain click: show just this manuscript */
-  onSelect: (id: string) => void;
+  /** Plain click: show just this manuscript, or this text beside the manuscript */
+  onShow: (key: string) => void;
   /** The small +/− button: add to (or remove from) the side-by-side comparison */
-  onToggleCompare: (id: string) => void;
-}> = ({ items, missing, selected, mode, sectionText, loading, open, notice, onToggleOpen, onSelect, onToggleCompare }) => {
-  const comparing = mode === 'compare' ? selected.slice(0, MAX_COMPARE) : [];
+  onToggleCompare: (key: string) => void;
+}> = ({
+  manuscripts, editions, manuscriptCount, mode, canSingle, shownKeys, compareKeys, sectionText,
+  loading, open, notice, onToggleOpen, onShow, onToggleCompare,
+}) => {
   const hint = mode === 'compare'
-    ? `+ to add (up to ${MAX_COMPARE}), − to remove · select one to view it alone`
+    ? `+ to add (up to ${MAX_COMPARE}), − to remove · select one to ${canSingle ? 'view it alone' : 'read it beside the text'}`
     : mode === 'edition'
-      ? 'Select one to read beside the edition · + to compare'
+      ? 'Select a manuscript and a text to read side by side · + to compare'
       : 'Select one to view it · + to compare';
 
-  const renderCard = (entry: ManuscriptCatalogEntry, item: SectionManuscript | undefined) => {
-    const id = entry.id;
-    const comparePosition = comparing.indexOf(id);
-    const inCompare = comparePosition >= 0;
-    const isShown = mode === 'compare' ? inCompare : selected[0] === id;
-    // In Single / With edition the manuscript already on screen has nothing to be compared with yet
-    const showCompareButton = mode === 'compare' || !isShown;
-    const thumb = item?.pages[0]?.thumb;
-    const meta = item
-      ? [shortDate(entry), pageCountLabel(item.pages.length)].filter(Boolean).join(' · ')
-      : 'Not in this section';
+  const renderCard = (card: PickerCard) => {
+    const isShown = shownKeys.includes(card.key);
+    const order = mode === 'compare' ? compareKeys.indexOf(card.key) + 1 : 0;
+    const inCompare = order > 0;
+    // Outside Compare, whatever is already on screen has nothing to be compared with yet
+    const showCompareButton = (inCompare || !card.unavailable) && (mode === 'compare' || !isShown);
 
     return (
       <div
-        key={id}
-        className={`mss-card ${isShown ? 'mss-card--selected' : ''} ${item ? '' : 'mss-card--missing'}`}
+        key={card.key}
+        className={[
+          'mss-card',
+          card.kind === 'ed' ? 'mss-card--edition' : '',
+          isShown ? 'mss-card--selected' : '',
+          card.missing ? 'mss-card--missing' : '',
+          card.unavailable && !isShown ? 'mss-card--unavailable' : '',
+        ].filter(Boolean).join(' ')}
       >
         <button
           type="button"
           className="mss-card__main"
-          onClick={() => onSelect(id)}
+          onClick={() => onShow(card.key)}
           aria-pressed={isShown}
-          title={item ? `View ${entry.name}` : `${entry.name} has no pages for ${sectionText}`}
+          title={card.unavailable ?? (card.missing ? `${card.title} has no pages for ${sectionText}` : `View ${card.title}`)}
         >
           <span className="mss-card__thumb">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {thumb ? <img src={thumb} alt="" loading="lazy" /> : <span className="mss-card__none">No pages</span>}
+            {card.kind === 'ed' ? (
+              <span className="mss-card__text-art" aria-hidden="true">
+                <b>¶</b><i /><i /><i /><i /><i />
+              </span>
+            ) : card.thumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={card.thumb} alt="" loading="lazy" />
+            ) : (
+              <span className="mss-card__none">No pages</span>
+            )}
           </span>
-          <span className="mss-card__name">{entry.name}</span>
-          <span className="mss-card__meta">{meta}</span>
+          <span className="mss-card__name">{card.title}</span>
+          <span className="mss-card__meta">{card.meta}</span>
         </button>
         {isShown && (
           <span className="mss-card__badge" aria-hidden="true">
-            {mode === 'compare' ? comparePosition + 1 : <Check />}
+            {inCompare ? order : <Check />}
           </span>
         )}
         {showCompareButton && (
           <button
             type="button"
             className={`mss-card__compare ${inCompare ? 'mss-card__compare--remove' : ''}`}
-            onClick={() => onToggleCompare(id)}
+            onClick={() => onToggleCompare(card.key)}
             title={inCompare ? 'Remove from comparison' : 'Add to comparison'}
           >
             {inCompare ? <Minus /> : <Plus />}
-            <span className="sr-only">{inCompare ? `Remove ${entry.name} from comparison` : `Compare ${entry.name}`}</span>
+            <span className="sr-only">{inCompare ? `Remove ${card.title} from comparison` : `Compare ${card.title}`}</span>
           </button>
         )}
       </div>
@@ -847,8 +1021,8 @@ const ManuscriptPicker: React.FC<{
             'Finding manuscripts…'
           ) : (
             <>
-              <strong>{items.length} manuscript{items.length === 1 ? '' : 's'}</strong> contain {sectionText}
-              {items.length > 0 && <span className="mss-picker__hint"> · {hint}</span>}
+              <strong>{manuscriptCount} manuscript{manuscriptCount === 1 ? '' : 's'}</strong> contain {sectionText}
+              <span className="mss-picker__hint"> · {hint}</span>
             </>
           )}
         </p>
@@ -859,15 +1033,21 @@ const ManuscriptPicker: React.FC<{
       </div>
 
       {open && (
-        <div className="mss-picker__row" role="group" aria-label="Manuscripts">
-          {loading
-            ? Array.from({ length: 6 }, (_, i) => <span key={i} className="mss-card mss-card--skeleton" />)
-            : (
-              <>
-                {items.map(item => renderCard(item.entry, item))}
-                {missing.map(entry => renderCard(entry, undefined))}
-              </>
-            )}
+        <div className="mss-picker__row">
+          <div className="mss-picker__group" role="group" aria-label="Manuscripts">
+            <p className="mss-picker__group-label">Manuscripts</p>
+            <div className="mss-picker__cards">
+              {loading
+                ? Array.from({ length: 6 }, (_, i) => <span key={i} className="mss-card mss-card--skeleton" />)
+                : manuscripts.map(renderCard)}
+            </div>
+          </div>
+          {editions.length > 0 && (
+            <div className="mss-picker__group mss-picker__group--editions" role="group" aria-label="Edition texts">
+              <p className="mss-picker__group-label">Edition texts</p>
+              <div className="mss-picker__cards">{editions.map(renderCard)}</div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -886,40 +1066,55 @@ const SectionPicker: React.FC<{
   const [open, setOpen] = useState(false);
   const [browseType, setBrowseType] = useState<ManuscriptSectionType>(sectionTypeOf(section));
   const [lists, setLists] = useState<Partial<Record<ManuscriptSectionType, SectionIndexEntry[]>>>({});
+  const [failed, setFailed] = useState<Partial<Record<ManuscriptSectionType, boolean>>>({});
   const [query, setQuery] = useState('');
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (open) {
       setBrowseType(sectionTypeOf(section));
       setQuery('');
-      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open, section]);
 
+  // Typing goes straight to the search box, including after switching type
   useEffect(() => {
-    if (!open || lists[browseType]) return;
+    if (open) requestAnimationFrame(() => inputRef.current?.focus());
+  }, [open, browseType]);
+
+  useEffect(() => {
+    if (!open || lists[browseType] || failed[browseType]) return;
     let cancelled = false;
     sectionIndexApi.getSections(browseType)
       .then(entries => { if (!cancelled) setLists(prev => ({ ...prev, [browseType]: entries })); })
-      .catch(() => { if (!cancelled) setLists(prev => ({ ...prev, [browseType]: [] })); });
+      .catch(err => {
+        console.error('Error loading the section list:', err);
+        if (!cancelled) setFailed(prev => ({ ...prev, [browseType]: true }));
+      });
     return () => { cancelled = true; };
-  }, [open, browseType, lists]);
+  }, [open, browseType, lists, failed]);
+
+  // Close and hand focus back to the button (not when the reader clicked somewhere else)
+  const close = useCallback((returnFocus: boolean) => {
+    setOpen(false);
+    if (returnFocus) buttonRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     const onPointer = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) close(false);
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(true); };
     document.addEventListener('pointerdown', onPointer);
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('pointerdown', onPointer);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, close]);
 
   const entries = lists[browseType];
   const filtered = useMemo(() => {
@@ -930,33 +1125,33 @@ const SectionPicker: React.FC<{
   }, [entries, query]);
 
   const choose = (next: string) => {
-    setOpen(false);
+    close(true);
     if (next !== section) onChange(next);
   };
 
   return (
     <div className="mss-section-picker" ref={rootRef}>
       <button
+        ref={buttonRef}
         type="button"
         className="mss-section-picker__button"
         onClick={() => setOpen(o => !o)}
-        aria-haspopup="listbox"
         aria-expanded={open}
+        aria-label={`${sectionLabel(section)}${heading && heading !== sectionLabel(section) ? `, ${heading}` : ''}. Choose another section`}
       >
         <span className="mss-section-picker__label">{sectionLabel(section)}</span>
-        {heading && <span className="mss-section-picker__heading">{heading}</span>}
+        {heading && heading !== sectionLabel(section) && <span className="mss-section-picker__heading">{heading}</span>}
         <ChevronDown className="mss-section-picker__chevron" />
       </button>
 
       {open && (
         <div className="mss-section-picker__panel">
-          <div className="mss-section-picker__types" role="tablist" aria-label="Section type">
+          <div className="mss-section-picker__types" role="group" aria-label="Section type">
             {SECTION_TYPES.map(type => (
               <button
                 type="button"
                 key={type}
-                role="tab"
-                aria-selected={browseType === type}
+                aria-pressed={browseType === type}
                 className={browseType === type ? 'mss-section-picker__type mss-section-picker__type--active' : 'mss-section-picker__type'}
                 onClick={() => setBrowseType(type)}
               >
@@ -973,12 +1168,23 @@ const SectionPicker: React.FC<{
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && filtered[0]) choose(filtered[0].section); }}
                 placeholder={`${TYPE_LABELS[browseType].singular} number or title…`}
-                aria-label={`Find a ${TYPE_LABELS[browseType].singular.toLowerCase()}`}
+                aria-label={`Find ${/^[aeiou]/i.test(TYPE_LABELS[browseType].singular) ? 'an' : 'a'} ${TYPE_LABELS[browseType].singular.toLowerCase()} by number or title`}
               />
             </label>
           )}
-          <ul className="mss-section-picker__list" role="listbox" aria-label={TYPE_LABELS[browseType].plural}>
-            {!entries ? (
+          <ul className="mss-section-picker__list" aria-label={TYPE_LABELS[browseType].plural}>
+            {failed[browseType] ? (
+              <li className="mss-section-picker__status">
+                <span>The list couldn’t be loaded.</span>
+                <button
+                  type="button"
+                  className="mss-text-btn"
+                  onClick={() => setFailed(prev => ({ ...prev, [browseType]: false }))}
+                >
+                  Try again
+                </button>
+              </li>
+            ) : !entries ? (
               <li className="mss-section-picker__status"><Loader2 className="mss-spin" /></li>
             ) : filtered.length === 0 ? (
               <li className="mss-section-picker__status">No matches</li>
@@ -987,8 +1193,7 @@ const SectionPicker: React.FC<{
                 <li key={entry.section}>
                   <button
                     type="button"
-                    role="option"
-                    aria-selected={entry.section === section}
+                    aria-current={entry.section === section ? 'true' : undefined}
                     className={entry.section === section ? 'mss-section-picker__option mss-section-picker__option--active' : 'mss-section-picker__option'}
                     onClick={() => choose(entry.section)}
                   >
@@ -1011,7 +1216,12 @@ const SectionPicker: React.FC<{
 
 export interface StudioState {
   mode: StudyMode;
-  manuscripts: string[];
+  /** Manuscript shown in Single and Manuscript + text */
+  manuscript: string | null;
+  /** Edition shown in Manuscript + text */
+  edition: string;
+  /** Compare columns, as slot keys ("ms:<id>", "ed:<edition>") */
+  compare: string[];
   compareView: CompareView;
 }
 
@@ -1022,17 +1232,33 @@ interface ManuscriptStudioProps {
   onSectionChange?: (section: string) => void;
   /** Overrides the label derived from the section number (e.g. "Conclusion 2") */
   sectionTitle?: string;
+  /** Name of the single text of a 0.x section ("Introduction text", "Conclusion text") */
+  introTextLabel?: string;
   modes?: StudyMode[];
   initialMode?: StudyMode;
-  initialManuscripts?: string[];
-  /** Selected first when present in the section (older ?library= links) */
+  initialManuscript?: string;
+  initialEdition?: string;
+  initialCompare?: string[];
+  /** Shown first when present in the section (older ?library= links) */
   preferredManuscript?: string;
   initialCompareView?: CompareView;
   onStateChange?: (state: StudioState) => void;
-  /** Edition text supplied by the caller (the dialog already has it) */
+  /** Text supplied by the caller. Used for 0.x sections (introduction paragraphs, conclusions). */
   textSource?: EditionTextSource | null;
   title?: string;
   onClose?: () => void;
+}
+
+type Column =
+  | { key: string; kind: 'ms'; entry: ManuscriptCatalogEntry }
+  | { key: string; kind: 'ed'; edition: string };
+
+const uniqueKeys = (keys: string[]) => keys.filter((key, i) => keys.indexOf(key) === i);
+
+/** The edition a reader starts on: the requested one, else their saved preference, else Qutbuddin. */
+function startingEdition(requested?: string) {
+  const preferred = requested || getPreference('edition') || DEFAULT_EDITION;
+  return isSeparatelyNumbered(preferred) ? DEFAULT_EDITION : preferred;
 }
 
 export function ManuscriptStudio({
@@ -1040,9 +1266,12 @@ export function ManuscriptStudio({
   section,
   onSectionChange,
   sectionTitle,
+  introTextLabel = 'Introduction text',
   modes = ['single', 'edition', 'compare'],
   initialMode = 'single',
-  initialManuscripts,
+  initialManuscript,
+  initialEdition,
+  initialCompare,
   preferredManuscript,
   initialCompareView = 'pages',
   onStateChange,
@@ -1055,9 +1284,17 @@ export function ManuscriptStudio({
   const [sectionData, setSectionData] = useState<{ section: string; items: SectionManuscript[] } | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+  const [editions, setEditions] = useState<string[] | null>(null);
+  const [editionsFailed, setEditionsFailed] = useState(false);
+  const [sectionTexts, setSectionTexts] = useState<{ section: string; status: 'loading' | 'ready' | 'error'; texts: SectionTexts } | null>(null);
+  const [textRetry, setTextRetry] = useState(0);
 
   const [mode, setMode] = useState<StudyMode>(modes.includes(initialMode) ? initialMode : modes[0]);
-  const [selected, setSelected] = useState<string[]>(initialManuscripts || []);
+  const [viewMs, setViewMs] = useState<string | null>(initialManuscript ?? null);
+  const [viewEd, setViewEd] = useState<string>(() => startingEdition(initialEdition));
+  const [compareKeys, setCompareKeys] = useState<string[]>(
+    () => uniqueKeys((initialCompare || []).filter(key => keyKind(key) && keyId(key))).slice(0, MAX_COMPARE)
+  );
   const [compareView, setCompareView] = useState<CompareView>(initialCompareView);
   const [pageBy, setPageBy] = useState<Record<string, number>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -1066,23 +1303,31 @@ export function ManuscriptStudio({
   const [infoOpen, setInfoOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [fetchedText, setFetchedText] = useState<{ section: string; text: EditionText | null } | null>(null);
-  const [sectionIndex, setSectionIndex] = useState<{ type: ManuscriptSectionType; entries: SectionIndexEntry[] } | null>(null);
+  const [sectionIndex, setSectionIndex] = useState<{ type: ManuscriptSectionType; entries: SectionIndexEntry[]; failed?: boolean } | null>(null);
 
   const catalogRef = useRef<ManuscriptCatalogEntry[] | null>(null);
-  const selectionInitialized = useRef((initialManuscripts?.length ?? 0) > 0);
-  const continuationRef = useRef<{ direction: 1 | -1; urls: Record<string, string> } | null>(null);
+  const defaultsApplied = useRef(!!initialManuscript || (initialCompare?.length ?? 0) > 0);
+  // Where paging past the end of a section should land, tagged with the section it was meant for
+  const continuationRef = useRef<{ section: string; direction: 1 | -1; urls: Record<string, string> } | null>(null);
 
   const sectionType = sectionTypeOf(section);
+  const isIntro = sectionType === 'introduction';
   const sectionText = sectionTitle ?? sectionLabel(section);
   const canNavigate = !!onSectionChange;
+  const canSingle = modes.includes('single');
+  // Raḍī's introduction (and the conclusions) have one text rather than one per edition
+  const resolveEdition = useCallback((edition: string) => (isIntro ? INTRO_TEXT : edition), [isIntro]);
+  const shownEdition = resolveEdition(viewEd);
+  const textLabelFor = useCallback((edition: string) => (edition === INTRO_TEXT ? introTextLabel : editionLabel(edition)), [introTextLabel]);
+  // The dialog on a 0.x section already has the passage's own text (a conclusion is not in the introduction)
+  const useProvidedText = !!textSource && isIntro;
 
   // Show the details panel by default on wide screens (after mount, to match the server render)
   useEffect(() => {
     if (window.matchMedia('(min-width: 1280px)').matches) setInfoOpen(true);
   }, []);
 
-  // ---- Data: the small catalogue once, then the page records of each section ----
+  // ---- Data: the catalogue and the edition list once, then each section's records and texts ----
   useEffect(() => {
     let cancelled = false;
     setLoadError(false);
@@ -1103,26 +1348,74 @@ export function ManuscriptStudio({
     return () => { cancelled = true; };
   }, [section, retryKey]);
 
+  useEffect(() => {
+    if (editions) return;
+    let cancelled = false;
+    setEditionsFailed(false);
+    postsApi.getEditions()
+      .then(res => {
+        if (cancelled) return;
+        const titles = [...(res.data || [])]
+          .sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99))
+          .map(edition => edition.title)
+          .filter(Boolean);
+        if (titles.length) setEditions(titles);
+        else setEditionsFailed(true);
+      })
+      .catch(err => {
+        console.error('Error loading editions:', err);
+        // Keep whatever the URL asked for rather than pruning it against a fallback list
+        if (!cancelled) setEditionsFailed(true);
+      });
+    return () => { cancelled = true; };
+  }, [editions, retryKey]);
+
+  useEffect(() => {
+    if (useProvidedText) return;
+    let cancelled = false;
+    setSectionTexts({ section, status: 'loading', texts: new Map() });
+    fetchSectionTexts(section)
+      .then(texts => { if (!cancelled) setSectionTexts({ section, status: 'ready', texts }); })
+      .catch(err => {
+        console.error('Error loading the edition texts:', err);
+        if (!cancelled) setSectionTexts({ section, status: 'error', texts: new Map() });
+      });
+    return () => { cancelled = true; };
+  }, [section, useProvidedText, textRetry]);
+
   const ready = sectionData?.section === section;
   const items = useMemo(() => (ready ? sectionData!.items : []), [ready, sectionData]);
   const itemById = useMemo(() => new Map(items.map(item => [item.entry.id, item])), [items]);
   const catalogById = useMemo(() => new Map((catalog || []).map(entry => [entry.id, entry])), [catalog]);
 
-  // ---- Default selection, and where each manuscript opens in a new section ----
+  useEffect(() => {
+    setNotice(null);
+  }, [section]);
+
+  // ---- Defaults, and where each manuscript opens in a new section ----
   useEffect(() => {
     if (!ready) return;
     const ids = items.map(item => item.entry.id);
+    const first = preferredManuscript && ids.includes(preferredManuscript) ? preferredManuscript : ids[0];
 
-    if (!selectionInitialized.current) {
-      selectionInitialized.current = true;
-      const preferred = preferredManuscript && ids.includes(preferredManuscript) ? [preferredManuscript] : [];
-      const rest = ids.filter(id => !preferred.includes(id));
-      setSelected([...preferred, ...rest].slice(0, mode === 'compare' ? 2 : 1));
+    if (!defaultsApplied.current) {
+      defaultsApplied.current = true;
+      if (first) setViewMs(first);
+      if (mode === 'compare' && compareKeys.length === 0) {
+        setCompareKeys([first, ...ids.filter(id => id !== first)].filter(Boolean).slice(0, 2).map(msKey));
+      }
+    } else if (!viewMs || !catalogById.has(viewMs)) {
+      // A link that only listed Compare columns, or named a manuscript that doesn't exist
+      const fromCompare = compareKeys.find(key => keyKind(key) === 'ms' && catalogById.has(keyId(key)));
+      const next = fromCompare ? keyId(fromCompare) : first;
+      if (next) setViewMs(next);
     }
 
-    // Paging past the end of a section continues on the next new page of the same manuscript
-    const plan = continuationRef.current;
+    // Paging past the end of a section continues on the next new page of the same manuscript.
+    // An instruction meant for another section (the reader moved on before it loaded) is dropped.
+    const pending = continuationRef.current;
     continuationRef.current = null;
+    const plan = pending && pending.section === section ? pending : null;
     const next: Record<string, number> = {};
     for (const item of items) {
       let start = plan?.direction === -1 ? item.pages.length - 1 : 0;
@@ -1137,60 +1430,145 @@ export function ManuscriptStudio({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, sectionData]);
 
-  // Drop ids that aren't manuscripts (e.g. a mistyped link)
+  // Drop Compare columns for manuscripts that don't exist (mistyped or stale links)
   useEffect(() => {
     if (!catalog) return;
-    setSelected(prev => {
-      const valid = prev.filter(id => catalogById.has(id));
+    setCompareKeys(prev => {
+      const valid = prev.filter(key => keyKind(key) !== 'ms' || catalogById.has(keyId(key)));
       return valid.length === prev.length ? prev : valid;
     });
   }, [catalog, catalogById]);
 
+  // Editions: fall back from retired or separately numbered ones
+  useEffect(() => {
+    if (!editions) return;
+    const aligned = editions.filter(edition => !isSeparatelyNumbered(edition));
+    if (!aligned.includes(viewEd)) setViewEd(aligned.includes(DEFAULT_EDITION) ? DEFAULT_EDITION : aligned[0] || DEFAULT_EDITION);
+    setCompareKeys(prev => {
+      const valid = prev.filter(key => keyKind(key) !== 'ed' || keyId(key) === INTRO_TEXT || aligned.includes(keyId(key)));
+      return valid.length === prev.length ? prev : valid;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editions]);
+
+  // The single introduction text is never stored as such: outside the introduction it becomes the reader's edition
+  useEffect(() => {
+    if (isIntro) return;
+    setCompareKeys(prev =>
+      prev.includes(edKey(INTRO_TEXT)) ? uniqueKeys(prev.map(key => (key === edKey(INTRO_TEXT) ? edKey(viewEd) : key))) : prev
+    );
+  }, [isIntro, viewEd]);
+
   // ---- Section index: headings and neighbours for prev/next ----
   useEffect(() => {
-    if (!canNavigate || sectionIndex?.type === sectionType) return;
+    if (!canNavigate || (sectionIndex?.type === sectionType && !sectionIndex.failed)) return;
     let cancelled = false;
     sectionIndexApi.getSections(sectionType)
       .then(entries => { if (!cancelled) setSectionIndex({ type: sectionType, entries }); })
-      .catch(() => { if (!cancelled) setSectionIndex({ type: sectionType, entries: [] }); });
+      .catch(() => { if (!cancelled) setSectionIndex({ type: sectionType, entries: [], failed: true }); });
     return () => { cancelled = true; };
-  }, [canNavigate, sectionType, sectionIndex?.type]);
+    // Re-tried on the next section change after a failure
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canNavigate, sectionType, section]);
 
   const neighbours = useMemo(() => {
     if (!sectionIndex || sectionIndex.type !== sectionType) return { prev: null, next: null, current: null };
     const entries = sectionIndex.entries;
     const at = entries.findIndex(e => e.section === section);
-    if (at >= 0) return { prev: entries[at - 1] ?? null, next: entries[at + 1] ?? null, current: entries[at] };
-    return {
-      prev: [...entries].reverse().find(e => compareSections(e.section, section) < 0) ?? null,
-      next: entries.find(e => compareSections(e.section, section) > 0) ?? null,
-      current: null,
-    };
+    let prev: SectionIndexEntry | null = at >= 0
+      ? entries[at - 1] ?? null
+      : [...entries].reverse().find(e => compareSections(e.section, section) < 0) ?? null;
+    let next: SectionIndexEntry | null = at >= 0
+      ? entries[at + 1] ?? null
+      : entries.find(e => compareSections(e.section, section) > 0) ?? null;
+
+    // Past the end of a type, reading continues into the next part of the book
+    const typeAt = SECTION_TYPES.indexOf(sectionType);
+    const nextType = SECTION_TYPES[typeAt + 1];
+    if (!next && nextType && entries.length) {
+      next = { section: `${SECTION_TYPE_PREFIX[nextType]}.1`, number: '1', heading: '' };
+    }
+    if (!prev && sectionType === 'oration' && entries.length) {
+      prev = { section: '0.1', number: '1', heading: 'Raḍī’s Introduction' };
+    }
+    return { prev, next, current: at >= 0 ? entries[at] : null };
   }, [sectionIndex, section, sectionType]);
 
-  // ---- Edition text ----
-  const providedText = useMemo(() => normalizeEditionText(textSource), [textSource]);
-  const needsText = mode === 'edition' && !textSource;
-  useEffect(() => {
-    if (!needsText || fetchedText?.section === section) return;
-    let cancelled = false;
-    fetchEditionText(section)
-      .then(source => { if (!cancelled) setFetchedText({ section, text: normalizeEditionText(source) }); })
-      .catch(err => {
-        console.error('Error loading edition text:', err);
-        if (!cancelled) setFetchedText({ section, text: null });
-      });
-    return () => { cancelled = true; };
-  }, [needsText, section, fetchedText?.section]);
+  // ---- Edition texts ----
+  const providedText = useMemo(() => (useProvidedText ? normalizeEditionText(textSource) : null), [useProvidedText, textSource]);
+  const textsReady = !useProvidedText && sectionTexts?.section === section && sectionTexts.status === 'ready';
+  const normalizedTexts = useMemo(() => {
+    const result = new Map<string, EditionText | null>();
+    if (sectionTexts) for (const [edition, source] of sectionTexts.texts) result.set(edition, normalizeEditionText(source));
+    return result;
+  }, [sectionTexts]);
 
-  const editionText = textSource ? providedText : fetchedText?.section === section ? fetchedText.text : null;
-  const editionLoading = needsText && fetchedText?.section !== section;
+  const textFor = (edition: string) => {
+    if (useProvidedText) return { loading: false, error: false, text: providedText };
+    if (!sectionTexts || sectionTexts.section !== section || sectionTexts.status === 'loading') return { loading: true, error: false, text: null };
+    if (sectionTexts.status === 'error') return { loading: false, error: true, text: null };
+    return { loading: false, error: false, text: normalizedTexts.get(edition) ?? null };
+  };
+
+  const editionList = editions
+    ?? (editionsFailed
+      ? uniqueKeys([DEFAULT_EDITION, viewEd, ...compareKeys.filter(key => keyKind(key) === 'ed').map(keyId)].filter(edition => edition !== INTRO_TEXT))
+      : []);
+
+  const editionCards: PickerCard[] = isIntro
+    ? [{ key: edKey(INTRO_TEXT), kind: 'ed', title: introTextLabel, meta: 'Raḍī’s text' }]
+    : editionList.map(edition => {
+        const separate = isSeparatelyNumbered(edition);
+        const noText = textsReady && !separate && !normalizedTexts.has(edition);
+        return {
+          key: edKey(edition),
+          kind: 'ed' as const,
+          title: edition,
+          meta: separate ? 'Own numbering' : noText ? 'No text here yet' : 'Edited text',
+          unavailable: separate
+            ? `${edition} numbers the text differently, so its passages can’t be lined up with these manuscripts yet.`
+            : noText
+              ? `The ${edition} edition has no text for ${sectionText} yet.`
+              : undefined,
+        };
+      });
+  const unavailableReason = (key: string) => editionCards.find(card => card.key === key)?.unavailable;
+
+  // ---- Columns on screen ----
+  const columnKeys: string[] = useMemo(() => {
+    if (mode === 'compare') return compareKeys.slice(0, MAX_COMPARE);
+    const keys = viewMs ? [msKey(viewMs)] : [];
+    if (mode === 'edition') keys.push(edKey(shownEdition));
+    return keys;
+  }, [mode, compareKeys, viewMs, shownEdition]);
+
+  const columns: Column[] = useMemo(() => {
+    const result: Column[] = [];
+    const seen = new Set<string>();
+    for (const key of columnKeys) {
+      if (keyKind(key) === 'ms') {
+        const entry = catalogById.get(keyId(key));
+        if (entry && !seen.has(key)) {
+          seen.add(key);
+          result.push({ key, kind: 'ms', entry });
+        }
+      } else if (keyKind(key) === 'ed') {
+        const edition = resolveEdition(keyId(key));
+        const resolvedKey = edKey(edition);
+        if (!seen.has(resolvedKey)) {
+          seen.add(resolvedKey);
+          result.push({ key: resolvedKey, kind: 'ed', edition });
+        }
+      }
+    }
+    return result;
+  }, [columnKeys, catalogById, resolveEdition]);
 
   // ---- Report state (the page keeps it in the URL) ----
   useEffect(() => {
-    onStateChange?.({ mode, manuscripts: selected, compareView });
+    onStateChange?.({ mode, manuscript: viewMs, edition: viewEd, compare: compareKeys, compareView });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, selected, compareView]);
+  }, [mode, viewMs, viewEd, compareKeys, compareView]);
 
   // ---- Fullscreen (viewer page) ----
   useEffect(() => {
@@ -1205,49 +1583,80 @@ export function ManuscriptStudio({
   };
 
   // ---- Actions ----
+  // The single introduction text is stored as the reader's edition, so it never strands a column elsewhere
+  const storable = (key: string) => (key === edKey(INTRO_TEXT) ? edKey(viewEd) : key);
+  const slotOf = (key: string) => (keyKind(key) === 'ed' ? edKey(resolveEdition(keyId(key))) : key);
+
   const changeMode = (next: StudyMode) => {
-    setMode(next);
+    if (next === mode) return;
+    setNotice(null);
     setExpanded(null);
-    setNotice(null);
-    if (next === 'compare' && selected.length < 2) {
-      const extra = items.map(item => item.entry.id).filter(id => !selected.includes(id));
-      setSelected([...selected, ...extra].slice(0, 2));
+    if (next === 'compare') {
+      // Return to the previous comparison, or start one from what's on screen
+      let keys = uniqueKeys((compareKeys.length ? compareKeys : columnKeys).map(storable)).slice(0, MAX_COMPARE);
+      if (keys.length < 2) {
+        const extra = items.map(item => msKey(item.entry.id)).filter(key => !keys.includes(key));
+        keys = [...keys, ...extra].slice(0, 2);
+      }
+      setCompareKeys(keys);
     }
+    setMode(next);
   };
 
-  // Plain click on a card: show that manuscript on its own. From Compare this returns to
-  // Single; in With edition the edition text stays beside it. The rest of the selection is kept
-  // so switching back to Compare restores the comparison.
-  const selectOnly = (id: string) => {
+  // Plain click on a card. A manuscript: view it on its own (leaving Compare). An edition:
+  // read it beside the manuscript.
+  const show = (key: string) => {
     setNotice(null);
-    setSelected([id, ...selected.filter(x => x !== id)].slice(0, MAX_COMPARE));
-    if (mode === 'compare') {
-      setMode('single');
-      setExpanded(null);
-    }
-    setMobileTab(null);
-  };
-
-  // The + / − on a card: build up a side-by-side comparison
-  const toggleCompare = (id: string) => {
-    setNotice(null);
-    if (mode !== 'compare') {
-      const current = selected[0];
-      setSelected(current && current !== id ? [current, id] : [id]);
-      setMode('compare');
-      setExpanded(null);
-      setMobileTab(id);
+    setExpanded(null);
+    if (keyKind(key) === 'ms') {
+      setViewMs(keyId(key));
+      // The dialog has no Single mode: show the manuscript beside the text instead
+      if (mode === 'compare') setMode(canSingle ? 'single' : 'edition');
+      setMobileTab(null);
       return;
     }
-    const active = selected.slice(0, MAX_COMPARE);
-    if (active.includes(id)) {
-      setSelected(active.filter(x => x !== id));
-      if (expanded === id) setExpanded(null);
-    } else if (active.length >= MAX_COMPARE) {
-      setNotice(`You can compare up to ${MAX_COMPARE} manuscripts. Remove one first.`);
+    const reason = unavailableReason(key);
+    if (reason) {
+      setNotice(reason);
+      return;
+    }
+    const edition = keyId(key);
+    if (edition !== INTRO_TEXT) setViewEd(edition);
+    if (mode !== 'edition') setMode('edition');
+    setMobileTab(edKey(resolveEdition(edition)));
+  };
+
+  // The + / − on a card: build up a side-by-side comparison of manuscripts and texts
+  const toggleCompare = (rawKey: string) => {
+    setNotice(null);
+    const key = storable(rawKey);
+    // Only adding an unavailable text is blocked; one already compared can always be removed
+    const alreadyCompared = mode === 'compare' && compareKeys.slice(0, MAX_COMPARE).some(k => slotOf(k) === slotOf(key));
+    const reason = alreadyCompared ? undefined : unavailableReason(rawKey);
+    if (reason) {
+      setNotice(reason);
+      return;
+    }
+    if (mode !== 'compare') {
+      const base = uniqueKeys(columnKeys.map(storable)).filter(k => slotOf(k) !== slotOf(key));
+      setCompareKeys([...base, key].slice(0, MAX_COMPARE));
+      setMode('compare');
+      setExpanded(null);
+      setMobileTab(slotOf(key));
+      return;
+    }
+    // On Raḍī's introduction every edition stands for the same text, so compare resolved slots
+    const active = compareKeys.slice(0, MAX_COMPARE);
+    const distinct = active.filter((k, i) => active.findIndex(other => slotOf(other) === slotOf(k)) === i);
+    if (distinct.some(k => slotOf(k) === slotOf(key))) {
+      setCompareKeys(distinct.filter(k => slotOf(k) !== slotOf(key)));
+      if (expanded === slotOf(key)) setExpanded(null);
+    } else if (distinct.length >= MAX_COMPARE) {
+      setNotice(`You can compare up to ${MAX_COMPARE} at once. Remove one first.`);
     } else {
-      setSelected([...active, id]);
-      setMobileTab(id);
+      setCompareKeys([...distinct, key]);
+      setExpanded(null);
+      setMobileTab(slotOf(key));
     }
   };
 
@@ -1255,12 +1664,13 @@ export function ManuscriptStudio({
     const target = direction === 1 ? neighbours.next : neighbours.prev;
     if (!target || !onSectionChange) return;
     const urls: Record<string, string> = {};
-    for (const id of selected) {
-      const item = itemById.get(id);
-      const pageImage = item?.pages[pageBy[id] ?? 0];
-      if (pageImage) urls[id] = pageImage.full;
+    for (const column of columns) {
+      if (column.kind !== 'ms') continue;
+      const item = itemById.get(column.entry.id);
+      const pageImage = item?.pages[pageBy[column.entry.id] ?? 0];
+      if (pageImage) urls[column.entry.id] = pageImage.full;
     }
-    continuationRef.current = { direction, urls };
+    continuationRef.current = { section: target.section, direction, urls };
     onSectionChange(target.section);
   };
 
@@ -1268,39 +1678,56 @@ export function ManuscriptStudio({
     ? { prev: neighbours.prev ? sectionLabel(neighbours.prev.section) : undefined, next: neighbours.next ? sectionLabel(neighbours.next.section) : undefined }
     : undefined;
 
-  // ---- Columns for the current mode ----
-  const primaryId = selected[0];
-  const columnIds: string[] =
-    mode === 'compare' ? selected.slice(0, MAX_COMPARE) : primaryId ? [primaryId] : [];
-  type Column = { key: string; kind: 'ms'; entry: ManuscriptCatalogEntry } | { key: 'text'; kind: 'text' };
-  const columns: Column[] = [
-    ...columnIds
-      .map(id => catalogById.get(id))
-      .filter((entry): entry is ManuscriptCatalogEntry => !!entry)
-      .map(entry => ({ key: entry.id, kind: 'ms' as const, entry })),
-    ...(mode === 'edition' ? [{ key: 'text' as const, kind: 'text' as const }] : []),
-  ];
-  const expandedKey = expanded && columns.some(c => c.key === expanded) ? expanded : null;
-  const activeTab = mobileTab && columns.some(c => c.key === mobileTab) ? mobileTab : columns[0]?.key;
-  const missing = selected
-    .slice(0, mode === 'compare' ? MAX_COMPARE : 1)
+  // ---- Picker cards ----
+  const msColumnIds = columns.filter(c => c.kind === 'ms').map(c => (c as { entry: ManuscriptCatalogEntry }).entry.id);
+  const missingEntries = msColumnIds
     .filter(id => ready && !itemById.has(id))
     .map(id => catalogById.get(id))
     .filter((entry): entry is ManuscriptCatalogEntry => !!entry);
 
-  const primaryEntry = primaryId ? catalogById.get(primaryId) : undefined;
+  const manuscriptCards: PickerCard[] = [
+    ...items.map(item => ({
+      key: msKey(item.entry.id),
+      kind: 'ms' as const,
+      title: item.entry.name,
+      meta: [shortDate(item.entry), pageCountLabel(item.pages.length)].filter(Boolean).join(' · '),
+      thumb: item.pages[0]?.thumb,
+    })),
+    ...missingEntries.map(entry => ({
+      key: msKey(entry.id),
+      kind: 'ms' as const,
+      title: entry.name,
+      meta: 'Not in this section',
+      missing: true,
+    })),
+  ];
+
+  // ---- Rendering ----
+  const expandedKey = expanded && columns.some(c => c.key === expanded) ? expanded : null;
+  // Below 1024px only the active column shows, so it must be the enlarged one when there is one
+  const activeTab = expandedKey ?? (mobileTab && columns.some(c => c.key === mobileTab) ? mobileTab : columns[0]?.key);
+  const primaryEntry = viewMs ? catalogById.get(viewMs) : undefined;
   const showInfo = mode === 'single' && infoOpen && !!primaryEntry;
   const showDetailsTable = mode === 'compare' && compareView === 'details';
+  const columnLabel = (column: Column) => (column.kind === 'ed' ? textLabelFor(column.edition) : column.entry.name);
 
-  const renderColumn = (column: Column) => {
-    if (column.kind === 'text') {
+  const renderColumn = (column: Column, index: number) => {
+    const order = mode === 'compare' ? index + 1 : undefined;
+    const toggleExpand = columns.length > 1 ? () => setExpanded(expandedKey === column.key ? null : column.key) : undefined;
+    if (column.kind === 'ed') {
+      const { loading, error, text } = textFor(column.edition);
       return (
         <EditionTextPane
-          text={editionText}
-          loading={editionLoading}
+          edition={column.edition}
+          label={textLabelFor(column.edition)}
+          text={text}
+          loading={loading}
+          error={error}
+          onRetry={() => setTextRetry(k => k + 1)}
           sectionText={sectionText}
-          expanded={expandedKey === 'text'}
-          onToggleExpand={() => setExpanded(expandedKey === 'text' ? null : 'text')}
+          order={order}
+          expanded={expandedKey === column.key}
+          onToggleExpand={toggleExpand}
         />
       );
     }
@@ -1314,9 +1741,9 @@ export function ManuscriptStudio({
         onPageChange={(p) => setPageBy(prev => ({ ...prev, [column.entry.id]: p }))}
         continuation={continuation}
         onContinue={continueTo}
-        order={mode === 'compare' ? columnIds.indexOf(column.entry.id) + 1 : undefined}
+        order={order}
         expanded={expandedKey === column.key}
-        onToggleExpand={columns.length > 1 ? () => setExpanded(expandedKey === column.key ? null : column.key) : undefined}
+        onToggleExpand={toggleExpand}
         infoOpen={mode === 'single' ? infoOpen : undefined}
         onToggleInfo={mode === 'single' ? () => setInfoOpen(o => !o) : undefined}
       />
@@ -1333,11 +1760,13 @@ export function ManuscriptStudio({
         </div>
       );
     }
-    if (ready && items.length === 0 && mode !== 'edition') {
+    if (ready && items.length === 0 && mode === 'single') {
       return (
         <div className="mss-empty mss-empty--panel">
           <p className="mss-empty__title">No manuscript pages for {sectionText} yet</p>
-          <p className="mss-empty__text">Pages for this section haven’t been added.{continuation?.next ? ' Try the next section.' : ''}</p>
+          <p className="mss-empty__text">
+            Pages for this section haven’t been added. You can still read its text with Manuscript + text{continuation?.next ? ', or try the next section' : ''}.
+          </p>
           {continuation?.next && (
             <button type="button" className="mss-text-btn" onClick={() => continueTo(1)}>{continuation.next} <ChevronRight /></button>
           )}
@@ -1345,27 +1774,36 @@ export function ManuscriptStudio({
       );
     }
     if (showDetailsTable) {
+      const detailColumns = columns.flatMap((c, i) =>
+        c.kind === 'ms' ? [{ entry: c.entry, item: itemById.get(c.entry.id), order: i + 1 }] : []
+      );
+      if (detailColumns.length === 0) {
+        return (
+          <div className="mss-empty mss-empty--panel">
+            <p className="mss-empty__title">Add a manuscript</p>
+            <p className="mss-empty__text">Details compare the manuscripts’ catalogue records. Use + on a manuscript above to add it.</p>
+          </div>
+        );
+      }
       return (
         <DetailsComparison
-          columns={columnIds
-            .map(id => catalogById.get(id))
-            .filter((entry): entry is ManuscriptCatalogEntry => !!entry)
-            .map(entry => ({ entry, item: itemById.get(entry.id) }))}
+          columns={detailColumns}
           sectionText={sectionText}
+          note={columns.some(c => c.kind === 'ed') ? 'Edition texts aren’t part of the catalogue comparison.' : undefined}
         />
       );
     }
-    if (columns.length === 0 || (mode === 'compare' && columnIds.length === 0)) {
+    if (columns.length === 0) {
       return (
         <div className="mss-empty mss-empty--panel">
-          <p className="mss-empty__title">{ready ? 'Choose a manuscript' : 'Loading…'}</p>
-          {ready && <p className="mss-empty__text">Pick a manuscript from the row above to see its pages.</p>}
+          <p className="mss-empty__title">{ready && catalog ? 'Choose a manuscript' : 'Loading…'}</p>
+          {ready && catalog && <p className="mss-empty__text">Pick a manuscript or a text from the row above.</p>}
         </div>
       );
     }
 
     const visible = expandedKey ? columns.filter(c => c.key === expandedKey) : columns;
-    const showAddHint = mode === 'compare' && columnIds.length === 1 && !expandedKey;
+    const showAddHint = mode === 'compare' && columns.length === 1 && !expandedKey;
     return (
       <>
         {columns.length > 1 && (
@@ -1377,9 +1815,12 @@ export function ManuscriptStudio({
                 role="tab"
                 aria-selected={activeTab === column.key}
                 className={activeTab === column.key ? 'mss-tabs__tab mss-tabs__tab--active' : 'mss-tabs__tab'}
-                onClick={() => setMobileTab(column.key)}
+                onClick={() => {
+                  setExpanded(null);
+                  setMobileTab(column.key);
+                }}
               >
-                {column.kind === 'text' ? 'Edition text' : column.entry.name}
+                {columnLabel(column)}
               </button>
             ))}
           </div>
@@ -1387,14 +1828,14 @@ export function ManuscriptStudio({
         <div className="mss-columns" style={{ '--mss-cols': visible.length + (showAddHint ? 1 : 0) } as React.CSSProperties}>
           {visible.map(column => (
             <div key={column.key} className={`mss-column ${activeTab === column.key ? 'mss-column--active' : ''}`}>
-              {renderColumn(column)}
+              {renderColumn(column, columns.indexOf(column))}
             </div>
           ))}
           {showAddHint && (
             <div className="mss-column mss-column--hint">
               <div className="mss-empty mss-empty--panel">
-                <p className="mss-empty__title">Add a manuscript</p>
-                <p className="mss-empty__text">Choose another manuscript from the row above to compare it with this one.</p>
+                <p className="mss-empty__title">Add something to compare</p>
+                <p className="mss-empty__text">Use + on a manuscript or an edition text above to set it beside this one.</p>
               </div>
             </div>
           )}
@@ -1494,16 +1935,19 @@ export function ManuscriptStudio({
       </div>
 
       <ManuscriptPicker
-        items={items}
-        missing={missing}
-        selected={selected}
+        manuscripts={manuscriptCards}
+        editions={editionCards}
+        manuscriptCount={items.length}
         mode={mode}
+        canSingle={canSingle}
+        shownKeys={columns.map(c => c.key)}
+        compareKeys={columns.map(c => c.key)}
         sectionText={sectionText}
         loading={!ready && !loadError}
         open={pickerOpen}
         notice={notice}
         onToggleOpen={() => setPickerOpen(o => !o)}
-        onSelect={selectOnly}
+        onShow={show}
         onToggleCompare={toggleCompare}
       />
 
@@ -1546,28 +1990,53 @@ interface ManuscriptComparisonModalProps {
   contentType: 'orations' | 'letters' | 'sayings' | 'radis' | 'conclusion';
 }
 
+/** The manuscript section a dialog opens on. All of Raḍī's introduction is recorded under 0.1. */
+export function comparisonSection(content: { sermonNumber?: string | null } | null | undefined, contentType: ManuscriptComparisonModalProps['contentType']) {
+  if (contentType === 'radis') return '0.1';
+  const raw = (content?.sermonNumber || '').trim();
+  // Some editions file a section under another prefix (Milani's Oration 1 is "4.1");
+  // manuscripts use 1/2/3 for orations, letters and sayings
+  const prefix = ({ orations: '1', letters: '2', sayings: '3' } as Record<string, string>)[contentType];
+  const number = raw.split('.')[1];
+  return prefix && number ? `${prefix}.${number}` : raw;
+}
+
 export function ManuscriptComparisonModal({ isOpen, onClose, content, contentType }: ManuscriptComparisonModalProps) {
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  // Callers pass a new onClose on every render; read the latest without re-running the setup
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => setMounted(true), []);
 
   const source = content as EditionTextSource;
-  const section = contentType === 'radis' && source.number
-    ? `0.${source.number}`
-    : (source.sermonNumber || '').trim();
+  const section = comparisonSection(source, contentType);
+  const active = isOpen && mounted && !!section;
 
+  // Modal behaviour: lock page scroll, close on Escape, move focus in, keep the rest of the page
+  // out of reach, and return focus to whatever opened the dialog
   useEffect(() => {
-    if (!isOpen) return;
+    if (!active) return;
+    const opener = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const dialog = panelRef.current?.closest('.mss-modal');
+    const others = Array.from(document.body.children).filter(
+      (el): el is HTMLElement => el instanceof HTMLElement && el !== dialog && !el.hasAttribute('inert')
+    );
+    others.forEach(el => el.setAttribute('inert', ''));
+    panelRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCloseRef.current(); };
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = previousOverflow;
+      others.forEach(el => el.removeAttribute('inert'));
       window.removeEventListener('keydown', onKey);
+      opener?.focus?.();
     };
-  }, [isOpen, onClose]);
+  }, [active]);
 
-  if (!isOpen || !mounted || !section) return null;
+  if (!active) return null;
 
   const sectionTitle = contentType === 'conclusion' && source.number
     ? `Conclusion ${source.number}`
@@ -1580,13 +2049,16 @@ export function ManuscriptComparisonModal({ isOpen, onClose, content, contentTyp
   return createPortal(
     <div className="mss-modal" role="dialog" aria-modal="true" aria-label={`Manuscripts for ${label}`}>
       <div className="mss-modal__backdrop" onClick={onClose} />
-      <div className="mss-modal__panel">
+      <div className="mss-modal__panel" ref={panelRef} tabIndex={-1}>
         <ManuscriptStudio
           variant="modal"
           section={section}
           sectionTitle={sectionTitle}
+          introTextLabel={contentType === 'conclusion' ? 'Conclusion text' : 'Introduction text'}
           modes={['edition', 'compare']}
           initialMode="edition"
+          // Open on the edition being read
+          initialEdition={getPostEditionTitles(source)[0]}
           textSource={source}
           title={heading}
           onClose={onClose}
@@ -1596,4 +2068,3 @@ export function ManuscriptComparisonModal({ isOpen, onClose, content, contentTyp
     document.body
   );
 }
-
