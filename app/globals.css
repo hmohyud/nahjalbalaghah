@@ -19862,3 +19862,56 @@ ul.about-prose__body {
   text-align: center;
   cursor: default;
 }
+
+/* Panels keep a usable height. When the bar and picker leave too little room (laptop screens,
+   short windows), the viewer grows past the screen and the page scrolls instead of squeezing them. */
+.mss {
+  --mss-panel-min: 34rem;
+}
+
+.mss--page {
+  height: auto;
+  min-height: calc(100dvh - 5rem - 2px);
+}
+
+@media (min-width: 1024px) {
+  .mss--page {
+    min-height: calc(100dvh - 6rem - 2px);
+  }
+}
+
+.mss--modal {
+  height: auto;
+  min-height: 100%;
+}
+
+.mss-modal__panel {
+  overflow-y: auto;
+}
+
+.mss-pane,
+.mss-info,
+.mss-compare-details {
+  min-height: var(--mss-panel-min);
+}
+
+/* Phones: the page image fills whatever the minimum leaves, with no gap under it */
+@media (max-width: 767px), (max-height: 540px) {
+  .mss-pane__stage {
+    flex: 1 0 auto;
+    height: auto;
+    min-height: 62svh;
+  }
+
+  .mss-text {
+    max-height: max(70svh, 26rem);
+  }
+}
+
+/* Scrolling contents (edition text, details, the details table) never set the viewer's height;
+   only the screen and the minimum above do, and they scroll inside their panel */
+.mss-text,
+.mss-info,
+.mss-compare-details__scroll {
+  contain: size;
+}
