@@ -1,103 +1,210 @@
 'use client';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
-  ZoomIn, ZoomOut, Maximize2, Minimize2, ChevronLeft, ChevronRight,
-  Grid3x3, Image as ImageIcon, X, Loader2, RotateCcw, FileText, Book,
-  Image, FileText as TextIcon, BookOpen, ExternalLink, Columns2,
-  Calendar, MapPin, Shield, Package, Award, Archive, Globe, Home
+  ZoomIn, ZoomOut, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X, Loader2, Check,
+  Maximize2, Minimize2, Expand, Shrink, Search, Image as ImageIcon, BookOpenText, Columns2,
+  Images, Table2, PanelRightOpen, PanelRightClose, RotateCcw, Plus, Minus,
 } from 'lucide-react';
-import { librariesApi, Library, manuscriptsApi, Manuscript, getManuscriptImageUrl, manuscriptMatchesLibrary } from '@/api/manuscripts';
-import { type Post } from '@/api/posts';
+import {
+  manuscriptCatalogApi,
+  groupSectionRecords,
+  sectionIndexApi,
+  sectionTypeOf,
+  compareSections,
+  type ManuscriptCatalogEntry,
+  type ManuscriptPageImage,
+  type ManuscriptSectionType,
+  type SectionIndexEntry,
+  type SectionManuscript,
+} from '@/api/manuscripts';
+import { orationsApi, lettersApi, sayingsApi, radisApi, type Post } from '@/api/posts';
 import { formatTextWithFootnotes } from '@/app/utils/text-formatting';
-import { ManuscriptMetadata as ManuscriptMetadataType } from '@/app/data/manuscripts';
-import { Button, Select } from './ui';
 
 // ============================================================================
-// ManuscriptViewer
+// Labels and small helpers
 // ============================================================================
 
-type ViewMode = 'single' | 'gallery';
+export type StudyMode = 'single' | 'edition' | 'compare';
+export type CompareView = 'pages' | 'details';
 
-interface ManuscriptViewerProps {
-  pages: (string | null)[];
-  bookName: string;
-  // Optional controlled page index (e.g. when the parent maps pages to sections)
-  currentPage?: number;
-  onPageChange?: (page: number) => void;
-  // Shown under the page counter, e.g. which sections are on the current page
-  caption?: string;
+const MODE_META: Record<StudyMode, { label: string; icon: React.ElementType }> = {
+  single: { label: 'Single', icon: ImageIcon },
+  edition: { label: 'With edition', icon: BookOpenText },
+  compare: { label: 'Compare', icon: Columns2 },
+};
+
+const TYPE_LABELS: Record<ManuscriptSectionType, { singular: string; plural: string }> = {
+  introduction: { singular: 'Introduction', plural: 'Introduction' },
+  oration: { singular: 'Oration', plural: 'Orations' },
+  letter: { singular: 'Letter', plural: 'Letters' },
+  saying: { singular: 'Saying', plural: 'Sayings' },
+};
+
+const SECTION_TYPES: ManuscriptSectionType[] = ['introduction', 'oration', 'letter', 'saying'];
+
+export function sectionLabel(section: string) {
+  const type = sectionTypeOf(section);
+  if (type === 'introduction') return 'Raḍī’s Introduction';
+  return `${TYPE_LABELS[type].singular} ${section.split('.')[1] ?? section}`;
 }
 
+const MAX_COMPARE = 3;
+
+const shortDate = (entry: ManuscriptCatalogEntry) =>
+  entry.date.split('/')[0].replace(/\s*\(.*?\)\s*/g, ' ').trim();
+
+const placeOf = (entry: ManuscriptCatalogEntry) => [entry.city, entry.country].filter(Boolean).join(', ');
+
+const pageCountLabel = (count: number) => `${count} page${count === 1 ? '' : 's'}`;
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
+// Catalogue fields, in the order they are compared
+type DetailField = { key: string; label: string; value: (entry: ManuscriptCatalogEntry) => string; long?: boolean };
+
+const DETAIL_FIELDS: DetailField[] = [
+  { key: 'sigla', label: 'Sigla', value: e => [e.siglaEnglish, e.siglaArabic].filter(Boolean).join(' / ') },
+  { key: 'date', label: 'Date', value: e => e.date },
+  { key: 'holding', label: 'Holding library', value: e => e.holdingLibrary },
+  { key: 'place', label: 'Location', value: placeOf },
+  { key: 'catalog', label: 'Catalogue no.', value: e => e.details.catalogNumber },
+  { key: 'scribe', label: 'Scribe', value: e => e.details.scribe },
+  { key: 'features', label: 'Script & features', value: e => e.details.features, long: true },
+  { key: 'completeness', label: 'Completeness', value: e => e.details.completeness, long: true },
+  { key: 'format', label: 'Published as', value: e => e.details.format, long: true },
+  { key: 'notes', label: 'Notes', value: e => e.details.additionalInfo, long: true },
+];
+
+const hasCatalogueDetails = (entry: ManuscriptCatalogEntry) =>
+  DETAIL_FIELDS.some(field => field.key !== 'sigla' && field.value(entry));
+
+// ============================================================================
+// Edition text (the critical edition, shown beside a manuscript)
+// ============================================================================
+
+export interface EditionTextSource {
+  id?: number;
+  heading?: string;
+  title?: string;
+  translations?: { type: string; text: string }[];
+  paragraphs?: { id?: number; number?: string; arabic?: string; translations?: { type: string; text: string }[]; footnotes?: any[] }[];
+  footnotes?: any[];
+  arabic?: string;
+  translation?: string;
+  number?: string;
+  sermonNumber?: string;
+}
+
+type TextBlock = { key: string; number?: string; arabic?: string; english?: string };
+type EditionText = { blocks: TextBlock[]; footnotes: any[] };
+
+const cleanArabic = (text?: string) =>
+  (text || '')
+    .replace(/<center>|<\/center>/gi, '')
+    .replace(/<span[^>]*>|<\/span>/gi, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+
+const englishOf = (translations?: { type: string; text: string }[]) => translations?.find(t => t.type === 'en')?.text;
+
+const compareParagraphNumbers = (a = '0', b = '0') => {
+  const pa = a.split('.').map(n => parseInt(n, 10) || 0);
+  const pb = b.split('.').map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+  }
+  return 0;
+};
+
+function normalizeEditionText(source: EditionTextSource | EditionTextSource[] | null | undefined): EditionText | null {
+  if (!source) return null;
+  const list = Array.isArray(source) ? source : [source];
+  const blocks: TextBlock[] = [];
+  const footnotes: any[] = [];
+
+  list.forEach((item, itemIndex) => {
+    footnotes.push(...(item.footnotes || []));
+    const titleEnglish = englishOf(item.translations);
+    if (item.title || titleEnglish) {
+      blocks.push({ key: `title-${item.id ?? itemIndex}`, arabic: cleanArabic(item.title), english: titleEnglish });
+    }
+    if (item.arabic || item.translation) {
+      blocks.push({ key: `body-${item.id ?? itemIndex}`, number: item.number, arabic: cleanArabic(item.arabic), english: item.translation });
+    }
+    [...(item.paragraphs || [])]
+      .sort((a, b) => compareParagraphNumbers(a.number, b.number))
+      .forEach((paragraph, paragraphIndex) => {
+        footnotes.push(...(paragraph.footnotes || []));
+        blocks.push({
+          key: `p-${paragraph.id ?? `${itemIndex}-${paragraphIndex}`}`,
+          number: paragraph.number,
+          arabic: cleanArabic(paragraph.arabic),
+          english: englishOf(paragraph.translations),
+        });
+      });
+  });
+
+  return { blocks: blocks.filter(block => block.arabic || block.english), footnotes };
+}
+
+async function fetchEditionText(section: string): Promise<EditionTextSource | EditionTextSource[] | null> {
+  const type = sectionTypeOf(section);
+  if (type === 'introduction') {
+    const response = await radisApi.getRadisIntroductions(1, 100);
+    return response.data as EditionTextSource[];
+  }
+  if (type === 'oration') return orationsApi.getOrationBySermonNumber(section) as Promise<EditionTextSource | null>;
+  if (type === 'letter') return lettersApi.getLetterBySermonNumber(section) as Promise<EditionTextSource | null>;
+  return sayingsApi.getSayingBySermonNumber(section) as Promise<EditionTextSource | null>;
+}
+
+// ============================================================================
+// ZoomPanImage: wheel / pinch / drag zoom. Shows the ~1000px rendition and swaps
+// in the original scan once you zoom past what that rendition can show.
+// ============================================================================
+
 type ZoomPanHandle = {
-  zoomIn: (clientX?: number, clientY?: number) => void;
-  zoomOut: (clientX?: number, clientY?: number) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
   reset: () => void;
 };
 
 type ZoomPanImageProps = {
   src: string;
+  hiResSrc?: string;
   alt: string;
   onZoomChange: (percent: number) => void;
   onLoadingChange?: (loading: boolean) => void;
 };
 
-const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
-// Zoom is relative to "fit": scale 1 (100%) shows the whole page inside the viewer.
-const MIN_SCALE = 0.25;
+// Zoom is relative to "fit": scale 1 (100%) shows the whole page inside the pane
+const MIN_SCALE = 0.5;
 const MAX_SCALE = 8;
 const ZOOM_STEP = 1.25;
 
-const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, alt, onZoomChange, onLoadingChange }, ref) => {
+const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, hiResSrc, alt, onZoomChange, onLoadingChange }, ref) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
-
   const pointersRef = useRef(new Map<number, { x: number; y: number }>());
-  const dragRef = useRef<{ active: boolean; startX: number; startY: number; startTx: number; startTy: number; moved: boolean }>({
-    active: false,
-    startX: 0,
-    startY: 0,
-    startTx: 0,
-    startTy: 0,
-    moved: false
-  });
-  const pinchRef = useRef<{
-    active: boolean;
-    startDistance: number;
-    startScale: number;
-    startTx: number;
-    startTy: number;
-    startCenterX: number;
-    startCenterY: number;
-  }>({
-    active: false,
-    startDistance: 0,
-    startScale: 1,
-    startTx: 0,
-    startTy: 0,
-    startCenterX: 0,
-    startCenterY: 0
-  });
+  const dragRef = useRef({ active: false, startX: 0, startY: 0, startTx: 0, startTy: 0, moved: false });
+  const pinchRef = useRef({ active: false, startDistance: 0, startScale: 1, startTx: 0, startTy: 0 });
 
-  const [containerSize, setContainerSize] = useState<{ w: number; h: number }>({ w: 1, h: 1 });
-  // Store imageSize together with the src it belongs to, so we never apply stale sizes
+  const [containerSize, setContainerSize] = useState({ w: 1, h: 1 });
+  // Layout uses the display rendition's size, so swapping in the original scan doesn't move anything
   const [imageSizeForSrc, setImageSizeForSrc] = useState<{ src: string; w: number; h: number } | null>(null);
   const [baseScale, setBaseScale] = useState(1);
   const [scale, setScale] = useState(1);
-  const [translate, setTranslate] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [hiResReady, setHiResReady] = useState(false);
   const imageSize = imageSizeForSrc?.src === src ? imageSizeForSrc : null;
-  const totalScale = useMemo(() => baseScale * scale, [baseScale, scale]);
+  const totalScale = baseScale * scale;
 
-  const centerImage = useCallback(
-    (nextBaseScale: number, nextScale: number, imgW: number, imgH: number, cW: number, cH: number) => {
-      const nextTotalScale = nextBaseScale * nextScale;
-      const x = (cW - imgW * nextTotalScale) / 2;
-      const y = (cH - imgH * nextTotalScale) / 2;
-      setTranslate({ x, y });
-    },
-    []
-  );
+  const centerImage = useCallback((nextBase: number, nextScale: number, imgW: number, imgH: number, cW: number, cH: number) => {
+    const total = nextBase * nextScale;
+    setTranslate({ x: (cW - imgW * total) / 2, y: (cH - imgH * total) / 2 });
+  }, []);
 
   const updateContainerSize = useCallback(() => {
     const el = containerRef.current;
@@ -105,7 +212,6 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     setContainerSize({ w: Math.max(1, el.clientWidth), h: Math.max(1, el.clientHeight) });
   }, []);
 
-  // Track the container itself (not just the window) so expanding/collapsing the viewer refits the page
   useEffect(() => {
     updateContainerSize();
     const el = containerRef.current;
@@ -118,91 +224,71 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     return () => observer.disconnect();
   }, [updateContainerSize]);
 
-  // When src changes: mark as not ready and signal loading
   useEffect(() => {
     setImageSizeForSrc(null);
     setBaseScale(1);
     setScale(1);
     setTranslate({ x: 0, y: 0 });
+    setHiResReady(false);
     onLoadingChange?.(true);
     const img = imgRef.current;
     if (!img || !img.complete) return;
     const w = img.naturalWidth || img.width;
     const h = img.naturalHeight || img.height;
-    if (w > 0 && h > 0) {
-      setImageSizeForSrc({ src, w, h });
-    }
+    if (w > 0 && h > 0) setImageSizeForSrc({ src, w, h });
   }, [src, onLoadingChange]);
 
-  // Once we have a valid imageSize for the *current* src, compute layout
   useEffect(() => {
     if (!imageSize) return;
-    const { w: imgW, h: imgH } = imageSize;
-    const { w: cW, h: cH } = containerSize;
-
-    // Contain: the whole page is visible at 100%
-    const fitWidth = cW / imgW;
-    const fitHeight = cH / imgH;
-    const nextBaseScale = (isFinite(fitWidth) && fitWidth > 0 && isFinite(fitHeight) && fitHeight > 0)
-      ? clamp(Math.min(fitWidth, fitHeight), 0.01, 5)
-      : 1;
-
-    setBaseScale(nextBaseScale);
+    const fit = Math.min(containerSize.w / imageSize.w, containerSize.h / imageSize.h);
+    const nextBase = isFinite(fit) && fit > 0 ? clamp(fit, 0.01, 5) : 1;
+    setBaseScale(nextBase);
     setScale(1);
-    centerImage(nextBaseScale, 1, imgW, imgH, cW, cH);
+    centerImage(nextBase, 1, imageSize.w, imageSize.h, containerSize.w, containerSize.h);
     onZoomChange(100);
     onLoadingChange?.(false);
   }, [imageSize, containerSize, centerImage, onLoadingChange, onZoomChange]);
 
-  const setScaleAroundPoint = useCallback(
-    (clientX: number, clientY: number, nextScale: number) => {
-      const el = containerRef.current;
-      if (!el || !imageSize) return;
-      const rect = el.getBoundingClientRect();
-      setScale(nextScale);
-      onZoomChange(Math.round(nextScale * 100));
+  // Swap in the original scan once the display rendition is being upscaled
+  const devicePixelRatio = typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1;
+  const needsHiRes = !!hiResSrc && hiResSrc !== src && !!imageSize && totalScale * devicePixelRatio > 1.05;
+  useEffect(() => {
+    if (!needsHiRes || hiResReady || !hiResSrc) return;
+    let cancelled = false;
+    const loader = new window.Image();
+    loader.onload = () => { if (!cancelled) setHiResReady(true); };
+    loader.src = hiResSrc;
+    return () => { cancelled = true; };
+  }, [needsHiRes, hiResReady, hiResSrc]);
 
-      // At or below fit there is nothing to pan to, so keep the page centred
-      if (nextScale <= 1) {
-        centerImage(baseScale, nextScale, imageSize.w, imageSize.h, rect.width, rect.height);
-        return;
-      }
+  const setScaleAroundPoint = useCallback((clientX: number, clientY: number, nextScale: number) => {
+    const el = containerRef.current;
+    if (!el || !imageSize) return;
+    const rect = el.getBoundingClientRect();
+    setScale(nextScale);
+    onZoomChange(Math.round(nextScale * 100));
+    if (nextScale <= 1) {
+      centerImage(baseScale, nextScale, imageSize.w, imageSize.h, rect.width, rect.height);
+      return;
+    }
+    const px = clamp(clientX - rect.left, 0, rect.width);
+    const py = clamp(clientY - rect.top, 0, rect.height);
+    const contentX = (px - translate.x) / totalScale;
+    const contentY = (py - translate.y) / totalScale;
+    const nextTotal = baseScale * nextScale;
+    setTranslate({ x: px - contentX * nextTotal, y: py - contentY * nextTotal });
+  }, [baseScale, centerImage, imageSize, onZoomChange, totalScale, translate.x, translate.y]);
 
-      const px = clamp(clientX - rect.left, 0, rect.width);
-      const py = clamp(clientY - rect.top, 0, rect.height);
-
-      const startTotal = totalScale;
-      const nextTotal = baseScale * nextScale;
-
-      const contentX = (px - translate.x) / startTotal;
-      const contentY = (py - translate.y) / startTotal;
-
-      setTranslate({ x: px - contentX * nextTotal, y: py - contentY * nextTotal });
-    },
-    [baseScale, centerImage, imageSize, onZoomChange, totalScale, translate.x, translate.y]
-  );
-
-  const zoomIn = useCallback(
-    (clientX?: number, clientY?: number) => {
-      const next = clamp(scale * ZOOM_STEP, MIN_SCALE, MAX_SCALE);
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      setScaleAroundPoint(clientX ?? rect.left + rect.width / 2, clientY ?? rect.top + rect.height / 2, next);
-    },
-    [scale, setScaleAroundPoint]
-  );
-
-  const zoomOut = useCallback(
-    (clientX?: number, clientY?: number) => {
-      const next = clamp(scale / ZOOM_STEP, MIN_SCALE, MAX_SCALE);
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      setScaleAroundPoint(clientX ?? rect.left + rect.width / 2, clientY ?? rect.top + rect.height / 2, next);
-    },
-    [scale, setScaleAroundPoint]
-  );
+  const zoomBy = useCallback((factor: number, clientX?: number, clientY?: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setScaleAroundPoint(
+      clientX ?? rect.left + rect.width / 2,
+      clientY ?? rect.top + rect.height / 2,
+      clamp(scale * factor, MIN_SCALE, MAX_SCALE)
+    );
+  }, [scale, setScaleAroundPoint]);
 
   const reset = useCallback(() => {
     if (!imageSize) return;
@@ -211,15 +297,17 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     centerImage(baseScale, 1, imageSize.w, imageSize.h, containerSize.w, containerSize.h);
   }, [baseScale, centerImage, containerSize, imageSize, onZoomChange]);
 
-  React.useImperativeHandle(ref, () => ({ zoomIn, zoomOut, reset }), [reset, zoomIn, zoomOut]);
+  React.useImperativeHandle(ref, () => ({
+    zoomIn: () => zoomBy(ZOOM_STEP),
+    zoomOut: () => zoomBy(1 / ZOOM_STEP),
+    reset,
+  }), [reset, zoomBy]);
 
-  // React registers wheel listeners as passive, so preventDefault() there can't stop the page
-  // from scrolling while zooming. Attach a non-passive native listener instead.
+  // React's wheel listeners are passive, so attach a native one that can stop the page scrolling
   const wheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
   wheelHandlerRef.current = (e: WheelEvent) => {
     e.preventDefault();
-    const factor = Math.exp(-e.deltaY * 0.002);
-    setScaleAroundPoint(e.clientX, e.clientY, clamp(scale * factor, MIN_SCALE, MAX_SCALE));
+    setScaleAroundPoint(e.clientX, e.clientY, clamp(scale * Math.exp(-e.deltaY * 0.002), MIN_SCALE, MAX_SCALE));
   };
   useEffect(() => {
     const el = containerRef.current;
@@ -229,69 +317,36 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     return () => el.removeEventListener('wheel', listener);
   }, []);
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (e.button === 1) return;
-    const el = containerRef.current;
-    if (!el) return;
-    el.setPointerCapture(e.pointerId);
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    containerRef.current?.setPointerCapture(e.pointerId);
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
     if (pointersRef.current.size === 1) {
-      dragRef.current = {
-        active: true,
-        startX: e.clientX,
-        startY: e.clientY,
-        startTx: translate.x,
-        startTy: translate.y,
-        moved: false
-      };
+      dragRef.current = { active: true, startX: e.clientX, startY: e.clientY, startTx: translate.x, startTy: translate.y, moved: false };
       pinchRef.current.active = false;
-    }
-
-    if (pointersRef.current.size === 2) {
-      const pts = Array.from(pointersRef.current.values());
-      const dx = pts[0].x - pts[1].x;
-      const dy = pts[0].y - pts[1].y;
-      const dist = Math.hypot(dx, dy);
-      const cx = (pts[0].x + pts[1].x) / 2;
-      const cy = (pts[0].y + pts[1].y) / 2;
-      pinchRef.current = {
-        active: true,
-        startDistance: dist,
-        startScale: scale,
-        startTx: translate.x,
-        startTy: translate.y,
-        startCenterX: cx,
-        startCenterY: cy
-      };
+    } else if (pointersRef.current.size === 2) {
+      const [a, b] = Array.from(pointersRef.current.values());
+      pinchRef.current = { active: true, startDistance: Math.hypot(a.x - b.x, a.y - b.y), startScale: scale, startTx: translate.x, startTy: translate.y };
       dragRef.current.active = false;
     }
-  }, [scale, translate.x, translate.y]);
+  };
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
+  const onPointerMove = (e: React.PointerEvent) => {
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (pinchRef.current.active && pointersRef.current.size >= 2) {
-      const pts = Array.from(pointersRef.current.values());
-      const dx = pts[0].x - pts[1].x;
-      const dy = pts[0].y - pts[1].y;
-      const dist = Math.hypot(dx, dy);
-      const cx = (pts[0].x + pts[1].x) / 2;
-      const cy = (pts[0].y + pts[1].y) / 2;
-
+      const [a, b] = Array.from(pointersRef.current.values());
+      const cx = (a.x + b.x) / 2;
+      const cy = (a.y + b.y) / 2;
       const startTotal = baseScale * pinchRef.current.startScale;
       const contentX = (cx - pinchRef.current.startTx) / startTotal;
       const contentY = (cy - pinchRef.current.startTy) / startTotal;
-
-      const ratio = pinchRef.current.startDistance > 0 ? dist / pinchRef.current.startDistance : 1;
+      const ratio = pinchRef.current.startDistance > 0 ? Math.hypot(a.x - b.x, a.y - b.y) / pinchRef.current.startDistance : 1;
       const nextScale = clamp(pinchRef.current.startScale * ratio, MIN_SCALE, MAX_SCALE);
       const nextTotal = baseScale * nextScale;
-      const nextTx = cx - contentX * nextTotal;
-      const nextTy = cy - contentY * nextTotal;
-
       setScale(nextScale);
-      setTranslate({ x: nextTx, y: nextTy });
+      setTranslate({ x: cx - contentX * nextTotal, y: cy - contentY * nextTotal });
       onZoomChange(Math.round(nextScale * 100));
       return;
     }
@@ -299,1607 +354,1246 @@ const ZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, 
     if (!dragRef.current.active) return;
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-      dragRef.current.moved = true;
-    }
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragRef.current.moved = true;
     if (scale <= 1) return;
     setTranslate({ x: dragRef.current.startTx + dx, y: dragRef.current.startTy + dy });
-  }, [baseScale, onZoomChange, scale]);
+  };
 
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
+  const onPointerUp = (e: React.PointerEvent) => {
     pointersRef.current.delete(e.pointerId);
-    const wasMoved = dragRef.current.moved;
+    if (pointersRef.current.size < 2) pinchRef.current.active = false;
+    if (pointersRef.current.size === 0) dragRef.current.active = false;
+  };
 
-    if (pointersRef.current.size < 2) {
-      pinchRef.current.active = false;
-    }
-    if (pointersRef.current.size === 0) {
-      dragRef.current.active = false;
-    }
-
-    if (wasMoved) return;
-
-    if (e.button === 0) {
-      zoomIn(e.clientX, e.clientY);
-    } else if (e.button === 2) {
-      zoomOut(e.clientX, e.clientY);
-    }
-  }, [zoomIn, zoomOut]);
-
-  const onPointerCancel = useCallback((e: React.PointerEvent) => {
-    pointersRef.current.delete(e.pointerId);
-    dragRef.current.active = false;
-    pinchRef.current.active = false;
-  }, []);
-
-  const onContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-  }, []);
-
-  const cursorClass = scale > 1 ? 'cursor-grab' : 'cursor-zoom-in';
+  // Double-click / double-tap toggles between fit and a closer look
+  const onDoubleClick = (e: React.MouseEvent) => {
+    if (scale > 1.01) reset();
+    else setScaleAroundPoint(e.clientX, e.clientY, 2.5);
+  };
 
   return (
     <div
       ref={containerRef}
-      className={`ms-viewer__zoompan ${cursorClass}`}
+      className={`mss-zoom ${scale > 1 ? 'mss-zoom--panning' : ''}`}
       style={{ touchAction: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onContextMenu={onContextMenu}
+      onPointerCancel={onPointerUp}
+      onDoubleClick={onDoubleClick}
     >
       <div
-        className="ms-viewer__zoompan-layer"
-        style={{
-          transform: `translate(${translate.x}px, ${translate.y}px) scale(${totalScale})`,
-          transformOrigin: '0 0',
-        }}
+        className="mss-zoom__layer"
+        style={{ transform: `translate(${translate.x}px, ${translate.y}px) scale(${totalScale})`, transformOrigin: '0 0' }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={imgRef}
-          src={src}
+          src={hiResReady && hiResSrc ? hiResSrc : src}
           alt={alt}
-          className="ms-viewer__zoompan-img"
+          className="mss-zoom__img"
+          style={imageSize ? { width: imageSize.w, height: imageSize.h } : undefined}
           draggable={false}
           onLoad={(e) => {
+            if (imageSize) return; // the original scan replacing the display rendition
             const img = e.currentTarget;
             const w = img.naturalWidth || img.width;
             const h = img.naturalHeight || img.height;
-            // Tag the measurement with the src so stale loads are ignored
             setImageSizeForSrc({ src, w, h });
           }}
-          onError={(e) => {
-            const target = e.currentTarget as HTMLImageElement;
-            target.onerror = null;
-            target.src = '/file.svg';
-            onLoadingChange?.(false);
-          }}
+          onError={() => onLoadingChange?.(false)}
         />
       </div>
     </div>
   );
 });
-
 ZoomPanImage.displayName = 'ZoomPanImage';
 
-const MissingPagePlaceholder: React.FC<{ pageNumber: number; className?: string }> = ({ pageNumber, className = '' }) => (
-  <div className={`ms-viewer__missing-page ${className}`}>
-    <div className="ms-viewer__missing-page-inner">
-      <svg className="w-16 h-16 ms-viewer__missing-page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-      <h3 className="ms-viewer__missing-page-title">Page Missing</h3>
-      <p className="ms-viewer__missing-page-text">This page is missing from this manuscript.</p>
-      <p className="ms-viewer__missing-page-number">Page {pageNumber}</p>
-    </div>
-  </div>
-);
+// ============================================================================
+// Manuscript page pane
+// ============================================================================
 
-export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookName, currentPage: controlledPage, onPageChange, caption }) => {
-  const [internalPage, setInternalPage] = useState(0);
-  const currentPage = Math.min(controlledPage ?? internalPage, Math.max(0, pages.length - 1));
-  const setCurrentPage = (next: number | ((prev: number) => number)) => {
-    const value = typeof next === 'function' ? next(currentPage) : next;
-    if (onPageChange) onPageChange(value);
-    else setInternalPage(value);
-  };
-  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [viewMode, setViewMode] = useState<ViewMode>('single');
-  const [isExpanded, setIsExpanded] = useState(false);
+interface ManuscriptPaneProps {
+  entry: ManuscriptCatalogEntry;
+  /** null while the section is loading; [] when this manuscript has no pages for it */
+  pages: ManuscriptPageImage[] | null;
+  sectionText: string;
+  page: number;
+  onPageChange: (page: number) => void;
+  /** Labels for continuing into the neighbouring section past the first/last page */
+  continuation?: { prev?: string; next?: string };
+  onContinue?: (direction: 1 | -1) => void;
+  order?: number;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
+  infoOpen?: boolean;
+  onToggleInfo?: () => void;
+}
+
+const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
+  entry, pages, sectionText, page, onPageChange, continuation, onContinue,
+  order, expanded, onToggleExpand, infoOpen, onToggleInfo,
+}) => {
+  const zoomRef = useRef<ZoomPanHandle | null>(null);
+  const stripRef = useRef<HTMLDivElement | null>(null);
   const [zoom, setZoom] = useState(100);
-  const [isImageLoading, setIsImageLoading] = useState(false);
-  const zoomPanRef = useRef<ZoomPanHandle | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handlePrevPage = () => setCurrentPage((prev) => Math.max(0, prev - 1));
-  const handleNextPage = () => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1));
-  const handleZoomIn = () => zoomPanRef.current?.zoomIn();
-  const handleZoomOut = () => zoomPanRef.current?.zoomOut();
-  const handleResetZoom = () => zoomPanRef.current?.reset();
-  const toggleExpand = () => setIsExpanded(!isExpanded);
+  const count = pages?.length ?? 0;
+  const index = clamp(page, 0, Math.max(0, count - 1));
+  const current = pages?.[index];
+  const isFirst = index <= 0;
+  const isLast = index >= count - 1;
+  const prevLabel = isFirst ? continuation?.prev : undefined;
+  const nextLabel = isLast ? continuation?.next : undefined;
 
+  const goPrev = () => (isFirst ? prevLabel && onContinue?.(-1) : onPageChange(index - 1));
+  const goNext = () => (isLast ? nextLabel && onContinue?.(1) : onPageChange(index + 1));
+
+  // Keep the active thumbnail in view without scrolling the page
   useEffect(() => {
-    if (!isExpanded) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsExpanded(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isExpanded]);
+    const strip = stripRef.current;
+    const active = strip?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!strip || !active) return;
+    strip.scrollTo({ left: active.offsetLeft - strip.clientWidth / 2 + active.clientWidth / 2, behavior: 'smooth' });
+  }, [index, count]);
 
-  const toggleViewMode = () => {
-    setViewMode((prev) => prev === 'single' ? 'gallery' : 'single');
+  const onStageKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); goNext(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+    else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomRef.current?.zoomIn(); }
+    else if (e.key === '-') { e.preventDefault(); zoomRef.current?.zoomOut(); }
+    else if (e.key === '0') { e.preventDefault(); zoomRef.current?.reset(); }
   };
-
-  const handleThumbnailClick = (index: number) => {
-    setCurrentPage(index);
-    if (viewMode === 'gallery') {
-      setViewMode('single');
-    }
-  };
-
-  useEffect(() => {
-    zoomPanRef.current?.reset();
-    setZoom(100);
-    // Keep the active thumbnail visible when paging through a long manuscript
-    thumbnailRefs.current[currentPage]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, [currentPage]);
 
   return (
-    <>
-      {isExpanded && (
-        <div className="ms-viewer__overlay" onClick={toggleExpand} />
-      )}
+    <section className="mss-pane" aria-label={entry.name}>
+      <header className="mss-pane__header">
+        {order !== undefined && <span className="mss-pane__order">{order}</span>}
+        <div className="mss-pane__titles">
+          <h3 className="mss-pane__title" title={entry.name}>{entry.name}</h3>
+          <p className="mss-pane__meta">
+            {[shortDate(entry), placeOf(entry)].filter(Boolean).join(' · ') || sectionText}
+          </p>
+        </div>
+        <div className="mss-pane__actions">
+          {onToggleInfo && (
+            <button
+              type="button"
+              className={`mss-icon-btn ${infoOpen ? 'mss-icon-btn--active' : ''}`}
+              onClick={onToggleInfo}
+              aria-pressed={infoOpen}
+              title={infoOpen ? 'Hide details' : 'Show details'}
+            >
+              {infoOpen ? <PanelRightClose /> : <PanelRightOpen />}
+              <span className="sr-only">{infoOpen ? 'Hide details' : 'Show details'}</span>
+            </button>
+          )}
+          {onToggleExpand && (
+            <button type="button" className="mss-icon-btn" onClick={onToggleExpand} title={expanded ? 'Show all columns' : 'Enlarge this column'}>
+              {expanded ? <Shrink /> : <Expand />}
+              <span className="sr-only">{expanded ? 'Show all columns' : 'Enlarge this column'}</span>
+            </button>
+          )}
+        </div>
+      </header>
 
-      <div className={`ms-viewer__wrapper ms-viewer__wrapper--flex ${isExpanded ? 'ms-viewer__wrapper--expanded' : 'ms-viewer__wrapper--relative'}`}>
-        <div className="ms-viewer__toolbar">
-          <div className={`ms-viewer__toolbar-group ${viewMode === 'gallery' ? 'invisible' : ''}`}>
-            <button
-              onClick={handleZoomOut}
-              disabled={zoom <= MIN_SCALE * 100}
-              className="ms-viewer__btn"
-              aria-label="Zoom out"
-              title="Zoom out"
-            >
-              <ZoomOut className="w-5 h-5" />
-            </button>
-            <span className="ms-viewer__zoom-label tabular-nums">{zoom}%</span>
-            <button
-              onClick={handleZoomIn}
-              disabled={zoom >= MAX_SCALE * 100}
-              className="ms-viewer__btn"
-              aria-label="Zoom in"
-              title="Zoom in"
-            >
-              <ZoomIn className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleResetZoom}
-              disabled={zoom === 100}
-              className="ms-viewer__btn ms-viewer__btn--text"
-              aria-label="Reset zoom to 100% (fit whole page)"
-              title="Reset to 100% (fit whole page)"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
-          </div>
-          <div className="ms-viewer__toolbar-group">
-            <button
-              onClick={toggleViewMode}
-              className={`ms-viewer__btn ${viewMode === 'gallery' ? 'ms-viewer__btn--active' : ''}`}
-              aria-label={viewMode === 'gallery' ? 'Single page view' : 'Gallery view'}
-            >
-              {viewMode === 'gallery' ? <ImageIcon className="w-5 h-5" /> : <Grid3x3 className="w-5 h-5" />}
-            </button>
-            <button
-              onClick={toggleExpand}
-              className="ms-viewer__btn"
-              aria-label={isExpanded ? 'Minimize' : 'Expand'}
-              title={isExpanded ? 'Exit full screen (Esc)' : 'Full screen'}
-            >
-              {isExpanded ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-            </button>
+      {pages === null ? (
+        <div className="mss-pane__stage mss-pane__stage--empty"><Loader2 className="mss-spin" /></div>
+      ) : !current ? (
+        <div className="mss-pane__stage mss-pane__stage--empty">
+          <div className="mss-empty">
+            <p className="mss-empty__title">No pages for {sectionText}</p>
+            <p className="mss-empty__text">This manuscript has no digitized pages for this section. Choose another manuscript above{continuation?.next ? ' or continue to the next section' : ''}.</p>
+            {continuation?.next && onContinue && (
+              <button type="button" className="mss-text-btn" onClick={() => onContinue(1)}>
+                {continuation.next} <ChevronRight />
+              </button>
+            )}
           </div>
         </div>
-        <div className={`ms-viewer__layout ${isExpanded ? 'ms-viewer__layout--expanded' : 'ms-viewer__layout--fixed'}`}>
-          <div className="ms-viewer__sidebar ms-viewer__sidebar--scroll">
-            <div className="ms-viewer__sidebar-thumbs">
-              {pages.map((page, index) => (
-                <button
-                  key={index}
-                  ref={(el) => { thumbnailRefs.current[index] = el; }}
-                  onClick={() => handleThumbnailClick(index)}
-                  className={`ms-viewer__thumb ${currentPage === index ? 'ms-viewer__thumb--active' : ''}`}
-                  aria-label={`Page ${index + 1}`}
-                >
-                  {page ? (
-                    <img
-                      src={page}
-                      loading="lazy"
-                      alt={`Page ${index + 1} thumbnail`}
-                      className="ms-viewer__thumb-img"
-                      onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.onerror = null;
-                        target.src = '/file.svg';
-                      }}
-                    />
-                  ) : (
-                    <div className="ms-viewer__thumb-missing">
-                      <svg className="w-6 h-6" style={{ color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                  )}
-                </button>
-              ))}
+      ) : (
+        <>
+          <div
+            className="mss-pane__stage"
+            tabIndex={0}
+            onKeyDown={onStageKeyDown}
+            aria-label={`${entry.name}, page ${index + 1} of ${count}. Use the arrow keys to turn pages and plus or minus to zoom.`}
+          >
+            <ZoomPanImage
+              key={current.id}
+              ref={zoomRef}
+              src={current.display}
+              hiResSrc={current.full}
+              alt={`${entry.name}, ${sectionText}, page ${index + 1}`}
+              onZoomChange={setZoom}
+              onLoadingChange={setLoading}
+            />
+            {loading && <div className="mss-pane__loading"><Loader2 className="mss-spin" /></div>}
+            <span className="mss-pane__counter">{index + 1} / {count}</span>
+            <div className="mss-zoombar" role="toolbar" aria-label="Zoom">
+              <button type="button" onClick={() => zoomRef.current?.zoomOut()} title="Zoom out"><ZoomOut /><span className="sr-only">Zoom out</span></button>
+              <span className="mss-zoombar__value" aria-live="polite">{zoom}%</span>
+              <button type="button" onClick={() => zoomRef.current?.zoomIn()} title="Zoom in"><ZoomIn /><span className="sr-only">Zoom in</span></button>
+              <button type="button" onClick={() => zoomRef.current?.reset()} title="Fit page" disabled={zoom === 100}><RotateCcw /><span className="sr-only">Fit page</span></button>
             </div>
           </div>
-          <div className={`ms-viewer__main ${viewMode === 'single' ? 'ms-viewer__main--single' : ''}`}>
-            {viewMode === 'single' ? (
-              pages[currentPage] ? (
-                <div className="ms-viewer__stage">
-                  <div className="ms-viewer__stage-inner">
-                    <ZoomPanImage
-                      key={currentPage}
-                      ref={zoomPanRef}
-                      src={pages[currentPage] as string}
-                      alt={`${bookName} - Page ${currentPage + 1}`}
-                      onZoomChange={setZoom}
-                      onLoadingChange={setIsImageLoading}
-                    />
-                    {isImageLoading && (
-                      <div className="ms-viewer__loading">
-                        <div className="ms-viewer__loading-pill">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Loading image...</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <MissingPagePlaceholder pageNumber={currentPage + 1} />
-              )
-            ) : (
-              <div className="ms-viewer__gallery">
-                {pages.map((page, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleThumbnailClick(index)}
-                    className="ms-viewer__gallery-item"
+
+          <footer className="mss-pane__footer">
+            <button
+              type="button"
+              className="mss-pager"
+              onClick={goPrev}
+              disabled={isFirst && !prevLabel}
+              title={prevLabel ? `Continue to ${prevLabel}` : 'Previous page'}
+            >
+              <ChevronLeft />
+              <span className="mss-pager__label">{prevLabel ?? 'Prev'}</span>
+            </button>
+            {count > 1 ? (
+              <div className="mss-strip" ref={stripRef}>
+                {pages!.map((p, i) => (
+                  <button
+                    type="button"
+                    key={p.id}
+                    data-active={i === index}
+                    className={`mss-strip__thumb ${i === index ? 'mss-strip__thumb--active' : ''}`}
+                    onClick={() => onPageChange(i)}
+                    aria-label={`Page ${i + 1}`}
+                    aria-current={i === index ? 'page' : undefined}
                   >
-                    {page ? (
-                      <>
-                        <img
-                          src={page}
-                          loading="lazy"
-                          alt={`${bookName} - Page ${index + 1}`}
-                          className="ms-viewer__gallery-item-img"
-                          onError={(e) => {
-                            const target = e.currentTarget as HTMLImageElement;
-                            target.onerror = null;
-                            target.src = '/file.svg';
-                          }}
-                        />
-                        <div className="ms-viewer__gallery-overlay">
-                          <span className="ms-viewer__gallery-overlay-text">Page {index + 1}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="ms-viewer__gallery-missing">
-                        <div className="ms-viewer__gallery-missing-inner">
-                          <svg className="w-12 h-12" style={{ color: '#9ca3af', margin: '0 auto 0.5rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <p className="ms-viewer__gallery-missing-page">Page {index + 1}</p>
-                          <p className="ms-viewer__gallery-missing-label">Missing</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.thumb} alt="" loading="lazy" />
+                  </button>
                 ))}
               </div>
+            ) : (
+              <span className="mss-pane__single">Single page</span>
             )}
-          </div>
-        </div>
-        {viewMode === 'single' && (
-          <div className="ms-viewer__pagination-bar">
             <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 0}
-              className="ms-viewer__nav-btn"
-              aria-label="Previous page"
+              type="button"
+              className="mss-pager mss-pager--next"
+              onClick={goNext}
+              disabled={isLast && !nextLabel}
+              title={nextLabel ? `Continue to ${nextLabel}` : 'Next page'}
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span className="ms-viewer__nav-btn-text">Previous</span>
+              <span className="mss-pager__label">{nextLabel ?? 'Next'}</span>
+              <ChevronRight />
             </button>
-
-            <div className="ms-viewer__page-counter">
-              Page {currentPage + 1} of {pages.length}
-              {caption && <div className="ms-viewer__page-caption">{caption}</div>}
-            </div>
-
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === pages.length - 1}
-              className="ms-viewer__nav-btn"
-              aria-label="Next page"
-            >
-              <span className="ms-viewer__nav-btn-text">Next</span>
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        )}
-      </div>
-    </>
+          </footer>
+        </>
+      )}
+    </section>
   );
 };
 
 // ============================================================================
-// ManuscriptComparisonModal
+// Edition text pane
 // ============================================================================
 
-interface ManuscriptComparisonModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    content: Post | RadisContent;
-    contentType: 'orations' | 'letters' | 'sayings' | 'radis' | 'conclusion';
-}
+type TextDisplay = 'both' | 'arabic' | 'english';
 
-interface RadisContent {
-    id: number;
-    number: string;
-    arabic: string;
-    translation: string;
-    heading?: string;
-    sermonNumber?: string;
-    paragraphs?: any[];
-    title?: string;
-    translations?: any[];
-    footnotes?: any[];
-}
+const EditionTextPane: React.FC<{
+  text: EditionText | null;
+  loading: boolean;
+  sectionText: string;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
+}> = ({ text, loading, sectionText, expanded, onToggleExpand }) => {
+  const [display, setDisplay] = useState<TextDisplay>('both');
 
-const ComparisonMissingPagePlaceholder: React.FC<{ pageNumber: number; className?: string }> = ({ pageNumber, className = '' }) => (
-    <div className={`ms-comparison__missing-page ${className}`}>
-        <div className="ms-comparison__missing-page-inner">
-            <svg className="w-12 h-12 lg:w-16 lg:h-16 ms-comparison__missing-page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="ms-comparison__missing-page-title">Page Missing</h3>
-            <p className="ms-comparison__missing-page-text">This page is missing from this manuscript.</p>
-            <p className="ms-comparison__missing-page-number">Page {pageNumber}</p>
+  return (
+    <section className="mss-pane mss-pane--text" aria-label="Critical edition text">
+      <header className="mss-pane__header">
+        <div className="mss-pane__titles">
+          <h3 className="mss-pane__title">Critical edition</h3>
+          <p className="mss-pane__meta">{sectionText}</p>
         </div>
+        <div className="mss-pane__actions">
+          <div className="mss-seg mss-seg--small" role="group" aria-label="Language">
+            {(['both', 'arabic', 'english'] as TextDisplay[]).map(option => (
+              <button
+                type="button"
+                key={option}
+                className={display === option ? 'mss-seg__btn mss-seg__btn--active' : 'mss-seg__btn'}
+                aria-pressed={display === option}
+                onClick={() => setDisplay(option)}
+              >
+                {option === 'both' ? 'Both' : option === 'arabic' ? 'Arabic' : 'English'}
+              </button>
+            ))}
+          </div>
+          {onToggleExpand && (
+            <button type="button" className="mss-icon-btn" onClick={onToggleExpand} title={expanded ? 'Show all columns' : 'Enlarge this column'}>
+              {expanded ? <Shrink /> : <Expand />}
+              <span className="sr-only">{expanded ? 'Show all columns' : 'Enlarge this column'}</span>
+            </button>
+          )}
+        </div>
+      </header>
+      <div className="mss-text">
+        {loading ? (
+          <div className="mss-pane__stage--empty"><Loader2 className="mss-spin" /></div>
+        ) : !text || text.blocks.length === 0 ? (
+          <div className="mss-empty">
+            <p className="mss-empty__title">No edition text</p>
+            <p className="mss-empty__text">The critical edition text for {sectionText} isn’t available.</p>
+          </div>
+        ) : (
+          text.blocks.map(block => (
+            <div key={block.key} className="mss-text__block">
+              {block.number && <span className="mss-text__number">{block.number}</span>}
+              {display !== 'english' && block.arabic && (
+                <p className="mss-text__arabic" dir="rtl" lang="ar">
+                  {formatTextWithFootnotes(block.arabic, text.footnotes, true, block.number || 'main')}
+                </p>
+              )}
+              {display !== 'arabic' && block.english && (
+                <p className="mss-text__english">
+                  {formatTextWithFootnotes(block.english, text.footnotes, false, block.number || 'main')}
+                </p>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+};
+
+// ============================================================================
+// Details: one manuscript (side panel) or several (aligned comparison table)
+// ============================================================================
+
+const DetailsPanel: React.FC<{ entry: ManuscriptCatalogEntry; pages: number; sectionText: string; onClose: () => void }> = ({ entry, pages, sectionText, onClose }) => {
+  const fields = DETAIL_FIELDS.map(field => ({ field, value: field.value(entry) })).filter(row => row.value);
+  return (
+    <aside className="mss-info" aria-label={`Details of ${entry.name}`}>
+      <div className="mss-info__head">
+        <p className="mss-info__eyebrow">Manuscript details</p>
+        <button type="button" className="mss-icon-btn" onClick={onClose} title="Hide details"><X /><span className="sr-only">Hide details</span></button>
+      </div>
+      <h3 className="mss-info__title">{entry.name}</h3>
+      <dl className="mss-info__list">
+        {fields.map(({ field, value }) => (
+          <div key={field.key} className="mss-info__row">
+            <dt>{field.label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+        <div className="mss-info__row">
+          <dt>Pages for {sectionText}</dt>
+          <dd>{pages}</dd>
+        </div>
+      </dl>
+      {!hasCatalogueDetails(entry) && (
+        <p className="mss-info__note">Catalogue details for this manuscript haven’t been added yet.</p>
+      )}
+      <Link href="/manuscripts/information" className="mss-text-btn mss-info__link">
+        All manuscript details <ChevronRight />
+      </Link>
+    </aside>
+  );
+};
+
+const DetailsComparison: React.FC<{
+  columns: { entry: ManuscriptCatalogEntry; item: SectionManuscript | undefined }[];
+  sectionText: string;
+}> = ({ columns, sectionText }) => {
+  const rows = DETAIL_FIELDS.filter(field => columns.some(col => field.value(col.entry)));
+  const withoutDetails = columns.filter(col => !hasCatalogueDetails(col.entry)).map(col => col.entry.name);
+
+  return (
+    <div className="mss-compare-details">
+      <div className="mss-compare-details__scroll">
+        <table className="mss-table" style={{ '--mss-table-cols': columns.length } as React.CSSProperties}>
+          <thead>
+            <tr>
+              <th scope="col" className="mss-table__corner"><span className="sr-only">Field</span></th>
+              {columns.map(({ entry, item }, i) => (
+                <th scope="col" key={entry.id}>
+                  <div className="mss-table__colhead">
+                    <span className="mss-table__thumb">
+                      {item?.pages[0] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={item.pages[0].thumb} alt="" />
+                      ) : null}
+                    </span>
+                    <span className="mss-table__colname">
+                      <span className="mss-pane__order">{i + 1}</span>
+                      {entry.name}
+                    </span>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(field => {
+              const values = columns.map(col => field.value(col.entry));
+              const filled = values.filter(Boolean);
+              const differs = filled.length > 1 && new Set(filled).size > 1;
+              return (
+                <tr key={field.key} className={field.long ? 'mss-table__row--long' : undefined}>
+                  <th scope="row">{field.label}</th>
+                  {values.map((value, i) => (
+                    <td key={columns[i].entry.id} className={!value ? 'mss-table__empty' : differs ? 'mss-table__differs' : undefined}>
+                      {value || 'Not recorded'}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+            <tr>
+              <th scope="row">Pages for {sectionText}</th>
+              {columns.map(({ entry, item }) => (
+                <td key={entry.id}>{item ? pageCountLabel(item.pages.length) : 'None'}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {withoutDetails.length > 0 && (
+        <p className="mss-compare-details__note">
+          Catalogue details haven’t been added yet for {withoutDetails.join(', ')}.
+        </p>
+      )}
     </div>
-);
+  );
+};
 
-// Comparison panes fill their frame (cover fit). Zoom is reported relative to that fit (100% = fitted).
-const INITIAL_FIT_BOOST = 1.03;
-const COMPARISON_MIN_SCALE = 1;
-const COMPARISON_MAX_SCALE = 8;
+// ============================================================================
+// Manuscript picker (thumbnail cards for the current section)
+// ============================================================================
 
-const ComparisonZoomPanImage = React.forwardRef<ZoomPanHandle, ZoomPanImageProps>(({ src, alt, onZoomChange }, ref) => {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const imgRef = useRef<HTMLImageElement | null>(null);
-    const pointersRef = useRef(new Map<number, { x: number; y: number }>());
-    const dragRef = useRef<{ active: boolean; startX: number; startY: number; startTx: number; startTy: number; moved: boolean }>({
-        active: false,
-        startX: 0,
-        startY: 0,
-        startTx: 0,
-        startTy: 0,
-        moved: false
-    });
-    const pinchRef = useRef<{
-        active: boolean;
-        startDistance: number;
-        startScale: number;
-        startTx: number;
-        startTy: number;
-    }>({
-        active: false,
-        startDistance: 0,
-        startScale: 1,
-        startTx: 0,
-        startTy: 0
-    });
+const ManuscriptPicker: React.FC<{
+  items: SectionManuscript[];
+  missing: ManuscriptCatalogEntry[];
+  selected: string[];
+  mode: StudyMode;
+  sectionText: string;
+  loading: boolean;
+  open: boolean;
+  notice: string | null;
+  onToggleOpen: () => void;
+  /** Plain click: show just this manuscript */
+  onSelect: (id: string) => void;
+  /** The small +/− button: add to (or remove from) the side-by-side comparison */
+  onToggleCompare: (id: string) => void;
+}> = ({ items, missing, selected, mode, sectionText, loading, open, notice, onToggleOpen, onSelect, onToggleCompare }) => {
+  const comparing = mode === 'compare' ? selected.slice(0, MAX_COMPARE) : [];
+  const hint = mode === 'compare'
+    ? `+ to add (up to ${MAX_COMPARE}), − to remove · select one to view it alone`
+    : mode === 'edition'
+      ? 'Select one to read beside the edition · + to compare'
+      : 'Select one to view it · + to compare';
 
-    const [containerSize, setContainerSize] = useState<{ w: number; h: number }>({ w: 1, h: 1 });
-    const [imageSize, setImageSize] = useState<{ w: number; h: number } | null>(null);
-    const [baseScale, setBaseScale] = useState(1);
-    const [scale, setScale] = useState(1);
-    const [translate, setTranslate] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-
-    const totalScale = useMemo(() => baseScale * scale, [baseScale, scale]);
-
-    // Layout size (unaffected by the modal's open animation transform)
-    const updateContainerSize = useCallback(() => {
-        const el = containerRef.current;
-        if (!el) return;
-        setContainerSize({ w: Math.max(1, el.clientWidth), h: Math.max(1, el.clientHeight) });
-    }, []);
-
-    useEffect(() => {
-        updateContainerSize();
-        const el = containerRef.current;
-        if (!el || typeof ResizeObserver === 'undefined') {
-            window.addEventListener('resize', updateContainerSize);
-            return () => window.removeEventListener('resize', updateContainerSize);
-        }
-        const observer = new ResizeObserver(updateContainerSize);
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [updateContainerSize]);
-
-    useEffect(() => {
-        setImageSize(null);
-        setBaseScale(1);
-        setScale(1);
-        setTranslate({ x: 0, y: 0 });
-        const img = imgRef.current;
-        if (!img || !img.complete) return;
-        const w = img.naturalWidth || img.width;
-        const h = img.naturalHeight || img.height;
-        if (w > 0 && h > 0) {
-            setImageSize({ w, h });
-        }
-    }, [src]);
-
-    const centerImage = useCallback((nextBaseScale: number, nextScale: number) => {
-        if (!imageSize) return;
-        const nextTotal = nextBaseScale * nextScale;
-        const x = (containerSize.w - imageSize.w * nextTotal) / 2;
-        const y = (containerSize.h - imageSize.h * nextTotal) / 2;
-        setTranslate({ x, y });
-    }, [containerSize.h, containerSize.w, imageSize]);
-
-    useEffect(() => {
-        if (!imageSize) return;
-        const fitWidth = containerSize.w / imageSize.w;
-        const fitHeight = containerSize.h / imageSize.h;
-        const nextBase = (isFinite(fitWidth) && fitWidth > 0 && isFinite(fitHeight) && fitHeight > 0)
-            ? clamp(Math.max(fitWidth, fitHeight) * INITIAL_FIT_BOOST, 0.01, 5)
-            : 1;
-        setBaseScale(nextBase);
-        setScale(1);
-        centerImage(nextBase, 1);
-        onZoomChange(100);
-    }, [centerImage, containerSize.h, containerSize.w, imageSize, onZoomChange, src]);
-
-    const setScaleAroundPoint = useCallback((clientX: number, clientY: number, nextScale: number) => {
-        const el = containerRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const px = clamp(clientX - rect.left, 0, rect.width);
-        const py = clamp(clientY - rect.top, 0, rect.height);
-
-        const startTotal = totalScale;
-        const nextTotal = baseScale * nextScale;
-        const contentX = (px - translate.x) / startTotal;
-        const contentY = (py - translate.y) / startTotal;
-        const nextTx = px - contentX * nextTotal;
-        const nextTy = py - contentY * nextTotal;
-
-        setScale(nextScale);
-        setTranslate({ x: nextTx, y: nextTy });
-        onZoomChange(Math.round(nextScale * 100));
-    }, [baseScale, onZoomChange, totalScale, translate.x, translate.y]);
-
-    const zoomIn = useCallback((clientX?: number, clientY?: number) => {
-        const next = clamp(scale * 1.25, COMPARISON_MIN_SCALE, COMPARISON_MAX_SCALE);
-        const el = containerRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        setScaleAroundPoint(clientX ?? rect.left + rect.width / 2, clientY ?? rect.top + rect.height / 2, next);
-    }, [scale, setScaleAroundPoint]);
-
-    const zoomOut = useCallback((clientX?: number, clientY?: number) => {
-        const next = clamp(scale / 1.25, COMPARISON_MIN_SCALE, COMPARISON_MAX_SCALE);
-        const el = containerRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        setScaleAroundPoint(clientX ?? rect.left + rect.width / 2, clientY ?? rect.top + rect.height / 2, next);
-    }, [scale, setScaleAroundPoint]);
-
-    const reset = useCallback(() => {
-        setScale(1);
-        onZoomChange(100);
-        centerImage(baseScale, 1);
-    }, [baseScale, centerImage, onZoomChange]);
-
-    React.useImperativeHandle(ref, () => ({ zoomIn, zoomOut, reset }), [reset, zoomIn, zoomOut]);
-
-    // React wheel listeners are passive, so attach a native non-passive one to stop the page scrolling while zooming
-    const wheelHandlerRef = useRef<(e: WheelEvent) => void>(() => {});
-    wheelHandlerRef.current = (e: WheelEvent) => {
-        e.preventDefault();
-        const factor = Math.exp(-e.deltaY * 0.002);
-        setScaleAroundPoint(e.clientX, e.clientY, clamp(scale * factor, COMPARISON_MIN_SCALE, COMPARISON_MAX_SCALE));
-    };
-    useEffect(() => {
-        const el = containerRef.current;
-        if (!el) return;
-        const listener = (e: WheelEvent) => wheelHandlerRef.current(e);
-        el.addEventListener('wheel', listener, { passive: false });
-        return () => el.removeEventListener('wheel', listener);
-    }, []);
-
-    const onPointerDown = useCallback((e: React.PointerEvent) => {
-        if (e.button === 1) return;
-        const el = containerRef.current;
-        if (!el) return;
-        el.setPointerCapture(e.pointerId);
-        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-        if (pointersRef.current.size === 1) {
-            dragRef.current = {
-                active: true,
-                startX: e.clientX,
-                startY: e.clientY,
-                startTx: translate.x,
-                startTy: translate.y,
-                moved: false
-            };
-            pinchRef.current.active = false;
-        }
-
-        if (pointersRef.current.size === 2) {
-            const pts = Array.from(pointersRef.current.values());
-            const dx = pts[0].x - pts[1].x;
-            const dy = pts[0].y - pts[1].y;
-            const dist = Math.hypot(dx, dy);
-            pinchRef.current = {
-                active: true,
-                startDistance: dist,
-                startScale: scale,
-                startTx: translate.x,
-                startTy: translate.y
-            };
-            dragRef.current.active = false;
-        }
-    }, [scale, translate.x, translate.y]);
-
-    const onPointerMove = useCallback((e: React.PointerEvent) => {
-        if (!pointersRef.current.has(e.pointerId)) return;
-        pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-        if (pinchRef.current.active && pointersRef.current.size >= 2) {
-            const pts = Array.from(pointersRef.current.values());
-            const dx = pts[0].x - pts[1].x;
-            const dy = pts[0].y - pts[1].y;
-            const dist = Math.hypot(dx, dy);
-            const cx = (pts[0].x + pts[1].x) / 2;
-            const cy = (pts[0].y + pts[1].y) / 2;
-
-            const startTotal = baseScale * pinchRef.current.startScale;
-            const contentX = (cx - pinchRef.current.startTx) / startTotal;
-            const contentY = (cy - pinchRef.current.startTy) / startTotal;
-
-            const ratio = pinchRef.current.startDistance > 0 ? dist / pinchRef.current.startDistance : 1;
-            const nextScale = clamp(pinchRef.current.startScale * ratio, COMPARISON_MIN_SCALE, COMPARISON_MAX_SCALE);
-            const nextTotal = baseScale * nextScale;
-            const nextTx = cx - contentX * nextTotal;
-            const nextTy = cy - contentY * nextTotal;
-
-            setScale(nextScale);
-            setTranslate({ x: nextTx, y: nextTy });
-            onZoomChange(Math.round(nextScale * 100));
-            return;
-        }
-
-        if (!dragRef.current.active) return;
-        const dx = e.clientX - dragRef.current.startX;
-        const dy = e.clientY - dragRef.current.startY;
-        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-            dragRef.current.moved = true;
-        }
-        if (scale === 1) return;
-        setTranslate({ x: dragRef.current.startTx + dx, y: dragRef.current.startTy + dy });
-    }, [baseScale, onZoomChange, scale]);
-
-    const onPointerUp = useCallback((e: React.PointerEvent) => {
-        pointersRef.current.delete(e.pointerId);
-        const wasMoved = dragRef.current.moved;
-
-        if (pointersRef.current.size < 2) {
-            pinchRef.current.active = false;
-        }
-        if (pointersRef.current.size === 0) {
-            dragRef.current.active = false;
-        }
-
-        if (wasMoved) return;
-        if (e.button === 0) {
-            zoomIn(e.clientX, e.clientY);
-        } else if (e.button === 2) {
-            zoomOut(e.clientX, e.clientY);
-        }
-    }, [zoomIn, zoomOut]);
-
-    const onPointerCancel = useCallback((e: React.PointerEvent) => {
-        pointersRef.current.delete(e.pointerId);
-        dragRef.current.active = false;
-        pinchRef.current.active = false;
-    }, []);
+  const renderCard = (entry: ManuscriptCatalogEntry, item: SectionManuscript | undefined) => {
+    const id = entry.id;
+    const comparePosition = comparing.indexOf(id);
+    const inCompare = comparePosition >= 0;
+    const isShown = mode === 'compare' ? inCompare : selected[0] === id;
+    // In Single / With edition the manuscript already on screen has nothing to be compared with yet
+    const showCompareButton = mode === 'compare' || !isShown;
+    const thumb = item?.pages[0]?.thumb;
+    const meta = item
+      ? [shortDate(entry), pageCountLabel(item.pages.length)].filter(Boolean).join(' · ')
+      : 'Not in this section';
 
     return (
-        <div
-            ref={containerRef}
-            className={`ms-viewer__zoompan ${scale > 1 ? 'cursor-grab' : 'cursor-zoom-in'}`}
-            style={{ touchAction: 'none' }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerCancel}
-            onContextMenu={(e) => e.preventDefault()}
+      <div
+        key={id}
+        className={`mss-card ${isShown ? 'mss-card--selected' : ''} ${item ? '' : 'mss-card--missing'}`}
+      >
+        <button
+          type="button"
+          className="mss-card__main"
+          onClick={() => onSelect(id)}
+          aria-pressed={isShown}
+          title={item ? `View ${entry.name}` : `${entry.name} has no pages for ${sectionText}`}
         >
-            <div
-                className="ms-viewer__zoompan-layer"
-                style={{
-                    transform: `translate(${translate.x}px, ${translate.y}px) scale(${totalScale})`,
-                    transformOrigin: '0 0'
-                }}
-            >
-                <img
-                    ref={imgRef}
-                    src={src}
-                    alt={alt}
-                    className="ms-viewer__zoompan-img"
-                    draggable={false}
-                    onLoad={(e) => {
-                        const img = e.currentTarget;
-                        setImageSize({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
-                    }}
-                    onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement;
-                        target.onerror = null;
-                        target.src = '/file.svg';
-                    }}
-                />
-            </div>
-        </div>
+          <span className="mss-card__thumb">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {thumb ? <img src={thumb} alt="" loading="lazy" /> : <span className="mss-card__none">No pages</span>}
+          </span>
+          <span className="mss-card__name">{entry.name}</span>
+          <span className="mss-card__meta">{meta}</span>
+        </button>
+        {isShown && (
+          <span className="mss-card__badge" aria-hidden="true">
+            {mode === 'compare' ? comparePosition + 1 : <Check />}
+          </span>
+        )}
+        {showCompareButton && (
+          <button
+            type="button"
+            className={`mss-card__compare ${inCompare ? 'mss-card__compare--remove' : ''}`}
+            onClick={() => onToggleCompare(id)}
+            title={inCompare ? 'Remove from comparison' : 'Add to comparison'}
+          >
+            {inCompare ? <Minus /> : <Plus />}
+            <span className="sr-only">{inCompare ? `Remove ${entry.name} from comparison` : `Compare ${entry.name}`}</span>
+          </button>
+        )}
+      </div>
     );
-});
-
-ComparisonZoomPanImage.displayName = 'ComparisonZoomPanImage';
-
-type ComparisonPaneId = 'primary' | 'secondary';
-
-const getManuscriptPageUrls = (manuscript: Manuscript | null): string[] =>
-    (manuscript?.files || []).map(file => getManuscriptImageUrl(file.url));
-
-export function ManuscriptComparisonModal({
-    isOpen,
-    onClose,
-    content,
-    contentType
-}: ManuscriptComparisonModalProps) {
-    const [manuscripts, setManuscripts] = useState<Manuscript[]>([]);
-    const [libraries, setLibraries] = useState<Library[]>([]);
-    const [selectedLibraryName, setSelectedLibraryName] = useState<string>('');
-    const [secondLibraryName, setSecondLibraryName] = useState<string>('');
-    const [selectedManuscript, setSelectedManuscript] = useState<Manuscript | null>(null);
-    const [secondManuscript, setSecondManuscript] = useState<Manuscript | null>(null);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [secondPage, setSecondPage] = useState(0);
-    const [zoom, setZoom] = useState(100);
-    const [secondZoom, setSecondZoom] = useState(100);
-    const [fullscreenZoom, setFullscreenZoom] = useState(100);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    // 'content': manuscript beside the normalized text; 'comparison': two manuscripts side by side
-    const [viewMode, setViewMode] = useState<'content' | 'comparison'>('content');
-    const [fullscreenPane, setFullscreenPane] = useState<ComparisonPaneId | null>(null);
-    // Mobile shows one pane at a time: the first manuscript, or the content / second manuscript
-    const [activeTab, setActiveTab] = useState<ComparisonPaneId>('primary');
-    const [isDesktop, setIsDesktop] = useState(() =>
-        typeof window === 'undefined' ? true : window.matchMedia('(min-width: 1024px)').matches
-    );
-    const zoomPanPrimaryRef = useRef<ZoomPanHandle | null>(null);
-    const zoomPanSecondaryRef = useRef<ZoomPanHandle | null>(null);
-    const zoomPanFullscreenRef = useRef<ZoomPanHandle | null>(null);
-
-    const getSectionNumber = () => {
-        if (contentType === 'radis' && 'number' in content) {
-            return `0.${content.number}`;
-        }
-        return (content as Post).sermonNumber || null;
-    };
-
-    const sectionNumber = getSectionNumber();
-
-    useEffect(() => {
-        if (isOpen && sectionNumber) {
-            setFullscreenPane(null);
-            fetchManuscripts();
-        }
-    }, [isOpen, sectionNumber]);
-
-    // Render only one layout so each pane has a single zoomable image instance
-    useEffect(() => {
-        const mql = window.matchMedia('(min-width: 1024px)');
-        const update = () => setIsDesktop(mql.matches);
-        update();
-        mql.addEventListener('change', update);
-        return () => mql.removeEventListener('change', update);
-    }, []);
-
-    const inferLibraryNameForManuscript = useCallback((manuscript: Manuscript, availableLibraries: Library[]): string | null => {
-        return availableLibraries.find(library => manuscriptMatchesLibrary(manuscript, library))?.name || null;
-    }, []);
-
-    const fetchManuscripts = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const fetchAllLibraries = async (): Promise<Library[]> => {
-                const first = await librariesApi.getAllLibraries(1, 100);
-                let all = first.data || [];
-                const totalPages = first.meta?.pagination?.pageCount || 1;
-
-                if (totalPages > 1) {
-                    const rest = [];
-                    for (let page = 2; page <= totalPages; page++) {
-                        rest.push(librariesApi.getAllLibraries(page, 100));
-                    }
-                    const responses = await Promise.all(rest);
-                    for (const resp of responses) {
-                        if (resp.data) {
-                            all = [...all, ...resp.data];
-                        }
-                    }
-                }
-
-                return all;
-            };
-
-            const [fetchedLibraries, manuscriptsResponse] = await Promise.all([
-                fetchAllLibraries(),
-                manuscriptsApi.getManuscriptsBySection(sectionNumber!)
-            ]);
-
-            setLibraries(fetchedLibraries);
-
-            const fetchedManuscripts = manuscriptsResponse.data || [];
-            const manuscriptsWithLibraryNames = fetchedManuscripts.filter(m => inferLibraryNameForManuscript(m, fetchedLibraries));
-
-            if (manuscriptsWithLibraryNames.length > 0) {
-                setManuscripts(manuscriptsWithLibraryNames);
-
-                const uniqueLibraryNames = Array.from(new Set(manuscriptsWithLibraryNames.map(m => inferLibraryNameForManuscript(m, fetchedLibraries)).filter(Boolean) as string[]));
-                const firstLibraryName = uniqueLibraryNames[0] || '';
-                const secondName = uniqueLibraryNames[1] || firstLibraryName;
-
-                setSelectedLibraryName(firstLibraryName);
-                setSecondLibraryName(secondName);
-
-                const firstManuscript = manuscriptsWithLibraryNames.find(m => inferLibraryNameForManuscript(m, fetchedLibraries) === firstLibraryName) || null;
-                const secondSelected = manuscriptsWithLibraryNames.find(m => inferLibraryNameForManuscript(m, fetchedLibraries) === secondName) || firstManuscript;
-
-                setSelectedManuscript(firstManuscript);
-                setSecondManuscript(secondSelected);
-                setCurrentPage(0);
-                setSecondPage(0);
-            } else {
-                setManuscripts([]);
-                setError('No manuscripts found for this section.');
-            }
-        } catch (err) {
-            console.error('Error fetching manuscripts:', err);
-            setError('Failed to load manuscripts. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // The pane zoom controls zoom both manuscripts together
-    const handleZoomIn = () => {
-        zoomPanPrimaryRef.current?.zoomIn();
-        zoomPanSecondaryRef.current?.zoomIn();
-    };
-
-    const handleZoomOut = () => {
-        zoomPanPrimaryRef.current?.zoomOut();
-        zoomPanSecondaryRef.current?.zoomOut();
-    };
-
-    useEffect(() => {
-        setZoom(100);
-    }, [selectedManuscript, currentPage]);
-
-    useEffect(() => {
-        setSecondZoom(100);
-    }, [secondManuscript, secondPage]);
-
-    useEffect(() => {
-        setFullscreenZoom(100);
-    }, [fullscreenPane]);
-
-    const allPages = useMemo(() => getManuscriptPageUrls(selectedManuscript), [selectedManuscript]);
-    const secondManuscriptPages = useMemo(() => getManuscriptPageUrls(secondManuscript), [secondManuscript]);
-
-    const availableLibraryOptions = useMemo(() => {
-        const uniqueNames = Array.from(new Set(libraries.map(l => l.name).filter(Boolean)));
-        uniqueNames.sort((a, b) => a.localeCompare(b));
-        return uniqueNames.map(name => ({ value: name, label: name }));
-    }, [libraries]);
-
-    const handleLibraryChange = useCallback((libraryName: string) => {
-        setSelectedLibraryName(libraryName);
-        const ms = manuscripts.find(m => inferLibraryNameForManuscript(m, libraries) === libraryName) || null;
-        setSelectedManuscript(ms);
-        setCurrentPage(0);
-    }, [inferLibraryNameForManuscript, libraries, manuscripts]);
-
-    const handleSecondLibraryChange = useCallback((libraryName: string) => {
-        setSecondLibraryName(libraryName);
-        const ms = manuscripts.find(m => inferLibraryNameForManuscript(m, libraries) === libraryName) || null;
-        setSecondManuscript(ms);
-        setSecondPage(0);
-    }, [inferLibraryNameForManuscript, libraries, manuscripts]);
-
-    const panes = {
-        primary: {
-            label: 'Manuscript 1',
-            libraryName: selectedLibraryName,
-            onLibraryChange: handleLibraryChange,
-            manuscript: selectedManuscript,
-            pages: allPages,
-            page: currentPage,
-            setPage: setCurrentPage,
-            zoom,
-            setZoom,
-            zoomRef: zoomPanPrimaryRef,
-        },
-        secondary: {
-            label: 'Manuscript 2',
-            libraryName: secondLibraryName,
-            onLibraryChange: handleSecondLibraryChange,
-            manuscript: secondManuscript,
-            pages: secondManuscriptPages,
-            page: secondPage,
-            setPage: setSecondPage,
-            zoom: secondZoom,
-            setZoom: setSecondZoom,
-            zoomRef: zoomPanSecondaryRef,
-        },
-    };
-
-    const cleanArabicText = (text: string): string => {
-        if (!text) return '';
-        return text
-            .replace(/<center>|<\/center>/gi, '')
-            .replace(/<span[^>]*>|<\/span>/gi, '')
-            .replace(/&nbsp;/gi, ' ')
-            .trim();
-    };
-
-    const sortedParagraphs = [...(content.paragraphs || [])].sort((a, b) => {
-        const parseNumber = (num: string) => {
-            return num.split('.').map(n => parseInt(n, 10));
-        };
-        const aNumbers = parseNumber(a.number);
-        const bNumbers = parseNumber(b.number);
-        for (let i = 0; i < Math.max(aNumbers.length, bNumbers.length); i++) {
-            const aNum = aNumbers[i] || 0;
-            const bNum = bNumbers[i] || 0;
-            if (aNum !== bNum) {
-                return aNum - bNum;
-            }
-        }
-        return 0;
-    });
-
-    const allFootnotes = [
-        ...(content.footnotes || []),
-        ...((content.paragraphs || []).flatMap((p: any) => p.footnotes || []))
-    ];
-
-    const backdropVariants: Variants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { duration: 0.3, ease: "easeOut" }
-        },
-        exit: {
-            opacity: 0,
-            transition: { duration: 0.2, ease: "easeOut" }
-        }
-    };
-
-    const modalVariants: Variants = {
-        hidden: { opacity: 0, scale: 0.9, y: 50 },
-        visible: {
-            opacity: 1,
-            scale: 1,
-            y: 0,
-            transition: { type: "spring", stiffness: 300, damping: 30 }
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.9,
-            y: 50,
-            transition: { duration: 0.2, ease: "easeOut" }
-        }
-    };
-
-    // Rendered via function calls (not as nested components) so the zoomable images keep their state across re-renders
-    const renderManuscriptPane = (paneId: ComparisonPaneId, isMobileView: boolean) => {
-        const pane = panes[paneId];
-        const isComparison = viewMode === 'comparison';
-        const pageCount = pane.pages.length;
-        const pageUrl = pane.pages[pane.page] || '';
-
-        return (
-            <div className="ms-comparison__viewer">
-                <div className={`ms-comparison__viewer-select ${isMobileView ? 'ms-comparison__viewer-select--mobile' : ''}`}>
-                    <label className={`ms-comparison__viewer-select-label ${isMobileView ? 'ms-comparison__viewer-select-label--mobile' : ''}`}>
-                        {isComparison ? `${pane.label}:` : 'Select Manuscript:'}
-                    </label>
-                    <Select
-                        value={pane.libraryName}
-                        onChange={pane.onLibraryChange}
-                        options={availableLibraryOptions}
-                        placeholder="Select a library"
-                    />
-                </div>
-
-                <div className={`ms-comparison__viewer-toolbar ${isMobileView ? 'ms-comparison__viewer-toolbar--mobile' : ''}`}>
-                    <div className="ms-comparison__viewer-toolbar-group">
-                        <button
-                            onClick={handleZoomOut}
-                            disabled={!pageUrl || pane.zoom <= COMPARISON_MIN_SCALE * 100}
-                            className="ms-comparison__viewer-btn"
-                            aria-label="Zoom out"
-                            title={isComparison ? 'Zoom out (both manuscripts)' : 'Zoom out'}
-                        >
-                            <ZoomOut className="w-4 h-4" />
-                        </button>
-                        <span className={`ms-comparison__viewer-zoom-label ${isMobileView ? 'ms-comparison__viewer-zoom-label--mobile' : ''}`}>
-                            {pane.zoom}%
-                        </span>
-                        <button
-                            onClick={handleZoomIn}
-                            disabled={!pageUrl || pane.zoom >= COMPARISON_MAX_SCALE * 100}
-                            className="ms-comparison__viewer-btn"
-                            aria-label="Zoom in"
-                            title={isComparison ? 'Zoom in (both manuscripts)' : 'Zoom in'}
-                        >
-                            <ZoomIn className="w-4 h-4" />
-                        </button>
-                    </div>
-                    <div className="ms-comparison__viewer-toolbar-nav-group">
-                        <button
-                            onClick={() => pane.setPage(prev => Math.max(0, prev - 1))}
-                            disabled={pane.page === 0}
-                            className={`ms-comparison__viewer-nav-btn ${isMobileView ? 'ms-comparison__viewer-nav-btn--mobile' : 'ms-comparison__viewer-nav-btn--default'}`}
-                            aria-label="Previous page"
-                        >
-                            <ChevronLeft className="w-4 h-4 lg:w-5 lg:h-5" />
-                            <span className="ms-comparison__viewer-nav-label">Prev</span>
-                        </button>
-                        <button
-                            onClick={() => pane.setPage(prev => Math.min(pageCount - 1, prev + 1))}
-                            disabled={pageCount === 0 || pane.page >= pageCount - 1}
-                            className={`ms-comparison__viewer-nav-btn ${isMobileView ? 'ms-comparison__viewer-nav-btn--mobile' : 'ms-comparison__viewer-nav-btn--default'}`}
-                            aria-label="Next page"
-                        >
-                            <span className="ms-comparison__viewer-nav-label">Next</span>
-                            <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
-                        </button>
-                    </div>
-                    <div className="ms-comparison__viewer-toolbar-group">
-                        <div className={`ms-comparison__viewer-page-counter ${isMobileView ? 'ms-comparison__viewer-page-counter--mobile' : ''}`}>
-                            {pageCount > 0 ? pane.page + 1 : 0}/{pageCount}
-                        </div>
-                        <button
-                            onClick={() => setFullscreenPane(paneId)}
-                            disabled={!pageUrl}
-                            className="ms-comparison__viewer-btn"
-                            aria-label="View fullscreen"
-                        >
-                            <Maximize2 className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-
-                <div className="ms-comparison__viewer-image-area ms-comparison__viewer-image-area--zoom">
-                    {!pane.manuscript ? (
-                        <div className="ms-comparison__viewer-empty">
-                            <p>This library has no manuscript for this section.</p>
-                        </div>
-                    ) : pageCount === 0 ? (
-                        <div className="ms-comparison__viewer-empty">
-                            <p>No images available</p>
-                        </div>
-                    ) : pageUrl ? (
-                        <div className="ms-comparison__zoom-stage">
-                            <ComparisonZoomPanImage
-                                key={`${paneId}-${pane.manuscript.id}-${pane.page}`}
-                                ref={pane.zoomRef}
-                                src={pageUrl}
-                                alt={`${pane.libraryName || pane.label} - page ${pane.page + 1}`}
-                                onZoomChange={pane.setZoom}
-                            />
-                        </div>
-                    ) : (
-                        <ComparisonMissingPagePlaceholder pageNumber={pane.page + 1} />
-                    )}
-                </div>
-
-                <div className={`ms-comparison__viewer-dots-bar ${isMobileView ? 'ms-comparison__viewer-dots-bar--mobile' : ''}`}>
-                    <div className="ms-viewer__pagination-dots">
-                        {pane.pages.map((_, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => pane.setPage(idx)}
-                                aria-label={`Page ${idx + 1}`}
-                                className={`ms-viewer__pagination-dot ${pane.page === idx ? 'ms-viewer__pagination-dot--active' : 'ms-viewer__pagination-dot--default'}`}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const renderContentPane = (isMobileView: boolean) => (
-        <div className="ms-comparison__content">
-            <div className={`ms-comparison__content-header ${isMobileView ? 'ms-comparison__content-header--mobile' : ''}`}>
-                <h4 className={`ms-comparison__content-title ${isMobileView ? 'ms-comparison__content-title--mobile' : ''}`}>Content</h4>
-                <p className={`ms-comparison__content-section-number ${isMobileView ? 'ms-comparison__content-section-number--mobile' : ''}`}>Section {content.sermonNumber}</p>
-            </div>
-            <div className={`ms-comparison__content-body ${isMobileView ? 'ms-comparison__content-body--mobile' : ''}`}>
-                {content.title && (
-                    <div className={`ms-comparison__content-title-block ${isMobileView ? 'ms-comparison__content-title-block--mobile' : ''}`}>
-                        <div className={`ms-comparison__content-title-arabic ${isMobileView ? 'ms-comparison__content-title-arabic--mobile' : ''}`}>
-                            <p className={`ms-comparison__content-title-arabic-text font-taha ${isMobileView ? 'ms-comparison__content-title-arabic-text--mobile' : ''}`} dir="rtl">
-                                {formatTextWithFootnotes(cleanArabicText(content.title), allFootnotes, true, content.sermonNumber || 'main')}
-                            </p>
-                        </div>
-                        {content.translations?.find((t: { type: string; text: string }) => t.type === 'en') && (
-                            <div className={`ms-comparison__content-title-english ${isMobileView ? 'ms-comparison__content-title-english--mobile' : ''}`}>
-                                <p className={`ms-comparison__content-title-english-text font-brill ${isMobileView ? 'ms-comparison__content-title-english-text--mobile' : ''}`}>
-                                    {formatTextWithFootnotes(
-                                        content.translations!.find((t: { type: string; text: string }) => t.type === 'en')!.text,
-                                        allFootnotes,
-                                        false,
-                                        sectionNumber || 'main'
-                                    )}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {sortedParagraphs.map((paragraph) => {
-                    const englishTranslation = paragraph.translations?.find((t: { type: string; text: string }) => t.type === 'en');
-                    return (
-                        <div key={paragraph.id} className={`ms-comparison__content-block ${isMobileView ? 'ms-comparison__content-block--mobile' : ''}`}>
-                            {paragraph.number && (
-                                <span className="ms-comparison__content-paragraph-badge">
-                                    {paragraph.number}
-                                </span>
-                            )}
-                            {paragraph.arabic && (
-                                <div className={`ms-comparison__content-arabic ${isMobileView ? 'ms-comparison__content-arabic--mobile' : ''}`}>
-                                    <p className={`ms-comparison__content-arabic-text font-taha ${isMobileView ? 'ms-comparison__content-arabic-text--mobile' : ''}`} dir="rtl">
-                                        {formatTextWithFootnotes(cleanArabicText(paragraph.arabic), allFootnotes, true, paragraph.number)}
-                                    </p>
-                                </div>
-                            )}
-                            {englishTranslation && (
-                                <div className={`ms-comparison__content-english-block ${isMobileView ? 'ms-comparison__content-english-block--mobile' : ''}`}>
-                                    <p className={`ms-comparison__content-english-text font-brill ${isMobileView ? 'ms-comparison__content-english-text--mobile' : ''}`}>
-                                        {formatTextWithFootnotes(englishTranslation.text, allFootnotes, false, paragraph.number)}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-
-                {sortedParagraphs.length === 0 && !content.title && (
-                    <div className="ms-comparison__content-empty">
-                        <p>No content available</p>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
-    const renderFullscreen = () => {
-        if (!fullscreenPane) return null;
-        const pane = panes[fullscreenPane];
-        const pageCount = pane.pages.length;
-        const pageUrl = pane.pages[pane.page] || '';
-
-        return (
-            <div className="ms-comparison__fullscreen">
-                <div className="ms-comparison__fullscreen-toolbar">
-                    <div className="ms-comparison__fullscreen-group">
-                        <button
-                            onClick={() => zoomPanFullscreenRef.current?.zoomOut()}
-                            disabled={!pageUrl || fullscreenZoom <= MIN_SCALE * 100}
-                            className="ms-comparison__fullscreen-btn"
-                            aria-label="Zoom out"
-                        >
-                            <ZoomOut className="w-4 h-4" style={{ color: 'white' }} />
-                        </button>
-                        <span className="ms-comparison__fullscreen-zoom-label">{fullscreenZoom}%</span>
-                        <button
-                            onClick={() => zoomPanFullscreenRef.current?.zoomIn()}
-                            disabled={!pageUrl || fullscreenZoom >= MAX_SCALE * 100}
-                            className="ms-comparison__fullscreen-btn"
-                            aria-label="Zoom in"
-                        >
-                            <ZoomIn className="w-4 h-4" style={{ color: 'white' }} />
-                        </button>
-                    </div>
-                    <div className="ms-comparison__fullscreen-nav-group">
-                        <button
-                            onClick={() => pane.setPage(prev => Math.max(0, prev - 1))}
-                            disabled={pane.page === 0}
-                            className="ms-comparison__fullscreen-nav-btn"
-                            aria-label="Previous page"
-                        >
-                            <ChevronLeft className="w-4 h-4 lg:w-5 lg:h-5" />
-                            <span className="ms-comparison__fullscreen-nav-label">Prev</span>
-                        </button>
-                        <button
-                            onClick={() => pane.setPage(prev => Math.min(pageCount - 1, prev + 1))}
-                            disabled={pageCount === 0 || pane.page >= pageCount - 1}
-                            className="ms-comparison__fullscreen-nav-btn"
-                            aria-label="Next page"
-                        >
-                            <span className="ms-comparison__fullscreen-nav-label">Next</span>
-                            <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
-                        </button>
-                    </div>
-                    <div className="ms-comparison__fullscreen-group">
-                        <div className="ms-comparison__fullscreen-page-counter">
-                            {pageCount > 0 ? pane.page + 1 : 0}/{pageCount}
-                        </div>
-                        <button
-                            onClick={() => setFullscreenPane(null)}
-                            className="ms-comparison__fullscreen-btn"
-                            aria-label="Exit fullscreen"
-                        >
-                            <Minimize2 className="w-4 h-4" style={{ color: 'white' }} />
-                        </button>
-                    </div>
-                </div>
-
-                <div className="ms-comparison__fullscreen-content ms-comparison__fullscreen-content--zoom">
-                    {pageUrl ? (
-                        <ZoomPanImage
-                            key={`fullscreen-${fullscreenPane}-${pane.manuscript?.id}-${pane.page}`}
-                            ref={zoomPanFullscreenRef}
-                            src={pageUrl}
-                            alt={`${pane.libraryName || pane.label} - page ${pane.page + 1}`}
-                            onZoomChange={setFullscreenZoom}
-                        />
-                    ) : pageCount > 0 ? (
-                        <ComparisonMissingPagePlaceholder pageNumber={pane.page + 1} className="text-white" />
-                    ) : (
-                        <div className="ms-comparison__fullscreen-empty">
-                            <p>No images available</p>
-                        </div>
-                    )}
-                </div>
-
-                <div className="ms-comparison__fullscreen-dots-bar">
-                    <div className="ms-comparison__fullscreen-dots">
-                        {pane.pages.map((_, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() => pane.setPage(idx)}
-                                aria-label={`Page ${idx + 1}`}
-                                className={`ms-comparison__fullscreen-dot ${pane.page === idx ? 'ms-comparison__fullscreen-dot--active' : 'ms-comparison__fullscreen-dot--default'}`}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const secondaryTabLabel = viewMode === 'comparison' ? 'Manuscript 2' : 'Content';
-
-    return (
-        <AnimatePresence mode="wait">
-            {isOpen && (
-                <div className="ms-comparison__root">
-                    <motion.div
-                        className="ms-comparison__backdrop"
-                        variants={backdropVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        onClick={onClose}
-                    />
-                    <motion.div
-                        className="ms-comparison__modal"
-                        variants={modalVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="ms-comparison__header">
-                            <div className="ms-comparison__header-left">
-                                <div className="ms-comparison__header-icon">
-                                    <Book className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: '#43896B' }} />
-                                </div>
-                                <div className="ms-comparison__header-info">
-                                    <h3 className="ms-comparison__header-title">Compare Manuscripts</h3>
-                                    <p className="ms-comparison__header-subtitle">
-                                        {content.heading ? (
-                                            <span className="ms-comparison__header-subtitle-heading">{content.heading}</span>
-                                        ) : null}
-                                        {!loading && manuscripts.length > 0 && (
-                                            <span className="ms-comparison__header-count">
-                                                {content.heading && <span className="ms-comparison__header-separator">•</span>} {manuscripts.length} manuscript{manuscripts.length > 1 ? 's' : ''}
-                                            </span>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="ms-comparison__close-btn"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        {!loading && !error && (
-                            <div className="ms-comparison__mode-bar" role="tablist" aria-label="Study mode">
-                                <button
-                                    role="tab"
-                                    aria-selected={viewMode === 'content'}
-                                    onClick={() => setViewMode('content')}
-                                    className={`ms-comparison__tab-btn ${viewMode === 'content' ? 'ms-comparison__tab-btn--active' : 'ms-comparison__tab-btn--inactive'}`}
-                                >
-                                    <BookOpen className="w-4 h-4" />
-                                    <span className="ms-comparison__mode-label-long">Manuscript &amp; Content</span>
-                                    <span className="ms-comparison__mode-label-short">With Content</span>
-                                </button>
-                                <button
-                                    role="tab"
-                                    aria-selected={viewMode === 'comparison'}
-                                    onClick={() => setViewMode('comparison')}
-                                    className={`ms-comparison__tab-btn ${viewMode === 'comparison' ? 'ms-comparison__tab-btn--active' : 'ms-comparison__tab-btn--inactive'}`}
-                                >
-                                    <Columns2 className="w-4 h-4" />
-                                    <span className="ms-comparison__mode-label-long">Compare Two Manuscripts</span>
-                                    <span className="ms-comparison__mode-label-short">Compare Two</span>
-                                </button>
-                            </div>
-                        )}
-
-                        <div className="ms-comparison__body">
-                            {loading ? (
-                                <div className="ms-comparison__loading">
-                                    <div className="ms-comparison__loading-inner">
-                                        <Loader2 className="w-6 h-6 lg:w-8 lg:h-8 animate-spin ms-comparison__spinner" />
-                                        <p className="ms-comparison__loading-text">Loading manuscripts...</p>
-                                    </div>
-                                </div>
-                            ) : error ? (
-                                <div className="ms-comparison__error">
-                                    <div className="ms-comparison__error-inner">
-                                        <FileText className="w-10 h-10 lg:w-12 lg:h-12 ms-comparison__error-icon" />
-                                        <p className="ms-comparison__error-text">{error}</p>
-                                        <button
-                                            onClick={fetchManuscripts}
-                                            className="ms-comparison__retry-btn"
-                                        >
-                                            Try Again
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <>
-                                    {renderFullscreen()}
-
-                                    {isDesktop ? (
-                                        <div className="ms-comparison__desktop-split">
-                                            <div className="ms-comparison__desktop-left">
-                                                {renderManuscriptPane('primary', false)}
-                                            </div>
-                                            <div className={`ms-comparison__desktop-right ${viewMode === 'comparison' ? 'ms-comparison__desktop-right--manuscript' : ''}`}>
-                                                {viewMode === 'comparison'
-                                                    ? renderManuscriptPane('secondary', false)
-                                                    : renderContentPane(false)}
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="ms-comparison__mobile-tabs">
-                                                <div className="ms-comparison__mobile-tabs-inner">
-                                                    <button
-                                                        onClick={() => setActiveTab('primary')}
-                                                        className={`ms-comparison__tab-btn ${activeTab === 'primary' ? 'ms-comparison__tab-btn--active' : 'ms-comparison__tab-btn--inactive'}`}
-                                                    >
-                                                        <Image className="w-4 h-4" />
-                                                        {viewMode === 'comparison' ? 'Manuscript 1' : 'Manuscript'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setActiveTab('secondary')}
-                                                        className={`ms-comparison__tab-btn ${activeTab === 'secondary' ? 'ms-comparison__tab-btn--active' : 'ms-comparison__tab-btn--inactive'}`}
-                                                    >
-                                                        {viewMode === 'comparison' ? <Image className="w-4 h-4" /> : <TextIcon className="w-4 h-4" />}
-                                                        {secondaryTabLabel}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="ms-comparison__mobile-panel">
-                                                {activeTab === 'primary'
-                                                    ? renderManuscriptPane('primary', true)
-                                                    : viewMode === 'comparison'
-                                                        ? renderManuscriptPane('secondary', true)
-                                                        : renderContentPane(true)}
-                                            </div>
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-        </AnimatePresence>
-    );
-}
-
-// ============================================================================
-// ManuscriptCountBadge
-// ============================================================================
-
-interface ManuscriptCountBadgeProps {
-  count: number;
-}
-
-export const ManuscriptCountBadge: React.FC<ManuscriptCountBadgeProps> = ({ count }) => {
-  if (count === 0) {
-    return null;
-  }
-
-  const handleClick = () => {
-    const manuscriptSection = document.getElementById('manuscript-references');
-    if (manuscriptSection) {
-      manuscriptSection.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
   };
 
   return (
-    <button
-      onClick={handleClick}
-      className="ms-badge__btn"
-      aria-label={`Scroll to ${count} manuscript ${count === 1 ? 'reference' : 'references'}`}
-    >
-      <BookOpen className="w-3.5 h-3.5" />
-      <span>
-        {count} {count === 1 ? 'Manuscript' : 'Manuscripts'}
-      </span>
-    </button>
-  );
-};
-
-// ============================================================================
-// ManuscriptMetadataDisplay
-// ============================================================================
-
-interface ManuscriptMetadataDisplayProps {
-  metadata: ManuscriptMetadataType;
-}
-
-type MetadataTab = 'overview' | 'details' | 'provenance';
-
-interface MetadataField {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-  arabic?: boolean;
-}
-
-export const ManuscriptMetadataDisplay: React.FC<ManuscriptMetadataDisplayProps> = ({ metadata }) => {
-  const [activeTab, setActiveTab] = useState<MetadataTab>('overview');
-
-  const overviewFields: MetadataField[] = [
-    { label: 'Sigla (Arabic)', value: metadata.siglaArabic, icon: <Book className="w-4 h-4" />, arabic: true },
-    { label: 'Sigla (English)', value: metadata.siglaEnglish, icon: <Book className="w-4 h-4" /> },
-    { label: 'Hijri Year', value: metadata.hijriYear, icon: <Calendar className="w-4 h-4" /> },
-    { label: 'Gregorian Year', value: metadata.gregorianYear, icon: <Calendar className="w-4 h-4" /> },
-    { label: 'Holding Institution', value: metadata.holdingInstitution, icon: <Archive className="w-4 h-4" /> },
-    { label: 'City', value: metadata.city, icon: <MapPin className="w-4 h-4" /> },
-    { label: 'Country', value: metadata.country, icon: <Globe className="w-4 h-4" /> },
-  ];
-
-  const detailsFields: MetadataField[] = [
-    { label: 'Catalog Number', value: metadata.catalogNumber, icon: <FileText className="w-4 h-4" /> },
-    { label: 'Special Merit', value: metadata.specialMerit, icon: <Award className="w-4 h-4" /> },
-    { label: 'Binding', value: metadata.binding, icon: <Package className="w-4 h-4" /> },
-    { label: 'Rights', value: metadata.rights, icon: <Shield className="w-4 h-4" /> },
-    { label: 'Access Restriction', value: metadata.accessRestriction, icon: <Shield className="w-4 h-4" /> },
-    { label: 'Acknowledgments', value: metadata.acknowledgments, icon: <FileText className="w-4 h-4" /> },
-  ];
-
-  const provenanceFields: MetadataField[] = [
-    { label: 'Repository', value: metadata.repository, icon: <Archive className="w-4 h-4" /> },
-    { label: 'Part Location', value: metadata.partLocation, icon: <MapPin className="w-4 h-4" /> },
-    { label: 'City of Origin', value: metadata.cityOfOrigin, icon: <Home className="w-4 h-4" /> },
-    { label: 'Country of Origin', value: metadata.countryOfOrigin, icon: <Globe className="w-4 h-4" /> },
-  ];
-
-  const tabs = [
-    { id: 'overview' as MetadataTab, label: 'Overview' },
-    { id: 'details' as MetadataTab, label: 'Details' },
-    { id: 'provenance' as MetadataTab, label: 'Provenance' },
-  ];
-
-  const renderFields = (fields: MetadataField[]) => (
-    <div className="ms-metadata__fields">
-      {fields.map((field, index) => (
-        <div key={index} className="ms-metadata__field">
-          <div className="ms-metadata__field-row">
-            {field.icon && (
-              <div className="ms-metadata__field-icon">
-                {field.icon}
-              </div>
-            )}
-            <div className="ms-metadata__field-content">
-              <dt className="ms-metadata__field-label">
-                {field.label}
-              </dt>
-              <dd className="ms-metadata__field-value">
-                {field.arabic ? <span className="font-taha text-base" dir="rtl">{field.value}</span> : field.value}
-              </dd>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  return (
-    <div className="ms-metadata__wrapper">
-      <div className="ms-metadata__header">
-        <h2 className="ms-metadata__header-title">Manuscript Information</h2>
-      </div>
-      <div className="ms-metadata__tabs">
-        <div className="ms-metadata__tabs-inner">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`ms-metadata__tab-btn ${
-                activeTab === tab.id
-                  ? 'ms-metadata__tab-btn--active'
-                  : 'ms-metadata__tab-btn--inactive'
-              }`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="ms-metadata__tab-indicator" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="ms-metadata__body">
-        {activeTab === 'overview' && (
-          <div className="animate-fadeIn">
-            {renderFields(overviewFields)}
-          </div>
-        )}
-        {activeTab === 'details' && (
-          <div className="animate-fadeIn">
-            {renderFields(detailsFields)}
-          </div>
-        )}
-        {activeTab === 'provenance' && (
-          <div className="animate-fadeIn">
-            {renderFields(provenanceFields)}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ============================================================================
-// ManuscriptReference
-// ============================================================================
-
-export interface ManuscriptLinkData {
-  id: string;
-  title: string;
-  sourceReference: string;
-  pageNumber?: string;
-  folioNumber?: string;
-}
-
-interface ManuscriptReferenceProps {
-  manuscripts: ManuscriptLinkData[];
-  contentType: 'orations' | 'letters' | 'sayings';
-}
-
-export const ManuscriptReference: React.FC<ManuscriptReferenceProps> = ({ manuscripts, contentType }) => {
-  if (!manuscripts || manuscripts.length === 0) {
-    return null;
-  }
-
-  return (
-    <div
-      id="manuscript-references"
-      className="ms-reference__wrapper"
-    >
-      <div className="ms-reference__header">
-        <div className="ms-reference__header-icon">
-          <BookOpen className="w-5 h-5" style={{ color: 'white' }} />
-        </div>
-        <h2 className="ms-reference__header-title">
-          Related Manuscripts
-        </h2>
-      </div>
-
-      <p className="ms-reference__description">
-        This {contentType.slice(0, -1)} appears in the following historical manuscripts:
-      </p>
-
-      <div className="ms-reference__list">
-        {manuscripts.map((manuscript) => (
-          <div
-            key={manuscript.id}
-            className="ms-reference__card"
-          >
-            <div className="ms-reference__card-layout">
-              <div className="ms-reference__card-info">
-                <h3 className="ms-reference__card-title">
-                  <FileText className="w-4 h-4" style={{ color: '#43896B' }} />
-                  {manuscript.title}
-                </h3>
-
-                <div className="ms-reference__card-fields">
-                  <p className="ms-reference__card-field">
-                    <span className="ms-reference__card-field-label">Source:</span> {manuscript.sourceReference}
-                  </p>
-
-                  {(manuscript.pageNumber || manuscript.folioNumber) && (
-                    <p className="ms-reference__card-field">
-                      <span className="ms-reference__card-field-label">
-                        {manuscript.folioNumber ? 'Folio:' : 'Page:'}
-                      </span>{' '}
-                      {manuscript.folioNumber || manuscript.pageNumber}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <Link
-                href={`/manuscripts/view?id=${manuscript.id}`}
-              >
-                <Button icon={<ExternalLink className="w-4 h-4 hidden lg:block" />} className='w-full' >
-                    View Manuscript
-                </Button>
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="ms-reference__footer">
-        <p className="ms-reference__footer-note">
-          Note: Manuscript references are based on historical compilations and may vary across different editions.
+    <div className={`mss-picker ${open ? '' : 'mss-picker--collapsed'}`}>
+      <div className="mss-picker__head">
+        <p className="mss-picker__summary">
+          {loading ? (
+            'Finding manuscripts…'
+          ) : (
+            <>
+              <strong>{items.length} manuscript{items.length === 1 ? '' : 's'}</strong> contain {sectionText}
+              {items.length > 0 && <span className="mss-picker__hint"> · {hint}</span>}
+            </>
+          )}
         </p>
+        {notice && <p className="mss-picker__notice" role="status">{notice}</p>}
+        <button type="button" className="mss-text-btn" onClick={onToggleOpen} aria-expanded={open}>
+          {open ? 'Hide' : 'Show'} {open ? <ChevronUp /> : <ChevronDown />}
+        </button>
       </div>
+
+      {open && (
+        <div className="mss-picker__row" role="group" aria-label="Manuscripts">
+          {loading
+            ? Array.from({ length: 6 }, (_, i) => <span key={i} className="mss-card mss-card--skeleton" />)
+            : (
+              <>
+                {items.map(item => renderCard(item.entry, item))}
+                {missing.map(entry => renderCard(entry, undefined))}
+              </>
+            )}
+        </div>
+      )}
     </div>
   );
 };
+
+// ============================================================================
+// Section picker (type tabs, search by number or title)
+// ============================================================================
+
+const SectionPicker: React.FC<{
+  section: string;
+  heading?: string;
+  onChange: (section: string) => void;
+}> = ({ section, heading, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const [browseType, setBrowseType] = useState<ManuscriptSectionType>(sectionTypeOf(section));
+  const [lists, setLists] = useState<Partial<Record<ManuscriptSectionType, SectionIndexEntry[]>>>({});
+  const [query, setQuery] = useState('');
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setBrowseType(sectionTypeOf(section));
+      setQuery('');
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [open, section]);
+
+  useEffect(() => {
+    if (!open || lists[browseType]) return;
+    let cancelled = false;
+    sectionIndexApi.getSections(browseType)
+      .then(entries => { if (!cancelled) setLists(prev => ({ ...prev, [browseType]: entries })); })
+      .catch(() => { if (!cancelled) setLists(prev => ({ ...prev, [browseType]: [] })); });
+    return () => { cancelled = true; };
+  }, [open, browseType, lists]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const entries = lists[browseType];
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!entries) return [];
+    if (!q) return entries;
+    return entries.filter(e => e.number === q || e.number.startsWith(q) || e.heading.toLowerCase().includes(q));
+  }, [entries, query]);
+
+  const choose = (next: string) => {
+    setOpen(false);
+    if (next !== section) onChange(next);
+  };
+
+  return (
+    <div className="mss-section-picker" ref={rootRef}>
+      <button
+        type="button"
+        className="mss-section-picker__button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="mss-section-picker__label">{sectionLabel(section)}</span>
+        {heading && <span className="mss-section-picker__heading">{heading}</span>}
+        <ChevronDown className="mss-section-picker__chevron" />
+      </button>
+
+      {open && (
+        <div className="mss-section-picker__panel">
+          <div className="mss-section-picker__types" role="tablist" aria-label="Section type">
+            {SECTION_TYPES.map(type => (
+              <button
+                type="button"
+                key={type}
+                role="tab"
+                aria-selected={browseType === type}
+                className={browseType === type ? 'mss-section-picker__type mss-section-picker__type--active' : 'mss-section-picker__type'}
+                onClick={() => setBrowseType(type)}
+              >
+                {TYPE_LABELS[type].plural}
+              </button>
+            ))}
+          </div>
+          {browseType !== 'introduction' && (
+            <label className="mss-section-picker__search">
+              <Search />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && filtered[0]) choose(filtered[0].section); }}
+                placeholder={`${TYPE_LABELS[browseType].singular} number or title…`}
+                aria-label={`Find a ${TYPE_LABELS[browseType].singular.toLowerCase()}`}
+              />
+            </label>
+          )}
+          <ul className="mss-section-picker__list" role="listbox" aria-label={TYPE_LABELS[browseType].plural}>
+            {!entries ? (
+              <li className="mss-section-picker__status"><Loader2 className="mss-spin" /></li>
+            ) : filtered.length === 0 ? (
+              <li className="mss-section-picker__status">No matches</li>
+            ) : (
+              filtered.map(entry => (
+                <li key={entry.section}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={entry.section === section}
+                    className={entry.section === section ? 'mss-section-picker__option mss-section-picker__option--active' : 'mss-section-picker__option'}
+                    onClick={() => choose(entry.section)}
+                  >
+                    <span className="mss-section-picker__num">{browseType === 'introduction' ? '' : entry.number}</span>
+                    <span className="mss-section-picker__title">{entry.heading || sectionLabel(entry.section)}</span>
+                  </button>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// ManuscriptStudio: the viewer used on /manuscripts/view and in the compare dialog
+// ============================================================================
+
+export interface StudioState {
+  mode: StudyMode;
+  manuscripts: string[];
+  compareView: CompareView;
+}
+
+interface ManuscriptStudioProps {
+  variant: 'page' | 'modal';
+  section: string;
+  /** Provided on the viewer page: enables the section picker and paging across sections */
+  onSectionChange?: (section: string) => void;
+  /** Overrides the label derived from the section number (e.g. "Conclusion 2") */
+  sectionTitle?: string;
+  modes?: StudyMode[];
+  initialMode?: StudyMode;
+  initialManuscripts?: string[];
+  /** Selected first when present in the section (older ?library= links) */
+  preferredManuscript?: string;
+  initialCompareView?: CompareView;
+  onStateChange?: (state: StudioState) => void;
+  /** Edition text supplied by the caller (the dialog already has it) */
+  textSource?: EditionTextSource | null;
+  title?: string;
+  onClose?: () => void;
+}
+
+export function ManuscriptStudio({
+  variant,
+  section,
+  onSectionChange,
+  sectionTitle,
+  modes = ['single', 'edition', 'compare'],
+  initialMode = 'single',
+  initialManuscripts,
+  preferredManuscript,
+  initialCompareView = 'pages',
+  onStateChange,
+  textSource,
+  title,
+  onClose,
+}: ManuscriptStudioProps) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [catalog, setCatalog] = useState<ManuscriptCatalogEntry[] | null>(null);
+  const [sectionData, setSectionData] = useState<{ section: string; items: SectionManuscript[] } | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+
+  const [mode, setMode] = useState<StudyMode>(modes.includes(initialMode) ? initialMode : modes[0]);
+  const [selected, setSelected] = useState<string[]>(initialManuscripts || []);
+  const [compareView, setCompareView] = useState<CompareView>(initialCompareView);
+  const [pageBy, setPageBy] = useState<Record<string, number>>({});
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(true);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fetchedText, setFetchedText] = useState<{ section: string; text: EditionText | null } | null>(null);
+  const [sectionIndex, setSectionIndex] = useState<{ type: ManuscriptSectionType; entries: SectionIndexEntry[] } | null>(null);
+
+  const catalogRef = useRef<ManuscriptCatalogEntry[] | null>(null);
+  const selectionInitialized = useRef((initialManuscripts?.length ?? 0) > 0);
+  const continuationRef = useRef<{ direction: 1 | -1; urls: Record<string, string> } | null>(null);
+
+  const sectionType = sectionTypeOf(section);
+  const sectionText = sectionTitle ?? sectionLabel(section);
+  const canNavigate = !!onSectionChange;
+
+  // Show the details panel by default on wide screens (after mount, to match the server render)
+  useEffect(() => {
+    if (window.matchMedia('(min-width: 1280px)').matches) setInfoOpen(true);
+  }, []);
+
+  // ---- Data: the small catalogue once, then the page records of each section ----
+  useEffect(() => {
+    let cancelled = false;
+    setLoadError(false);
+    Promise.all([
+      catalogRef.current ? Promise.resolve(catalogRef.current) : manuscriptCatalogApi.getCatalog(),
+      manuscriptCatalogApi.getSectionRecords(section),
+    ])
+      .then(([cat, records]) => {
+        if (cancelled) return;
+        catalogRef.current = cat;
+        setCatalog(cat);
+        setSectionData({ section, items: groupSectionRecords(records, cat) });
+      })
+      .catch(err => {
+        console.error('Error loading manuscripts:', err);
+        if (!cancelled) setLoadError(true);
+      });
+    return () => { cancelled = true; };
+  }, [section, retryKey]);
+
+  const ready = sectionData?.section === section;
+  const items = useMemo(() => (ready ? sectionData!.items : []), [ready, sectionData]);
+  const itemById = useMemo(() => new Map(items.map(item => [item.entry.id, item])), [items]);
+  const catalogById = useMemo(() => new Map((catalog || []).map(entry => [entry.id, entry])), [catalog]);
+
+  // ---- Default selection, and where each manuscript opens in a new section ----
+  useEffect(() => {
+    if (!ready) return;
+    const ids = items.map(item => item.entry.id);
+
+    if (!selectionInitialized.current) {
+      selectionInitialized.current = true;
+      const preferred = preferredManuscript && ids.includes(preferredManuscript) ? [preferredManuscript] : [];
+      const rest = ids.filter(id => !preferred.includes(id));
+      setSelected([...preferred, ...rest].slice(0, mode === 'compare' ? 2 : 1));
+    }
+
+    // Paging past the end of a section continues on the next new page of the same manuscript
+    const plan = continuationRef.current;
+    continuationRef.current = null;
+    const next: Record<string, number> = {};
+    for (const item of items) {
+      let start = plan?.direction === -1 ? item.pages.length - 1 : 0;
+      const lastUrl = plan?.urls[item.entry.id];
+      if (plan && lastUrl) {
+        const at = item.pages.findIndex(p => p.full === lastUrl);
+        if (at >= 0) start = clamp(at + plan.direction, 0, item.pages.length - 1);
+      }
+      next[item.entry.id] = start;
+    }
+    setPageBy(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, sectionData]);
+
+  // Drop ids that aren't manuscripts (e.g. a mistyped link)
+  useEffect(() => {
+    if (!catalog) return;
+    setSelected(prev => {
+      const valid = prev.filter(id => catalogById.has(id));
+      return valid.length === prev.length ? prev : valid;
+    });
+  }, [catalog, catalogById]);
+
+  // ---- Section index: headings and neighbours for prev/next ----
+  useEffect(() => {
+    if (!canNavigate || sectionIndex?.type === sectionType) return;
+    let cancelled = false;
+    sectionIndexApi.getSections(sectionType)
+      .then(entries => { if (!cancelled) setSectionIndex({ type: sectionType, entries }); })
+      .catch(() => { if (!cancelled) setSectionIndex({ type: sectionType, entries: [] }); });
+    return () => { cancelled = true; };
+  }, [canNavigate, sectionType, sectionIndex?.type]);
+
+  const neighbours = useMemo(() => {
+    if (!sectionIndex || sectionIndex.type !== sectionType) return { prev: null, next: null, current: null };
+    const entries = sectionIndex.entries;
+    const at = entries.findIndex(e => e.section === section);
+    if (at >= 0) return { prev: entries[at - 1] ?? null, next: entries[at + 1] ?? null, current: entries[at] };
+    return {
+      prev: [...entries].reverse().find(e => compareSections(e.section, section) < 0) ?? null,
+      next: entries.find(e => compareSections(e.section, section) > 0) ?? null,
+      current: null,
+    };
+  }, [sectionIndex, section, sectionType]);
+
+  // ---- Edition text ----
+  const providedText = useMemo(() => normalizeEditionText(textSource), [textSource]);
+  const needsText = mode === 'edition' && !textSource;
+  useEffect(() => {
+    if (!needsText || fetchedText?.section === section) return;
+    let cancelled = false;
+    fetchEditionText(section)
+      .then(source => { if (!cancelled) setFetchedText({ section, text: normalizeEditionText(source) }); })
+      .catch(err => {
+        console.error('Error loading edition text:', err);
+        if (!cancelled) setFetchedText({ section, text: null });
+      });
+    return () => { cancelled = true; };
+  }, [needsText, section, fetchedText?.section]);
+
+  const editionText = textSource ? providedText : fetchedText?.section === section ? fetchedText.text : null;
+  const editionLoading = needsText && fetchedText?.section !== section;
+
+  // ---- Report state (the page keeps it in the URL) ----
+  useEffect(() => {
+    onStateChange?.({ mode, manuscripts: selected, compareView });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, selected, compareView]);
+
+  // ---- Fullscreen (viewer page) ----
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!rootRef.current && document.fullscreenElement === rootRef.current);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else rootRef.current?.requestFullscreen?.().catch(() => {});
+  };
+
+  // ---- Actions ----
+  const changeMode = (next: StudyMode) => {
+    setMode(next);
+    setExpanded(null);
+    setNotice(null);
+    if (next === 'compare' && selected.length < 2) {
+      const extra = items.map(item => item.entry.id).filter(id => !selected.includes(id));
+      setSelected([...selected, ...extra].slice(0, 2));
+    }
+  };
+
+  // Plain click on a card: show that manuscript on its own. From Compare this returns to
+  // Single; in With edition the edition text stays beside it. The rest of the selection is kept
+  // so switching back to Compare restores the comparison.
+  const selectOnly = (id: string) => {
+    setNotice(null);
+    setSelected([id, ...selected.filter(x => x !== id)].slice(0, MAX_COMPARE));
+    if (mode === 'compare') {
+      setMode('single');
+      setExpanded(null);
+    }
+    setMobileTab(null);
+  };
+
+  // The + / − on a card: build up a side-by-side comparison
+  const toggleCompare = (id: string) => {
+    setNotice(null);
+    if (mode !== 'compare') {
+      const current = selected[0];
+      setSelected(current && current !== id ? [current, id] : [id]);
+      setMode('compare');
+      setExpanded(null);
+      setMobileTab(id);
+      return;
+    }
+    const active = selected.slice(0, MAX_COMPARE);
+    if (active.includes(id)) {
+      setSelected(active.filter(x => x !== id));
+      if (expanded === id) setExpanded(null);
+    } else if (active.length >= MAX_COMPARE) {
+      setNotice(`You can compare up to ${MAX_COMPARE} manuscripts. Remove one first.`);
+    } else {
+      setSelected([...active, id]);
+      setMobileTab(id);
+    }
+  };
+
+  const continueTo = (direction: 1 | -1) => {
+    const target = direction === 1 ? neighbours.next : neighbours.prev;
+    if (!target || !onSectionChange) return;
+    const urls: Record<string, string> = {};
+    for (const id of selected) {
+      const item = itemById.get(id);
+      const pageImage = item?.pages[pageBy[id] ?? 0];
+      if (pageImage) urls[id] = pageImage.full;
+    }
+    continuationRef.current = { direction, urls };
+    onSectionChange(target.section);
+  };
+
+  const continuation = canNavigate
+    ? { prev: neighbours.prev ? sectionLabel(neighbours.prev.section) : undefined, next: neighbours.next ? sectionLabel(neighbours.next.section) : undefined }
+    : undefined;
+
+  // ---- Columns for the current mode ----
+  const primaryId = selected[0];
+  const columnIds: string[] =
+    mode === 'compare' ? selected.slice(0, MAX_COMPARE) : primaryId ? [primaryId] : [];
+  type Column = { key: string; kind: 'ms'; entry: ManuscriptCatalogEntry } | { key: 'text'; kind: 'text' };
+  const columns: Column[] = [
+    ...columnIds
+      .map(id => catalogById.get(id))
+      .filter((entry): entry is ManuscriptCatalogEntry => !!entry)
+      .map(entry => ({ key: entry.id, kind: 'ms' as const, entry })),
+    ...(mode === 'edition' ? [{ key: 'text' as const, kind: 'text' as const }] : []),
+  ];
+  const expandedKey = expanded && columns.some(c => c.key === expanded) ? expanded : null;
+  const activeTab = mobileTab && columns.some(c => c.key === mobileTab) ? mobileTab : columns[0]?.key;
+  const missing = selected
+    .slice(0, mode === 'compare' ? MAX_COMPARE : 1)
+    .filter(id => ready && !itemById.has(id))
+    .map(id => catalogById.get(id))
+    .filter((entry): entry is ManuscriptCatalogEntry => !!entry);
+
+  const primaryEntry = primaryId ? catalogById.get(primaryId) : undefined;
+  const showInfo = mode === 'single' && infoOpen && !!primaryEntry;
+  const showDetailsTable = mode === 'compare' && compareView === 'details';
+
+  const renderColumn = (column: Column) => {
+    if (column.kind === 'text') {
+      return (
+        <EditionTextPane
+          text={editionText}
+          loading={editionLoading}
+          sectionText={sectionText}
+          expanded={expandedKey === 'text'}
+          onToggleExpand={() => setExpanded(expandedKey === 'text' ? null : 'text')}
+        />
+      );
+    }
+    const item = itemById.get(column.entry.id);
+    return (
+      <ManuscriptPane
+        entry={column.entry}
+        pages={ready ? item?.pages ?? [] : null}
+        sectionText={sectionText}
+        page={pageBy[column.entry.id] ?? 0}
+        onPageChange={(p) => setPageBy(prev => ({ ...prev, [column.entry.id]: p }))}
+        continuation={continuation}
+        onContinue={continueTo}
+        order={mode === 'compare' ? columnIds.indexOf(column.entry.id) + 1 : undefined}
+        expanded={expandedKey === column.key}
+        onToggleExpand={columns.length > 1 ? () => setExpanded(expandedKey === column.key ? null : column.key) : undefined}
+        infoOpen={mode === 'single' ? infoOpen : undefined}
+        onToggleInfo={mode === 'single' ? () => setInfoOpen(o => !o) : undefined}
+      />
+    );
+  };
+
+  const stageBody = () => {
+    if (loadError) {
+      return (
+        <div className="mss-empty mss-empty--panel">
+          <p className="mss-empty__title">The manuscripts couldn’t be loaded</p>
+          <p className="mss-empty__text">Check your connection and try again.</p>
+          <button type="button" className="mss-text-btn" onClick={() => setRetryKey(k => k + 1)}>Try again</button>
+        </div>
+      );
+    }
+    if (ready && items.length === 0 && mode !== 'edition') {
+      return (
+        <div className="mss-empty mss-empty--panel">
+          <p className="mss-empty__title">No manuscript pages for {sectionText} yet</p>
+          <p className="mss-empty__text">Pages for this section haven’t been added.{continuation?.next ? ' Try the next section.' : ''}</p>
+          {continuation?.next && (
+            <button type="button" className="mss-text-btn" onClick={() => continueTo(1)}>{continuation.next} <ChevronRight /></button>
+          )}
+        </div>
+      );
+    }
+    if (showDetailsTable) {
+      return (
+        <DetailsComparison
+          columns={columnIds
+            .map(id => catalogById.get(id))
+            .filter((entry): entry is ManuscriptCatalogEntry => !!entry)
+            .map(entry => ({ entry, item: itemById.get(entry.id) }))}
+          sectionText={sectionText}
+        />
+      );
+    }
+    if (columns.length === 0 || (mode === 'compare' && columnIds.length === 0)) {
+      return (
+        <div className="mss-empty mss-empty--panel">
+          <p className="mss-empty__title">{ready ? 'Choose a manuscript' : 'Loading…'}</p>
+          {ready && <p className="mss-empty__text">Pick a manuscript from the row above to see its pages.</p>}
+        </div>
+      );
+    }
+
+    const visible = expandedKey ? columns.filter(c => c.key === expandedKey) : columns;
+    const showAddHint = mode === 'compare' && columnIds.length === 1 && !expandedKey;
+    return (
+      <>
+        {columns.length > 1 && (
+          <div className="mss-tabs" role="tablist" aria-label="Columns">
+            {columns.map(column => (
+              <button
+                type="button"
+                key={column.key}
+                role="tab"
+                aria-selected={activeTab === column.key}
+                className={activeTab === column.key ? 'mss-tabs__tab mss-tabs__tab--active' : 'mss-tabs__tab'}
+                onClick={() => setMobileTab(column.key)}
+              >
+                {column.kind === 'text' ? 'Edition text' : column.entry.name}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="mss-columns" style={{ '--mss-cols': visible.length + (showAddHint ? 1 : 0) } as React.CSSProperties}>
+          {visible.map(column => (
+            <div key={column.key} className={`mss-column ${activeTab === column.key ? 'mss-column--active' : ''}`}>
+              {renderColumn(column)}
+            </div>
+          ))}
+          {showAddHint && (
+            <div className="mss-column mss-column--hint">
+              <div className="mss-empty mss-empty--panel">
+                <p className="mss-empty__title">Add a manuscript</p>
+                <p className="mss-empty__text">Choose another manuscript from the row above to compare it with this one.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div ref={rootRef} className={`mss mss--${variant} ${isFullscreen ? 'mss--fullscreen' : ''}`}>
+      <div className="mss-bar">
+        {variant === 'modal' && (
+          <div className="mss-bar__title">
+            <div className="mss-bar__title-text">
+              <p className="mss-bar__eyebrow">Manuscripts</p>
+              <h2 className="mss-bar__heading" title={title || sectionText}>{title || sectionText}</h2>
+            </div>
+            <button type="button" className="mss-icon-btn mss-icon-btn--bordered" onClick={onClose} title="Close">
+              <X /><span className="sr-only">Close</span>
+            </button>
+          </div>
+        )}
+
+        {modes.length > 1 && (
+          <div className="mss-seg mss-modes" role="tablist" aria-label="Viewing mode">
+            {modes.map(m => {
+              const Icon = MODE_META[m].icon;
+              return (
+                <button
+                  type="button"
+                  key={m}
+                  role="tab"
+                  aria-selected={mode === m}
+                  className={mode === m ? 'mss-seg__btn mss-seg__btn--active' : 'mss-seg__btn'}
+                  onClick={() => changeMode(m)}
+                >
+                  <Icon />
+                  <span>{MODE_META[m].label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {canNavigate && (
+          <div className="mss-sectionnav">
+            <button
+              type="button"
+              className="mss-icon-btn mss-icon-btn--bordered"
+              onClick={() => neighbours.prev && onSectionChange!(neighbours.prev.section)}
+              disabled={!neighbours.prev}
+              title={neighbours.prev ? `Previous: ${sectionLabel(neighbours.prev.section)}` : 'Previous section'}
+            >
+              <ChevronLeft /><span className="sr-only">Previous section</span>
+            </button>
+            <SectionPicker section={section} heading={neighbours.current?.heading} onChange={onSectionChange!} />
+            <button
+              type="button"
+              className="mss-icon-btn mss-icon-btn--bordered"
+              onClick={() => neighbours.next && onSectionChange!(neighbours.next.section)}
+              disabled={!neighbours.next}
+              title={neighbours.next ? `Next: ${sectionLabel(neighbours.next.section)}` : 'Next section'}
+            >
+              <ChevronRight /><span className="sr-only">Next section</span>
+            </button>
+          </div>
+        )}
+
+        <div className="mss-bar__end">
+          {mode === 'compare' && (
+            <div className="mss-seg" role="group" aria-label="Compare">
+              <button
+                type="button"
+                className={compareView === 'pages' ? 'mss-seg__btn mss-seg__btn--active' : 'mss-seg__btn'}
+                aria-pressed={compareView === 'pages'}
+                onClick={() => setCompareView('pages')}
+              >
+                <Images /><span>Pages</span>
+              </button>
+              <button
+                type="button"
+                className={compareView === 'details' ? 'mss-seg__btn mss-seg__btn--active' : 'mss-seg__btn'}
+                aria-pressed={compareView === 'details'}
+                onClick={() => setCompareView('details')}
+              >
+                <Table2 /><span>Details</span>
+              </button>
+            </div>
+          )}
+          {variant === 'page' && (
+            <button type="button" className="mss-icon-btn mss-icon-btn--bordered" onClick={toggleFullscreen} title={isFullscreen ? 'Exit full screen' : 'Full screen'}>
+              {isFullscreen ? <Minimize2 /> : <Maximize2 />}
+              <span className="sr-only">{isFullscreen ? 'Exit full screen' : 'Full screen'}</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      <ManuscriptPicker
+        items={items}
+        missing={missing}
+        selected={selected}
+        mode={mode}
+        sectionText={sectionText}
+        loading={!ready && !loadError}
+        open={pickerOpen}
+        notice={notice}
+        onToggleOpen={() => setPickerOpen(o => !o)}
+        onSelect={selectOnly}
+        onToggleCompare={toggleCompare}
+      />
+
+      <div className={`mss-stage ${showInfo ? 'mss-stage--with-info' : ''}`}>
+        <div className="mss-stage__main">{stageBody()}</div>
+        {showInfo && primaryEntry && (
+          <DetailsPanel
+            entry={primaryEntry}
+            pages={itemById.get(primaryEntry.id)?.pages.length ?? 0}
+            sectionText={sectionText}
+            onClose={() => setInfoOpen(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Compare dialog (opened from reading pages, Raḍī's introduction and the conclusions)
+// ============================================================================
+
+interface RadisContent {
+  id: number;
+  number: string;
+  arabic: string;
+  translation: string;
+  heading?: string;
+  sermonNumber?: string;
+  paragraphs?: any[];
+  title?: string;
+  translations?: any[];
+  footnotes?: any[];
+}
+
+interface ManuscriptComparisonModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  content: Post | RadisContent | EditionTextSource;
+  contentType: 'orations' | 'letters' | 'sayings' | 'radis' | 'conclusion';
+}
+
+export function ManuscriptComparisonModal({ isOpen, onClose, content, contentType }: ManuscriptComparisonModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const source = content as EditionTextSource;
+  const section = contentType === 'radis' && source.number
+    ? `0.${source.number}`
+    : (source.sermonNumber || '').trim();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted || !section) return null;
+
+  const sectionTitle = contentType === 'conclusion' && source.number
+    ? `Conclusion ${source.number}`
+    : contentType === 'radis' && source.number
+      ? `Introduction ${source.number}`
+      : undefined;
+  const label = sectionTitle ?? sectionLabel(section);
+  const heading = source.heading && source.heading !== sectionTitle ? `${label} · ${source.heading}` : label;
+
+  return createPortal(
+    <div className="mss-modal" role="dialog" aria-modal="true" aria-label={`Manuscripts for ${label}`}>
+      <div className="mss-modal__backdrop" onClick={onClose} />
+      <div className="mss-modal__panel">
+        <ManuscriptStudio
+          variant="modal"
+          section={section}
+          sectionTitle={sectionTitle}
+          modes={['edition', 'compare']}
+          initialMode="edition"
+          textSource={source}
+          title={heading}
+          onClose={onClose}
+        />
+      </div>
+    </div>,
+    document.body
+  );
+}
+

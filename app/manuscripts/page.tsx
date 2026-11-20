@@ -2,8 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import { Info, BookOpen, GitCompare, BookCopy, ArrowRight } from 'lucide-react';
-import ManuscriptsHero from './sections/hero';
+import { ArrowRight } from 'lucide-react';
+import ManuscriptCollection from './sections/collection';
 
 export const metadata: Metadata = {
   title: "Historical Manuscripts",
@@ -15,36 +15,38 @@ export const metadata: Metadata = {
   }
 };
 
-const cards = [
+const ways = [
   {
-    icon: Info,
-    title: 'Manuscript Information',
-    description: 'Details of each manuscript: holding library, date, sigla, catalogue number, scribe and completeness.',
-    href: '/manuscripts/information',
-    buttonText: 'View Information',
+    key: 'single',
+    title: 'Read a manuscript',
+    description: 'Turn the pages of one manuscript, section by section, and zoom into the script.',
+    href: '/manuscripts/view?section=1.1',
+    action: 'Open the viewer',
   },
   {
-    icon: BookOpen,
-    title: 'View Full Manuscript',
-    description: 'Browse the pages of a single manuscript, section by section, with zoom and full-screen viewing.',
-    href: '/manuscripts/view?mode=single',
-    buttonText: 'Open Viewer',
+    key: 'edition',
+    title: 'Read with the edition',
+    description: 'Set a manuscript page beside the critical edition text it was established from.',
+    href: '/manuscripts/view?section=1.1&mode=edition',
+    action: 'Read with the edition',
   },
   {
-    icon: GitCompare,
-    title: 'Compare Multiple Manuscripts',
-    description: 'Place two or three manuscripts side by side to compare the same oration, letter or saying.',
-    href: '/manuscripts/view?mode=comparison',
-    buttonText: 'Compare Manuscripts',
+    key: 'compare',
+    title: 'Compare manuscripts',
+    description: 'Place two or three manuscripts side by side, and compare their pages and catalogue details.',
+    href: '/manuscripts/view?section=1.1&mode=compare',
+    action: 'Compare manuscripts',
   },
-  {
-    icon: BookCopy,
-    title: 'Compare Critical Edition with Manuscripts',
-    description: 'Read the critical edition text next to the manuscript pages it was established from.',
-    href: '/manuscripts/view?mode=reading',
-    buttonText: 'Compare with Edition',
-  },
-];
+] as const;
+
+/** Small page diagrams for the three ways of studying */
+const WayIllustration = ({ kind }: { kind: typeof ways[number]['key'] }) => (
+  <span className={`ms-hub-way__art ms-hub-way__art--${kind}`} aria-hidden="true">
+    <span className="ms-hub-way__page"><i /><i /><i /><i /><i /></span>
+    {kind === 'edition' && <span className="ms-hub-way__text"><i /><i /><i /><i /></span>}
+    {kind === 'compare' && <span className="ms-hub-way__page"><i /><i /><i /><i /><i /></span>}
+  </span>
+);
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -60,35 +62,53 @@ export default async function ManuscriptsPage({ searchParams }: { searchParams: 
   }
 
   return (
-    <>
-      <ManuscriptsHero />
-      <section className="manuscripts-hub">
-        <div className="manuscripts-hub__inner">
-          <p className="manuscripts-hub__intro">
-            Explore rare manuscripts of Nahj al-Balaghah from renowned libraries across the world.
-          </p>
-          <div className="manuscripts-hub__grid">
-            {cards.map((card) => (
-              <Link key={card.title} href={card.href} className="manuscripts-hub__card-link">
-                <div className="manuscripts-hub__card">
-                  <div className="manuscripts-hub__card-icon-box">
-                    <card.icon className="w-6 h-6" style={{ color: 'white' }} />
-                  </div>
-                  <h2 className="manuscripts-hub__card-title">{card.title}</h2>
-                  <p className="manuscripts-hub__card-desc">{card.description}</p>
-                  <span className="manuscripts-hub__card-action">
-                    <span className="manuscripts-hub__card-action-line" />
-                    {card.buttonText}
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                  <div className="manuscripts-hub__card-corner manuscripts-hub__card-corner--tl" />
-                  <div className="manuscripts-hub__card-corner manuscripts-hub__card-corner--br" />
-                </div>
-              </Link>
-            ))}
+    <div className="ms-hub">
+      <section className="ms-hub-hero">
+        <div className="ms-hub-hero__inner">
+          <p className="ms-hub-hero__eyebrow">Manuscripts</p>
+          <h1 className="ms-hub-hero__title">The manuscript tradition</h1>
+          <div className="ms-hub-hero__ornament" aria-hidden="true">
+            <span /><i /><span />
           </div>
+          <p className="ms-hub-hero__lead">
+            High-resolution images of the earliest manuscripts of <em>Nahj al-Balāghah</em>, held in
+            libraries across India, Iran, Iraq, Turkey and Ireland. Turn their pages, set them side by
+            side, and read them against the critical edition.
+          </p>
         </div>
       </section>
-    </>
+
+      <section className="ms-hub-ways" aria-label="Ways to study the manuscripts">
+        <div className="ms-hub__container ms-hub-ways__grid">
+          {ways.map(way => (
+            <Link key={way.key} href={way.href} className="ms-hub-way group">
+              <WayIllustration kind={way.key} />
+              <span className="ms-hub-way__title">{way.title}</span>
+              <span className="ms-hub-way__desc">{way.description}</span>
+              <span className="ms-hub-way__action">
+                {way.action} <ArrowRight />
+              </span>
+              <span className="corner-accent-hover corner-accent-hover--top-left" />
+              <span className="corner-accent-hover corner-accent-hover--bottom-right" />
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="ms-hub-collection" aria-labelledby="ms-collection-heading">
+        <div className="ms-hub__container">
+          <div className="ms-hub-collection__head">
+            <div>
+              <h2 id="ms-collection-heading" className="ms-hub-collection__title">The collection</h2>
+              <p className="ms-hub-collection__lead">Each manuscript, shown at the opening of Oration 1. Select one to read it.</p>
+            </div>
+            <Link href="/manuscripts/information" className="ms-hub-collection__more">
+              Catalogue details <ArrowRight />
+            </Link>
+          </div>
+          <ManuscriptCollection />
+        </div>
+      </section>
+    </div>
   );
 }

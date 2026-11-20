@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { manuscriptsApi, Manuscript, getManuscriptImageUrl } from '@/api/manuscripts'
+import { manuscriptsApi, Manuscript, toPageImage } from '@/api/manuscripts'
 
 const FeaturedManuscriptsSection = () => {
   const [isVisible, setIsVisible] = useState(false)
@@ -99,7 +99,7 @@ const FeaturedManuscriptsSection = () => {
                   <div className="manuscript-card-image bg-manuscript-dark">
                     {manuscript.files && manuscript.files.length > 0 ? (
                       <img
-                        src={getManuscriptImageUrl(manuscript.files[0].url)}
+                        src={toPageImage(manuscript.files[0]).preview}
                         alt={manuscript.files[0].alternativeText || manuscript.bookName || 'Manuscript'}
                       />
                     ) : (

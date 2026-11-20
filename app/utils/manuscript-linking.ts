@@ -1,4 +1,10 @@
-import { ManuscriptLinkData } from '@/app/components/manuscripts';
+export interface ManuscriptLinkData {
+  id: string;
+  title: string;
+  sourceReference: string;
+  pageNumber?: string;
+  folioNumber?: string;
+}
 
 export const getManuscriptReferencesForContent = (
   contentId: number,

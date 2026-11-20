@@ -2,9 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Loader2, BookOpen, ArrowRight } from 'lucide-react';
-import { librariesApi, convertLibraryItemToManuscriptDetails, type Library } from '@/api/manuscripts';
-
-type Details = ReturnType<typeof convertLibraryItemToManuscriptDetails>;
+import { manuscriptCatalogApi, type ManuscriptCatalogEntry } from '@/api/manuscripts';
 
 const Field = ({ label, value, arabic = false, wide = false }: { label: string; value?: string; arabic?: boolean; wide?: boolean }) =>
   value && value !== 'n/a' ? (
@@ -15,12 +13,12 @@ const Field = ({ label, value, arabic = false, wide = false }: { label: string; 
   ) : null;
 
 export default function ManuscriptInformation() {
-  const [libraries, setLibraries] = useState<Library[] | null>(null);
+  const [entries, setEntries] = useState<ManuscriptCatalogEntry[] | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    librariesApi.getAllLibraries(1, 100)
-      .then(res => setLibraries(res.data || []))
+    manuscriptCatalogApi.getCatalog()
+      .then(setEntries)
       .catch((err) => { console.error(err); setError(true); });
   }, []);
 
@@ -34,7 +32,7 @@ export default function ManuscriptInformation() {
     );
   }
 
-  if (!libraries) {
+  if (!entries) {
     return (
       <section className="ms-info">
         <div className="ms-info__inner ms-info__inner--centered">
@@ -44,7 +42,21 @@ export default function ManuscriptInformation() {
     );
   }
 
-  const manuscripts: Details[] = libraries.map(lib => convertLibraryItemToManuscriptDetails(lib));
+  const manuscripts = entries.map(entry => ({
+    id: entry.id,
+    name: entry.name,
+    siglaEnglish: entry.siglaEnglish,
+    siglaArabic: entry.siglaArabic,
+    library: entry.holdingLibrary,
+    city: entry.city,
+    country: entry.country,
+    date: entry.date,
+    catalogNumber: entry.details.catalogNumber,
+    scribe: entry.details.scribe,
+    dimensions: entry.details.dimensions,
+    completeness: entry.details.completeness,
+    features: entry.details.features,
+  }));
 
   return (
     <section className="ms-info">
@@ -75,7 +87,7 @@ export default function ManuscriptInformation() {
                 <Field label="Features" value={ms.features} wide />
               </dl>
               <Link
-                href={`/manuscripts/view?mode=single&library=${ms.id}`}
+                href={`/manuscripts/view?section=1.1&ms=${ms.id}`}
                 className="ms-info__link"
               >
                 <BookOpen className="w-4 h-4" />

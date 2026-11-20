@@ -194,8 +194,6 @@ export const postsApi = {
         params['sort'] = sort;
       }
 
-      console.log('Final API params:', params);
-
       const response = await api.get('/api/post-bases', { params });
       const posts = this._extractPosts(
         response.data.data, 
@@ -250,8 +248,6 @@ export const postsApi = {
       if (sort) {
         params['sort'] = sort;
       }
-
-      console.log('Listing API params:', params);
 
       const response = await api.get('/api/post-bases', { params });
       const posts = this._extractPosts(response.data.data, true, filters.editionTitle);
@@ -911,11 +907,8 @@ export const radisApi = {
         'sort[0]': 'number:asc'
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/radis-introductions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await api.get(`/api/radis-introductions?${params}`);
+      return response.data;
     } catch (error) {
       console.error('Error fetching radis introductions:', error);
       throw error;
@@ -929,11 +922,8 @@ export const radisApi = {
         'pagination[pageSize]': '1'
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/radis-introductions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const result = await response.json();
+      const response = await api.get(`/api/radis-introductions?${params}`);
+      const result = response.data;
 
       if (result.data && result.data.length > 0) {
         return result.data[0];
@@ -955,11 +945,8 @@ export const radisApi = {
         'sort[0]': 'number:asc'
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/radis-introductions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await api.get(`/api/radis-introductions?${params}`);
+      return response.data;
     } catch (error) {
       console.error('Error searching radis introductions:', error);
       throw error;
@@ -976,11 +963,8 @@ export const radisApi = {
         params.append(`filters[number][$in][${index}]`, num);
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/radis-introductions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await api.get(`/api/radis-introductions?${params}`);
+      return response.data;
     } catch (error) {
       console.error('Error fetching radis introductions by numbers:', error);
       throw error;
@@ -1020,11 +1004,8 @@ export const conclusionsApi = {
         'sort[0]': 'number:asc'
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/conclusions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await api.get(`/api/conclusions?${params}`);
+      return response.data;
     } catch (error) {
       console.error('Error fetching conclusions:', error);
       throw error;
@@ -1038,11 +1019,8 @@ export const conclusionsApi = {
         'pagination[pageSize]': '1'
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/conclusions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const result = await response.json();
+      const response = await api.get(`/api/conclusions?${params}`);
+      const result = response.data;
 
       if (result.data && result.data.length > 0) {
         return result.data[0];
@@ -1064,11 +1042,8 @@ export const conclusionsApi = {
         'sort[0]': 'number:asc'
       });
       // change of url to fetch from the correct endpoint for conclusions
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/conclusions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await api.get(`/api/conclusions?${params}`);
+      return response.data;
     } catch (error) {
       console.error('Error searching conclusions:', error);
       throw error;
@@ -1085,11 +1060,8 @@ export const conclusionsApi = {
         params.append(`filters[number][$in][${index}]`, num);
       });
 
-      const response = await fetch(`https://cms.nahjalbalaghah.org/api/conclusions?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await api.get(`/api/conclusions?${params}`);
+      return response.data;
     } catch (error) {
       console.error('Error fetching conclusions by numbers:', error);
       throw error;
@@ -1186,8 +1158,6 @@ export const postBasesApi = {
         params['filters[posts][editions][title][$eqi]'] = edition;
         params['populate[posts][populate][editions][fields][0]'] = 'title';
       }
-
-      console.log('PostBases API params:', params);
 
       const response = await api.get('/api/post-bases', { params });
 

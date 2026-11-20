@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
-import ManuscriptsHero from '../sections/hero';
-import ManuscriptsContent from '../sections/content';
 import type { Metadata } from 'next';
+import { Loader2 } from 'lucide-react';
+import ManuscriptsContent from '../sections/content';
 
 export const metadata: Metadata = {
   title: "Manuscript Viewer",
@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function ManuscriptViewerPage() {
   return (
-    <>
-      <ManuscriptsHero title="Manuscript Viewer" />
+    <div className="mss-page">
+      <h1 className="sr-only">Manuscript viewer</h1>
       <Suspense fallback={
-        <div className="manuscripts-fallback">
-          <div className="manuscripts-fallback__text">Loading manuscripts...</div>
+        <div className="mss-page__fallback">
+          <Loader2 className="mss-spin" />
         </div>
       }>
         <ManuscriptsContent />
       </Suspense>
-    </>
+    </div>
   );
 }
