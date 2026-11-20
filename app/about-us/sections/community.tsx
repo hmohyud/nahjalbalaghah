@@ -33,51 +33,51 @@ const ImpactCommunitySection = () => {
   ]
 
   return (
-    <section id="impact-section" className="py-24 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+    <section id="impact-section" className="community-section">
+      <div className="community-section__container">
+        <div className="community-section__grid">
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            className="space-y-8"
+            className="community-section__text-col"
           >
-            <div className="space-y-4">
+            <div className="community-section__header">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="flex items-center gap-3"
+                className="community-section__badge"
               >
-                <Sparkles className="w-6 h-6 text-[#43896B]" />
-                <span className="text-[#43896B] font-bold text-lg tracking-wide">Making a Difference</span>
+                <Sparkles className="w-6 h-6 community-section__badge-icon" />
+                <span className="community-section__badge-text">Making a Difference</span>
               </motion.div>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-3xl lg:text-5xl font-black text-black tracking-tight leading-tight"
+                className="community-section__title"
               >
-                Our <span className='text-[#43896B]'>Impact & Community</span>
+                Our <span className="community-section__title-accent">Impact & Community</span>
               </motion.h2>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: "120px" }}
                 transition={{ duration: 0.8, delay: 0.5 }}
-                className="h-1 bg-[#43896B] rounded-full"
+                className="community-section__divider"
               ></motion.div>
             </div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
-              className="space-y-6"
+              className="community-section__body"
             >
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Since our founding, we have built a <span className="font-semibold text-[#43896B]">thriving global community</span> of learners, scholars, and spiritual seekers. Our educational programs and resources have touched the lives of thousands across continents, fostering understanding and spiritual growth.
+              <p>
+                Since our founding, we have built a <span className="highlight">thriving global community</span> of learners, scholars, and spiritual seekers. Our educational programs and resources have touched the lives of thousands across continents, fostering understanding and spiritual growth.
               </p>
-              
-              <p className="text-lg text-gray-600 leading-relaxed">
+
+              <p>
                 Through innovative online platforms, traditional scholarship programs, and community outreach initiatives, we continue to bridge the gap between ancient wisdom and modern learning, creating lasting impact in communities worldwide.
               </p>
             </motion.div>
@@ -85,7 +85,7 @@ const ImpactCommunitySection = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8"
+              className="community-section__features-grid"
             >
               {features.map((feature, index) => (
                 <motion.div
@@ -93,15 +93,15 @@ const ImpactCommunitySection = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.8 + (index * 0.1) }}
-                  className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 hover:shadow-xl hover:bg-white/80 transition-all duration-300 group"
+                  className="community-section__feature-card"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-[#43896B]/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="w-5 h-5 text-[#43896B]" />
+                  <div className="community-section__feature-row">
+                    <div className="community-section__feature-icon-box">
+                      <feature.icon className="w-5 h-5 community-section__feature-icon" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-800 text-sm mb-1">{feature.title}</h3>
-                      <p className="text-xs text-gray-600 leading-relaxed">{feature.description}</p>
+                      <h3 className="community-section__feature-title">{feature.title}</h3>
+                      <p className="community-section__feature-desc">{feature.description}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -112,28 +112,28 @@ const ImpactCommunitySection = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative"
+            className="community-section__image-col"
           >
-            <div className="relative">
-              <div className="relative">
+            <div>
+              <div>
                 <Image
                   src={AboutImage}
                   alt="Our Community Impact"
-                  className="w-full object-cover transform hover:scale-105 transition-transform duration-700"
+                  className="community-section__image"
                 />
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="absolute top-6 left-6 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl border border-white/50"
+                  className="community-section__float-card community-section__float-card--top"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#43896B] rounded-xl flex items-center justify-center">
-                      <Users className="w-6 h-6 text-white" />
+                  <div className="community-section__float-row">
+                    <div className="community-section__float-icon-box">
+                      <Users className="w-6 h-6 community-section__float-icon" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-gray-800">10K+</div>
-                      <div className="text-sm text-gray-600">Active Students</div>
+                      <div className="community-section__float-value">10K+</div>
+                      <div className="community-section__float-label">Active Students</div>
                     </div>
                   </div>
                 </motion.div>
@@ -141,15 +141,15 @@ const ImpactCommunitySection = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.6, delay: 0.5 }}
-                  className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-xl rounded-2xl p-4 shadow-xl border border-white/50"
+                  className="community-section__float-card community-section__float-card--bottom"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#43896B] rounded-xl flex items-center justify-center">
-                      <Globe className="w-6 h-6 text-white" />
+                  <div className="community-section__float-row">
+                    <div className="community-section__float-icon-box">
+                      <Globe className="w-6 h-6 community-section__float-icon" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-gray-800">45+</div>
-                      <div className="text-sm text-gray-600">Countries</div>
+                      <div className="community-section__float-value">45+</div>
+                      <div className="community-section__float-label">Countries</div>
                     </div>
                   </div>
                 </motion.div>

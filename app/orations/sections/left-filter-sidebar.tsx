@@ -51,20 +51,20 @@ export default function LeftFilterSidebar({
   clearAllFilters
 }: LeftFilterSidebarProps) {
   return (
-    <div className="lg:w-1/4">
-      <div className="group relative bg-white border border-[var(--color-stone)] sticky top-28">
+    <div className="filter-sidebar">
+      <div className="group filter-sidebar__card">
         {/* Corner accents */}
-        <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-        <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+        <div className="filter-sidebar__corner-accent--top-left" />
+        <div className="filter-sidebar__corner-accent--bottom-right" />
 
         {/* Header */}
-        <div className="p-6 border-b border-[var(--color-stone)]">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl text-[var(--color-ink)]">Filters</h3>
+        <div className="filter-sidebar__header">
+          <div className="filter-sidebar__header-row">
+            <h3 className="filter-sidebar__title">Filters</h3>
             {activeFilterCount > 0 && (
-              <button 
+              <button
                 onClick={clearAllFilters}
-                className="text-[var(--color-primary)] text-sm hover:underline font-body"
+                className="filter-sidebar__clear-btn"
               >
                 Clear all
               </button>
@@ -73,13 +73,13 @@ export default function LeftFilterSidebar({
         </div>
 
         {/* Filter Sections */}
-        <div className="p-6 space-y-8 max-h-[calc(100vh-250px)] overflow-y-auto">
+        <div className="filter-sidebar__body">
           {/* Content Type */}
           <div>
-            <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+            <h4 className="filter-sidebar__section-title">
               Content Type
             </h4>
-            <div className="space-y-3">
+            <div className="filter-sidebar__options">
               {filterOptions.type.map((option) => (
                 <Checkbox
                   key={option.id}
@@ -93,14 +93,14 @@ export default function LeftFilterSidebar({
           </div>
 
           {/* Divider */}
-          <div className="h-[1px] bg-[var(--color-stone)]" />
+          <div className="filter-sidebar__divider" />
 
           {/* Available Translations */}
           <div>
-            <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+            <h4 className="filter-sidebar__section-title">
               Available Translations
             </h4>
-            <div className="space-y-3">
+            <div className="filter-sidebar__options">
               {filterOptions.translations.map((option) => (
                 <Checkbox
                   key={option.id}
@@ -114,14 +114,14 @@ export default function LeftFilterSidebar({
           </div>
 
           {/* Divider */}
-          <div className="h-[1px] bg-[var(--color-stone)]" />
+          <div className="filter-sidebar__divider" />
 
           {/* Themes */}
           <div>
-            <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+            <h4 className="filter-sidebar__section-title">
               Themes
             </h4>
-            <div className="space-y-3">
+            <div className="filter-sidebar__options">
               {filterOptions.themes.map((option) => (
                 <Checkbox
                   key={option.id}
@@ -135,14 +135,14 @@ export default function LeftFilterSidebar({
           </div>
 
           {/* Divider */}
-          <div className="h-[1px] bg-[var(--color-stone)]" />
+          <div className="filter-sidebar__divider" />
 
           {/* Difficulty Level */}
           <div>
-            <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+            <h4 className="filter-sidebar__section-title">
               Difficulty Level
             </h4>
-            <div className="space-y-3">
+            <div className="filter-sidebar__options">
               {filterOptions.difficulty.map((option) => (
                 <Checkbox
                   key={option.id}
@@ -156,14 +156,14 @@ export default function LeftFilterSidebar({
           </div>
 
           {/* Divider */}
-          <div className="h-[1px] bg-[var(--color-stone)]" />
+          <div className="filter-sidebar__divider" />
 
           {/* Content Length */}
           <div>
-            <h4 className="text-xs tracking-[0.15em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+            <h4 className="filter-sidebar__section-title">
               Content Length
             </h4>
-            <div className="space-y-3">
+            <div className="filter-sidebar__options">
               {filterOptions.length.map((option) => (
                 <Checkbox
                   key={option.id}

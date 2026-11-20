@@ -433,10 +433,10 @@ function ContentPageContent({ config }: ContentPageProps) {
 
   if (error) {
     return (
-      <div className="content-details-page flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="font-display text-2xl text-[var(--color-ink)] mb-4">Error Loading {config.title}</h2>
-          <p className="font-body text-[var(--color-warm-gray)] mb-6">{error}</p>
+      <div className="content-details-page content-page__error">
+        <div className="content-page__error-center">
+          <h2 className="content-page__error-title">Error Loading {config.title}</h2>
+          <p className="content-page__error-message">{error}</p>
           <button
             onClick={() => loadContent()}
             className="content-error-button"
@@ -454,7 +454,7 @@ function ContentPageContent({ config }: ContentPageProps) {
         {/* Header */}
         <div className="content-page__header">
           <h1 className="content-page__title">{config.title}</h1>
-          <p className="content-page__subtitle max-w-2xl">
+          <p className="content-page__subtitle">
             {config.subtitle}
           </p>
           <div className="content-page__accent" />
@@ -474,7 +474,7 @@ function ContentPageContent({ config }: ContentPageProps) {
           onSearch={handleSearch}
         />
 
-        <div className="flex flex-col gap-8">
+        <div className="content-page__body">
           {/* Transitioning indicator */}
           {isTransitioning && (
             <div className="loading-transition-banner">
@@ -509,16 +509,16 @@ function ContentPageFallback({ config }: ContentPageProps) {
       <div className="content-page__container">
         <div className="content-page__header">
           <h1 className="content-page__title">{config.title}</h1>
-          <p className="content-page__subtitle max-w-2xl">
+          <p className="content-page__subtitle">
             {config.subtitle}
           </p>
           <div className="content-page__accent" />
         </div>
-        <div className="animate-pulse">
-          <div className="h-12 lg:h-14 bg-white border border-[var(--color-stone)] mb-6 lg:mb-8"></div>
-          <div className="space-y-3 lg:space-y-4">
+        <div className="content-page__fallback-pulse">
+          <div className="content-page__fallback-skeleton-bar"></div>
+          <div className="content-page__fallback-skeleton-list">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-20 lg:h-24 bg-white border border-[var(--color-stone)]"></div>
+              <div key={i} className="content-page__fallback-skeleton-item"></div>
             ))}
           </div>
         </div>

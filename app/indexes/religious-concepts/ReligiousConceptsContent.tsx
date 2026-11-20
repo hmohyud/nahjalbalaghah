@@ -116,34 +116,34 @@ export default function ReligiousConceptsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)]">
+    <div className="index-content">
       {/* Hero Section */}
-      <div className="pt-28 lg:pt-32 pb-6">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 bg-[var(--color-primary)] flex items-center justify-center">
-              <Scale className="w-6 h-6 text-white" />
+      <div className="index-content__hero">
+        <div className="index-content__container">
+          <div className="index-content__header">
+            <div className="index-content__icon-box">
+              <Scale className="w-6 h-6" />
             </div>
-            <h1 className="font-display text-2xl lg:text-3xl text-[var(--color-primary)]">
+            <h1 className="index-content__title">
               Index of Religious &amp; Ethical Concepts
             </h1>
           </div>
-          <p className="text-[var(--color-warm-gray)] font-body mt-2 ml-16">
+          <p className="index-content__subtitle">
             Explore the religious and ethical concepts found in Nahj al-Balaghah
           </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-8 pb-12">
+      <div className="index-content__body">
         {/* Filter Section */}
-        <div className="mb-8">
-          <div className="relative bg-white border border-[var(--color-stone)]">
-            <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
-            
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-display text-lg text-[var(--color-ink)]">Filters</h2>
+        <div className="index-content__filter-wrapper">
+          <div className="index-content__filter-panel">
+            <div className="index-content__corner-tl" />
+            <div className="index-content__corner-br" />
+
+            <div className="index-content__filter-inner">
+              <div className="index-content__filter-header">
+                <h2 className="index-content__filter-title">Filters</h2>
                 {hasActiveFilters && (
                   <Button
                     onClick={handleClearFilters}
@@ -155,9 +155,9 @@ export default function ReligiousConceptsContent() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="index-content__filter-grid-2">
                 <div>
-                  <label className="block text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body mb-2">Language</label>
+                  <label className="index-content__filter-label">Language</label>
                   <Select
                     value={filters.language || 'Arabic'}
                     onChange={(value) => setFilters({ ...filters, language: value as 'English' | 'Arabic' })}
@@ -180,12 +180,12 @@ export default function ReligiousConceptsContent() {
                     placeholder="Search Arabic..."
                     value={filters.word_arabic}
                     onChange={(e) => setFilters({ ...filters, word_arabic: e.target.value })}
-                    className="text-right"
+                    className="text-align-right"
                     dir="rtl"
                   />
                 )}
               </div>
-              <div className="mt-4 flex justify-end">
+              <div className="index-content__filter-actions">
                 <Button
                   onClick={() => handleApplyFilters()}
                   variant='outlined'
@@ -199,7 +199,7 @@ export default function ReligiousConceptsContent() {
         </div>
 
         {/* Alphabet Chips */}
-        <div className="mb-6">
+        <div className="index-content__alphabet">
           <AlphabetChips
             selectedLetter={filters.language === 'English' ? (filters.startsWith_english || '') : (filters.startsWith_arabic || '')}
             onSelectLetter={handleLetterSelect}
@@ -212,38 +212,38 @@ export default function ReligiousConceptsContent() {
           {loading ? (
             <>
               {/* Desktop Loading */}
-              <div className="hidden md:block">
-                <div className="relative bg-white border border-[var(--color-stone)] overflow-hidden">
-                  <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
-                  <table className="w-full table-fixed">
+              <div className="index-content__desktop-only">
+                <div className="index-content__table-card">
+                  <div className="index-content__corner-tl" />
+                  <div className="index-content__corner-br" />
+                  <table className="index-content__table">
                     <colgroup>
-                      <col className="w-24" />
-                      {appliedFilters.language === 'English' && <col className="w-1/4" />}
-                      {appliedFilters.language === 'Arabic' && <col className="w-1/5" />}
+                      <col className="index-content__col-sm" />
+                      {appliedFilters.language === 'English' && <col className="index-content__col-quarter" />}
+                      {appliedFilters.language === 'Arabic' && <col className="index-content__col-fifth" />}
                       <col />
                     </colgroup>
-                    <thead className="bg-[var(--color-cream)] border-b border-[var(--color-stone)]">
+                    <thead className="index-content__thead">
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Section</th>
-                        {appliedFilters.language === 'English' && <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">English</th>}
-                        {appliedFilters.language === 'Arabic' && <th className="px-6 py-4 text-right text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body whitespace-nowrap">Arabic</th>}
-                        <th className="px-6 py-4 text-center text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Text References</th>
+                        <th className="index-content__th">Section</th>
+                        {appliedFilters.language === 'English' && <th className="index-content__th">English</th>}
+                        {appliedFilters.language === 'Arabic' && <th className="index-content__th index-content__th--right index-content__th--nowrap">Arabic</th>}
+                        <th className="index-content__th index-content__th--center">Text References</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--color-stone)]">
+                    <tbody className="index-content__tbody">
                       {[...Array(10)].map((_, index) => (
-                        <tr key={index} className="animate-pulse">
-                          <td className="px-6 py-4">
-                            <div className="w-10 h-10 bg-[var(--color-stone)] opacity-50"></div>
+                        <tr key={index} className="index-content__tr--pulse">
+                          <td className="index-content__td">
+                            <div className="index-content__skeleton" style={{ width: '2.5rem', height: '2.5rem' }}></div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="h-4 bg-[var(--color-stone)] opacity-50 w-3/4"></div>
+                          <td className="index-content__td">
+                            <div className="index-content__skeleton" style={{ height: '1rem', width: '75%' }}></div>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-2 justify-center">
-                              <div className="h-6 bg-[var(--color-stone)] opacity-50 w-12"></div>
-                              <div className="h-6 bg-[var(--color-stone)] opacity-50 w-12"></div>
+                          <td className="index-content__td">
+                            <div className="index-content__skeleton-refs--wrap">
+                              <div className="index-content__skeleton" style={{ height: '1.5rem', width: '3rem' }}></div>
+                              <div className="index-content__skeleton" style={{ height: '1.5rem', width: '3rem' }}></div>
                             </div>
                           </td>
                         </tr>
@@ -253,74 +253,76 @@ export default function ReligiousConceptsContent() {
                 </div>
               </div>
               {/* Mobile Loading */}
-              <div className="md:hidden space-y-4">
+              <div className="index-content__mobile-only">
                 {[...Array(5)].map((_, index) => (
-                  <div key={index} className="relative bg-white border border-[var(--color-stone)] p-4 animate-pulse">
-                    <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[var(--color-accent)]" />
-                    <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[var(--color-accent)]" />
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="h-5 bg-[var(--color-stone)] opacity-50 w-3/4 mb-2"></div>
-                        <div className="h-4 bg-[var(--color-stone)] opacity-50 w-1/2"></div>
+                  <div key={index} className="index-content__skeleton-card">
+                    <div className="index-content__corner-tl--sm" />
+                    <div className="index-content__corner-br--sm" />
+                    <div className="index-content__skeleton-card-row">
+                      <div className="index-content__mobile-card-content">
+                        <div className="index-content__skeleton" style={{ height: '1.25rem', width: '75%', marginBottom: '0.5rem' }}></div>
+                        <div className="index-content__skeleton" style={{ height: '1rem', width: '50%' }}></div>
                       </div>
-                      <div className="w-8 h-8 bg-[var(--color-stone)] opacity-50"></div>
+                      <div className="index-content__skeleton" style={{ width: '2rem', height: '2rem' }}></div>
                     </div>
                   </div>
                 ))}
               </div>
             </>
           ) : error ? (
-            <div className="text-center py-12">
-              <div className="relative bg-white border border-[var(--color-stone)] p-8 max-w-md mx-auto">
-                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
-                <div className="text-red-600 mb-4">
-                  <X className="w-12 h-12 mx-auto" />
+            <div className="index-content__state-wrapper">
+              <div className="index-content__state-card">
+                <div className="index-content__corner-tl" />
+                <div className="index-content__corner-br" />
+                <div className="index-content__error-icon">
+                  <X className="w-12 h-12" />
                 </div>
-                <h3 className="font-display text-lg text-[var(--color-ink)] mb-2">Error</h3>
-                <p className="text-[var(--color-warm-gray)] font-body">{error}</p>
-                <Button onClick={() => window.location.reload()} variant='solid' className="mt-4">
+                <h3 className="index-content__state-heading">Error</h3>
+                <p className="index-content__state-text">{error}</p>
+                <Button onClick={() => window.location.reload()} variant='solid' className="index-content__retry-btn">
                   Try Again
                 </Button>
               </div>
             </div>
           ) : items.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="relative bg-white border border-[var(--color-stone)] p-8 max-w-md mx-auto">
-                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
-                <Book className="w-16 h-16 text-[var(--color-stone)] mx-auto mb-4" />
-                <h3 className="font-display text-lg text-[var(--color-ink)] mb-2">No Results Found</h3>
-                <p className="text-[var(--color-warm-gray)] font-body">Try adjusting your filters or search criteria.</p>
+            <div className="index-content__state-wrapper">
+              <div className="index-content__state-card">
+                <div className="index-content__corner-tl" />
+                <div className="index-content__corner-br" />
+                <div className="index-content__empty-icon">
+                  <Book className="w-16 h-16" />
+                </div>
+                <h3 className="index-content__state-heading">No Results Found</h3>
+                <p className="index-content__state-text">Try adjusting your filters or search criteria.</p>
               </div>
             </div>
           ) : (
             <>
-              <div className="mb-4 text-sm text-[var(--color-warm-gray)] font-body">
+              <div className="index-content__results-count">
                 Showing {items.length} of {total} results
               </div>
               {/* Desktop Table */}
-              <div className="hidden md:block">
-                <div className="relative bg-white border border-[var(--color-stone)] overflow-hidden">
-                  <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
-                  <div className="overflow-x-auto">
-                    <table className="w-full table-fixed">
+              <div className="index-content__desktop-only">
+                <div className="index-content__table-card">
+                  <div className="index-content__corner-tl" />
+                  <div className="index-content__corner-br" />
+                  <div className="index-content__table-scroll">
+                    <table className="index-content__table">
                       <colgroup>
-                        <col className="w-24" />
-                        {appliedFilters.language === 'English' && <col className="w-1/4" />}
-                        {appliedFilters.language === 'Arabic' && <col className="w-1/5" />}
+                        <col className="index-content__col-sm" />
+                        {appliedFilters.language === 'English' && <col className="index-content__col-quarter" />}
+                        {appliedFilters.language === 'Arabic' && <col className="index-content__col-fifth" />}
                         <col />
                       </colgroup>
-                      <thead className="bg-[var(--color-cream)] border-b border-[var(--color-stone)]">
+                      <thead className="index-content__thead">
                         <tr>
-                          <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Section</th>
-                          {appliedFilters.language === 'English' && <th className="px-6 py-4 text-left text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">English</th>}
-                          {appliedFilters.language === 'Arabic' && <th className="px-6 py-4 text-right text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body whitespace-nowrap">Arabic</th>}
-                          <th className="px-6 py-4 text-center text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">Text References</th>
+                          <th className="index-content__th">Section</th>
+                          {appliedFilters.language === 'English' && <th className="index-content__th">English</th>}
+                          {appliedFilters.language === 'Arabic' && <th className="index-content__th index-content__th--right index-content__th--nowrap">Arabic</th>}
+                          <th className="index-content__th index-content__th--center">Text References</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[var(--color-stone)]">
+                      <tbody className="index-content__tbody">
                         {items.map((item) => {
                           const name = appliedFilters.language === 'Arabic' ? item.word_arabic : item.word_english;
                           const refs = item.text_numbers?.map(t => t.value).join(',') || '';
@@ -331,31 +333,31 @@ export default function ReligiousConceptsContent() {
                           return (
                             <tr
                               key={item.id}
-                              className="hover:bg-[var(--color-cream)] cursor-pointer transition-colors group"
+                              className="index-content__tr"
                               onClick={() => name && router.push(targetUrl)}
                             >
-                              <td className="px-6 py-4">
-                                <div className="w-10 h-10 bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-display font-semibold">
+                              <td className="index-content__td">
+                                <div className="index-content__section-badge--alt">
                                   {item.section || '-'}
                                 </div>
                               </td>
                               {appliedFilters.language === 'English' && (
-                                <td className="px-6 py-4">
-                                  <span className="text-[var(--color-ink)] font-body font-medium group-hover:text-[var(--color-primary)] transition-colors">
+                                <td className="index-content__td">
+                                  <span className="index-content__cell-word">
                                     {item.word_english || '-'}
                                   </span>
                                 </td>
                               )}
                               {appliedFilters.language === 'Arabic' && (
-                                <td className="px-6 py-4 text-right" dir="rtl">
-                                  <span className="text-[var(--color-ink)] font-body font-medium group-hover:text-[var(--color-primary)] transition-colors">
+                                <td className="index-content__td index-content__td--right" dir="rtl">
+                                  <span className="index-content__cell-word">
                                     {item.word_arabic || '-'}
                                   </span>
                                 </td>
                               )}
-                              <td className="px-6 py-4">
-                                <div className="flex justify-center">
-                                  <div className="w-8 h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors">
+                              <td className="index-content__td">
+                                <div className="index-content__arrow-cell">
+                                  <div className="index-content__arrow-btn">
                                     <ArrowRight className="w-4 h-4" />
                                   </div>
                                 </div>
@@ -369,7 +371,7 @@ export default function ReligiousConceptsContent() {
                 </div>
               </div>
               {/* Mobile Cards */}
-              <div className="md:hidden space-y-4">
+              <div className="index-content__mobile-only">
                 {items.map((item) => {
                   const name = appliedFilters.language === 'Arabic' ? item.word_arabic : item.word_english;
                   const refs = item.text_numbers?.map(t => t.value).join(',') || '';
@@ -380,25 +382,25 @@ export default function ReligiousConceptsContent() {
                   return (
                     <div
                       key={item.id}
-                      className="relative bg-white border border-[var(--color-stone)] p-4 cursor-pointer hover:border-[var(--color-primary)] transition-colors group"
+                      className="index-content__mobile-card"
                       onClick={() => name && router.push(targetUrl)}
                     >
-                      <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
+                      <div className="index-content__corner-tl--hover" />
+                      <div className="index-content__corner-br--hover" />
+                      <div className="index-content__mobile-card-inner">
+                        <div className="index-content__mobile-card-content">
                           {appliedFilters.language === 'English' && (
-                            <div className="text-base font-display font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors">
+                            <div className="index-content__mobile-card-word">
                               {item.word_english || '-'}
                             </div>
                           )}
                           {appliedFilters.language === 'Arabic' && (
-                            <div className="text-base font-display font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-primary)] transition-colors" dir="rtl">
+                            <div className="index-content__mobile-card-word" dir="rtl">
                               {item.word_arabic || '-'}
                             </div>
                           )}
                         </div>
-                        <div className="w-8 h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] group-hover:text-white transition-colors">
+                        <div className="index-content__arrow-btn">
                           <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
@@ -407,7 +409,7 @@ export default function ReligiousConceptsContent() {
                 })}
               </div>
               {totalPages > 1 && (
-                <div className="mt-8">
+                <div className="index-content__pagination">
                   <Pagination
                     currentPage={page}
                     totalPages={totalPages}

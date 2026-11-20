@@ -37,7 +37,7 @@ const applyItalicFormatting = (text: string): React.ReactNode => {
       parts.push(wrapTextReferences(text.slice(lastIndex, match.index)));
     }
     parts.push(
-      <em key={`italic-${match.index}`} style={{ fontStyle: "italic" }}>
+      <em key={`italic-${match.index}`}>
         ({match[1]})
       </em>
     );
@@ -58,7 +58,7 @@ const applyBoldAndItalicFormatting = (text: string): React.ReactNode => {
     if (part.startsWith('«') && part.endsWith('»')) {
       const innerText = part;
       return (
-        <span key={`bold-${index}`} className="font-bold underline">
+        <span key={`bold-${index}`} className="text-bold-underline">
           {applyItalicFormatting(innerText)}
         </span>
       );
@@ -228,7 +228,7 @@ export const formatTextWithFootnotes = (
       >
         <span className="">
           {occurrence.word}
-          <sup className="ml-1 font-bold">{fn.number}</sup>
+          <sup className="footnote-sup">{fn.number}</sup>
         </span>
       </FootnoteTooltip>
     );
@@ -269,7 +269,7 @@ export const HighlightArabicText = ({ text }: any) => {
       parts.push(text.slice(lastIndex, match.index));
     }
     parts.push(
-      <em key={match.index} style={{ fontStyle: "italic" }}>
+      <em key={match.index}>
         ({match[1]})
       </em>
     );

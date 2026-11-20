@@ -34,20 +34,20 @@ export const metadata: Metadata = {
 
 export default function ScholarlyNotesPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="scholarly-page">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#43896B]/10 to-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-6">
+      <section className="scholarly-page__hero">
+        <div className="scholarly-page__hero-inner">
+          <div className="scholarly-page__hero-text">
+            <div className="scholarly-page__hero-badge">
               <FileText className="w-8 h-8 text-[#43896B]" />
-              <span className="text-[#43896B] font-bold text-xl tracking-wide">Scholarly Notes</span>
+              <span className="scholarly-page__hero-badge-text">Scholarly Notes</span>
             </div>
-            <h1 className="text-4xl lg:text-6xl font-black text-black tracking-tight leading-tight mb-6">
-              Notes on <span className='text-[#43896B]'>Edition and Translation</span>
+            <h1 className="scholarly-page__title">
+              Notes on <span className="scholarly-page__title-accent">Edition and Translation</span>
             </h1>
-            <div className="h-1 bg-[#43896B] rounded-full w-24 mx-auto mb-8"></div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <div className="scholarly-page__underline"></div>
+            <p className="scholarly-page__subtitle">
               Discover the meticulous scholarly work behind Tahera Qutbuddin's edition and translation of Nahj al-Balaghah.
             </p>
           </div>
@@ -55,31 +55,31 @@ export default function ScholarlyNotesPage() {
       </section>
 
       {/* Content Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#43896B]/10 overflow-hidden">
-            <div className="p-8 sm:p-12 lg:p-16">
-              <div className="flex items-start justify-between mb-8">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-4">
+      <section className="scholarly-page__content">
+        <div className="scholarly-page__content-inner">
+          <div className="scholarly-page__card">
+            <div className="scholarly-page__card-inner">
+              <div className="scholarly-page__card-header">
+                <div className="scholarly-page__card-header-left">
+                  <div className="scholarly-page__card-title-row">
                     <BookOpen className="w-8 h-8 text-[#43896B]" />
-                    <h2 className="text-3xl lg:text-4xl font-black text-[#43896B] tracking-tight">
+                    <h2 className="scholarly-page__card-title">
                       Tahera Qutbuddin's Edition and Translation
                     </h2>
                   </div>
-                  <div className="h-1 bg-[#43896B] rounded-full w-24 mb-6"></div>
+                  <div className="scholarly-page__card-underline"></div>
                 </div>
               </div>
-              <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-6">
-                <p className="text-lg">
+              <div className="scholarly-page__prose">
+                <p className="scholarly-page__prose-lg">
                   <strong>Tahera Qutbuddin</strong> is a renowned scholar of Islamic studies, specializing in Arabic literature, Islamic history, and the intellectual traditions of Shi'i Islam. Her work on Nahj al-Balaghah represents a significant contribution to the field of Islamic scholarship.
                 </p>
                 <p>
                   This edition and translation brings together rigorous academic standards with deep cultural and linguistic understanding. Qutbuddin's approach combines philological precision with contextual awareness, making the profound wisdom of Imam Ali (AS) accessible to modern readers while preserving the richness of the original Arabic text.
                 </p>
-                <div className="bg-gradient-to-r from-[#43896B]/10 to-transparent p-6 rounded-xl my-8 border border-[#43896B]/20">
-                  <h3 className="text-xl font-bold text-[#43896B] mb-3">Key Features of This Edition</h3>
-                  <ul className="space-y-2 text-gray-700">
+                <div className="scholarly-page__features-box">
+                  <h3 className="scholarly-page__features-title">Key Features of This Edition</h3>
+                  <ul className="scholarly-page__features-list">
                     <li><strong>Authentic Sources:</strong> Based on the most reliable manuscript traditions and scholarly editions</li>
                     <li><strong>Linguistic Precision:</strong> Careful attention to Arabic grammar, rhetoric, and poetic devices</li>
                     <li><strong>Historical Context:</strong> Detailed notes explaining historical references and cultural background</li>
@@ -95,18 +95,18 @@ export default function ScholarlyNotesPage() {
                 </p>
               </div>
 
-              <div className="mt-12">
-                <div className="flex items-center gap-3 mb-6">
+              <div className="scholarly-page__pdf-section">
+                <div className="scholarly-page__pdf-header">
                   <FileText className="w-6 h-6 text-[#43896B]" />
-                  <h3 className="text-2xl font-bold text-[#43896B]">View Scholarly Notes</h3>
+                  <h3 className="scholarly-page__pdf-title">View Scholarly Notes</h3>
                 </div>
-                <div className="border-2 border-[#43896B]/20 rounded-xl overflow-hidden shadow-lg">
-                  <PDFViewer 
+                <div className="scholarly-page__pdf-wrapper">
+                  <PDFViewer
                     pdfUrl="/pdfs/TQ-Notes-on-the-Edition-and-Translation.pdf"
                     title="Scholarly Notes on Edition and Translation"
                   />
                 </div>
-                <p className="text-sm text-gray-500 mt-4 text-center">
+                <p className="scholarly-page__pdf-note">
                   Use the controls above to navigate pages, zoom, and view in fullscreen mode
                 </p>
               </div>

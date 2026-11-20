@@ -127,14 +127,14 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
     return (
       <div className="content-details-page">
         <div className="content-details-container">
-          <div className="animate-pulse">
-            <div className="h-6 bg-white border border-[var(--color-stone)] w-32 mb-6"></div>
-            <div className="bg-white border border-[var(--color-stone)] p-6 lg:p-8">
-              <div className="h-8 bg-[var(--color-parchment)] mb-6 w-3/4"></div>
-              <div className="h-4 bg-[var(--color-parchment)] mb-4 w-1/2"></div>
-              <div className="space-y-3">
+          <div className="content-details__skeleton">
+            <div className="content-details__skeleton-back"></div>
+            <div className="content-details__skeleton-card">
+              <div className="content-details__skeleton-title"></div>
+              <div className="content-details__skeleton-subtitle"></div>
+              <div className="content-details__skeleton-lines">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-4 bg-[var(--color-parchment)]"></div>
+                  <div key={i} className="content-details__skeleton-line"></div>
                 ))}
               </div>
             </div>
@@ -146,9 +146,9 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (error) {
     return (
-      <div className="content-details-page flex items-center justify-center px-4">
-        <div className="text-center">
-          <h2 className="font-display text-xl lg:text-2xl text-[var(--color-ink)] mb-4">
+      <div className="content-details-page content-details__error-wrapper">
+        <div className="content-details__error-inner">
+          <h2 className="content-details__error-heading">
             {error}
           </h2>
           <button
@@ -165,12 +165,12 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   if (!content) {
     return (
-      <div className="content-details-page flex items-center justify-center px-4">
-        <div className="text-center">
-          <h2 className="font-display text-xl lg:text-2xl text-[var(--color-ink)] mb-4">
+      <div className="content-details-page content-details__error-wrapper">
+        <div className="content-details__error-inner">
+          <h2 className="content-details__error-heading">
             {title.slice(0, -1)} not found
           </h2>
-          <p className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base mb-6">The requested {contentType.slice(0, -1)} could not be found.</p>
+          <p className="content-details__not-found-text">The requested {contentType.slice(0, -1)} could not be found.</p>
           <button
             onClick={handleBackNavigation}
             className="content-error-button"
@@ -187,23 +187,23 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
     <div className="content-details-page">
       <div className="content-details-container">
         {/* Header with back button and action buttons */}
-        <div className="flex flex-col gap-4 mb-6 lg:mb-8">
+        <div className="content-details__header">
           <button
             onClick={handleBackNavigation}
-            className="content-back-button self-start"
+            className="content-back-button"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to {title}
           </button>
 
           {/* Action buttons - scrollable on mobile */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
+          <div className="content-details__actions">
             <Button
               variant='outlined'
               disabled={!adjacentPosts.previous}
               onClick={() => adjacentPosts.previous && navigateToPost(adjacentPosts.previous)}
               icon={<ChevronLeft className='w-4 h-4' />}
-              className="flex-shrink-0 text-xs sm:text-sm"
+              className="content-details__action-btn"
             >
               Prev
             </Button>
@@ -211,9 +211,9 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
               variant='outlined'
               disabled={!adjacentPosts.next}
               onClick={() => adjacentPosts.next && navigateToPost(adjacentPosts.next)}
-              className="flex-shrink-0 text-xs sm:text-sm"
+              className="content-details__action-btn"
             >
-              <div className='flex items-center gap-1 sm:gap-2'>
+              <div className='content-details__next-inner'>
                 Next
                 <ChevronRight className='w-4 h-4' />
               </div>
@@ -222,12 +222,12 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
               variant='outlined'
               icon={<GitCompare className='w-4 h-4' />}
               onClick={() => setIsComparisonModalOpen(true)}
-              className="flex-shrink-0 text-xs sm:text-sm"
+              className="content-details__action-btn"
             >
               Compare
             </Button>
             <Link href={content?.sermonNumber ? `/manuscripts?section=${content.sermonNumber}` : '/manuscripts'}>
-              <Button variant='outlined' icon={<Book className='w-4 h-4' />} className="flex-shrink-0 text-xs sm:text-sm">
+              <Button variant='outlined' icon={<Book className='w-4 h-4' />} className="content-details__action-btn">
                 Manuscripts
               </Button>
             </Link>
@@ -245,13 +245,13 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
         {/* Next/Previous Navigation */}
         <div className="adjacent-post-nav">
-          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
+          <div className="content-details__nav-grid">
             {/* Previous Post */}
-            <div className="flex-1">
+            <div className="content-details__nav-col">
               {adjacentPosts.previous ? (
                 <button
                   onClick={() => navigateToPost(adjacentPosts.previous!)}
-                  className="adjacent-post-card group w-full text-left relative"
+                  className="adjacent-post-card group"
                 >
                   {/* Hover corners */}
                   <div className="corner-accent-hover corner-accent-hover--top-left" />
@@ -260,92 +260,92 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
                     <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
                     <span className="adjacent-post-label__text">Previous</span>
                   </div>
-                  
+
                   {/* Heading/Title */}
-                  <div className="adjacent-post-heading line-clamp-2 mb-1">
+                  <div className="adjacent-post-heading">
                     {truncateText(adjacentPosts.previous.heading, 60)}
                   </div>
-                  
+
                   {/* English Summary (TocEnglish) */}
                   {adjacentPosts.previous.TocEnglish && (
-                    <div className="font-body text-xs text-[var(--color-charcoal)] line-clamp-2 mb-1">
+                    <div className="content-details__adj-english">
                       {truncateText(adjacentPosts.previous.TocEnglish, 80)}
                     </div>
                   )}
-                  
+
                   {/* Arabic Summary (TocArabic) */}
                   {adjacentPosts.previous.TocArabic && (
-                    <div className="font-taha text-xs text-[var(--color-warm-gray)] line-clamp-1 text-right" dir="rtl">
+                    <div className="content-details__adj-arabic" dir="rtl">
                       {truncateText(adjacentPosts.previous.TocArabic, 60)}
                     </div>
                   )}
-                  
+
                   {/* Section Number */}
                   {adjacentPosts.previous.sermonNumber && (
-                    <div className="text-[10px] lg:text-xs text-[var(--color-warm-gray)] mt-1 font-body">
+                    <div className="content-details__adj-section">
                       {adjacentPosts.previous.sermonNumber}
                     </div>
                   )}
                 </button>
               ) : (
                 <div className="adjacent-post-card adjacent-post-card--disabled">
-                  <div className="flex items-center gap-1 lg:gap-2 text-[var(--color-warm-gray)] mb-2">
+                  <div className="content-details__adj-disabled-label">
                     <ChevronLeft className="w-3 h-3 lg:w-4 lg:h-4" />
                     <span className="adjacent-post-label__text">Previous</span>
                   </div>
-                  <div className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base">No previous {getContentTypeLabel().toLowerCase()}</div>
+                  <div className="content-details__adj-disabled-text">No previous {getContentTypeLabel().toLowerCase()}</div>
                 </div>
               )}
             </div>
 
             {/* Next Post */}
-            <div className="flex-1">
+            <div className="content-details__nav-col">
               {adjacentPosts.next ? (
                 <button
                   onClick={() => navigateToPost(adjacentPosts.next!)}
-                  className="adjacent-post-card adjacent-post-card--next group w-full text-right relative"
+                  className="adjacent-post-card adjacent-post-card--next group"
                 >
                   {/* Hover corners */}
                   <div className="corner-accent-hover corner-accent-hover--bottom-right" />
-                  
-                  <div className="flex items-center justify-end gap-1 lg:gap-2 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] mb-2 transition-colors">
-                    <span className="text-[10px] lg:text-xs tracking-[0.1em] uppercase">Next</span>
+
+                  <div className="content-details__next-label">
+                    <span className="content-details__next-label-text">Next</span>
                     <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
                   </div>
-                  
+
                   {/* Heading/Title */}
-                  <div className="adjacent-post-heading line-clamp-2 mb-1">
+                  <div className="adjacent-post-heading">
                     {truncateText(adjacentPosts.next.heading, 60)}
                   </div>
-                  
+
                   {/* English Summary (TocEnglish) */}
                   {adjacentPosts.next.TocEnglish && (
-                    <div className="font-body text-xs text-[var(--color-charcoal)] line-clamp-2 mb-1">
+                    <div className="content-details__adj-english">
                       {truncateText(adjacentPosts.next.TocEnglish, 80)}
                     </div>
                   )}
-                  
+
                   {/* Arabic Summary (TocArabic) */}
                   {adjacentPosts.next.TocArabic && (
-                    <div className="font-taha text-xs text-[var(--color-warm-gray)] line-clamp-1 text-right" dir="rtl">
+                    <div className="content-details__adj-arabic" dir="rtl">
                       {truncateText(adjacentPosts.next.TocArabic, 60)}
                     </div>
                   )}
-                  
+
                   {/* Section Number */}
                   {adjacentPosts.next.sermonNumber && (
-                    <div className="text-[10px] lg:text-xs text-[var(--color-warm-gray)] mt-1 font-body">
+                    <div className="content-details__adj-section">
                       {adjacentPosts.next.sermonNumber}
                     </div>
                   )}
                 </button>
               ) : (
                 <div className="adjacent-post-card adjacent-post-card--disabled adjacent-post-card--next">
-                  <div className="flex items-center justify-end gap-1 lg:gap-2 text-[var(--color-warm-gray)] mb-2">
+                  <div className="content-details__adj-disabled-label content-details__adj-disabled-label--next">
                     <span className="adjacent-post-label__text">Next</span>
                     <ChevronRight className="w-3 h-3 lg:w-4 lg:h-4" />
                   </div>
-                  <div className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base">No next {getContentTypeLabel().toLowerCase()}</div>
+                  <div className="content-details__adj-disabled-text">No next {getContentTypeLabel().toLowerCase()}</div>
                 </div>
               )}
             </div>

@@ -96,14 +96,14 @@ export function getContentTypeSlug(type: TextRefType): 'Oration' | 'Letter' | 'S
 export function getTextRefTypeColor(type: TextRefType): string {
   switch (type) {
     case 'oration':
-      return 'bg-blue-100 text-blue-700';
+      return 'text-ref-chip--oration';
     case 'letter':
-      return 'bg-purple-100 text-purple-700';
+      return 'text-ref-chip--letter';
     case 'saying':
-      return 'bg-orange-100 text-orange-700';
+      return 'text-ref-chip--saying';
     case 'introduction':
-      return 'bg-green-100 text-green-700';
+      return 'text-ref-chip--introduction';
     default:
-      return 'bg-gray-100 text-gray-700';
+      return 'text-ref-chip--unknown';
   }
 }

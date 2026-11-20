@@ -63,15 +63,15 @@ export default function TopFilterBar({
   };
 
   return (
-    <div className="relative bg-white border border-[var(--color-stone)] p-6 mb-8">
+    <div className="filter-bar">
       {/* Subtle corner accents */}
-      <div className="absolute top-0 left-0 w-3 h-3 border-l border-t border-[var(--color-accent)]" />
-      <div className="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-[var(--color-accent)]" />
+      <div className="filter-bar__corner-accent--top-left" />
+      <div className="filter-bar__corner-accent--bottom-right" />
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="filter-bar__row">
         {/* Search Input */}
-        <div className="flex-1 flex gap-3">
-          <div className="flex-1">
+        <div className="filter-bar__search-group">
+          <div className="filter-bar__search-input-wrap">
             <Input
               placeholder="Search orations, topics, or keywords..."
               value={searchTerm}
@@ -82,18 +82,18 @@ export default function TopFilterBar({
           </div>
           <button
             onClick={handleSearchClick}
-            className="px-5 py-3 bg-[var(--color-primary)] text-white text-sm tracking-[0.1em] uppercase font-body font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200 flex items-center gap-2"
+            className="filter-bar__search-btn"
           >
             <Search className="w-4 h-4" />
-            <span className="hidden sm:inline">Search</span>
+            <span className="filter-bar__search-btn-text">Search</span>
           </button>
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col lg:flex-row gap-3">
+        <div className="filter-bar__controls">
           {/* Go to # input */}
-          <div className="relative flex items-center">
-            <div className="absolute left-3 pointer-events-none">
+          <div className="filter-bar__goto-wrap">
+            <div className="filter-bar__goto-icon">
               <Hash className="w-5 h-5 text-[var(--color-warm-gray)]" />
             </div>
             <input
@@ -104,18 +104,12 @@ export default function TopFilterBar({
               value={goToValue}
               onChange={(e) => setGoToValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full lg:w-28 pl-10 pr-3 py-3 text-sm font-body
-                bg-[var(--color-parchment)] border border-[var(--color-stone)]
-                text-[var(--color-charcoal)] placeholder:text-[var(--color-warm-gray)]
-                focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20
-                transition-all duration-200
-                [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="filter-bar__goto-input"
             />
             <button
               onClick={handleGoTo}
               disabled={!goToValue || parseInt(goToValue, 10) <= 0}
-              className="ml-2 px-4 py-3 bg-[var(--color-primary)] text-white text-sm font-body font-medium
-                hover:bg-[var(--color-primary-dark)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="filter-bar__goto-btn"
             >
               Go
             </button>
@@ -127,7 +121,7 @@ export default function TopFilterBar({
             value={displayMode}
             onChange={(value) => setDisplayMode(value as 'both' | 'english-only' | 'arabic-only')}
             placeholder="Display"
-            className="w-full lg:w-40"
+            className="filter-bar__display-select"
           />
 
           {/* Sort Select */}
@@ -136,7 +130,7 @@ export default function TopFilterBar({
             value={sortBy}
             onChange={setSortBy}
             placeholder="Sort By"
-            className="w-full lg:w-60"
+            className="filter-bar__sort-select"
           />
         </div>
       </div>

@@ -15,7 +15,7 @@ const config = {
 
 export default function OrationsPage() {
   return (
-    <div className="pt-32 lg:pt-36 bg-[var(--color-parchment)] min-h-screen">
+    <div className="content-wrapper">
       <ContentPage config={config} />
     </div>
   );

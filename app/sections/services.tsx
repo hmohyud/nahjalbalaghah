@@ -14,7 +14,6 @@ const ServicesSection = () => {
       title: "Digital Nahj al-Balaghah Library",
       description: "Access the complete collection of sermons, letters, and sayings in multiple formats",
       image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop&crop=faces",
-      gradient: "from-[#43896B] to-[#43896B]/80"
     },
     {
       id: 2,
@@ -22,7 +21,6 @@ const ServicesSection = () => {
       title: "Advanced Text Search",
       description: "Find specific teachings by topic, theme, or keyword across Nahj al-Balaghah",
       image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop",
-      gradient: "from-[#43896B] to-[#43896B]/80"
     },
     {
       id: 3,
@@ -30,7 +28,6 @@ const ServicesSection = () => {
       title: "Multi-Language Translations",
       description: "Read Nahj al-Balaghah in Arabic, English, Urdu, Persian, and more languages",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
-      gradient: "from-[#43896B] to-[#43896B]/80"
     },
     {
       id: 4,
@@ -38,7 +35,6 @@ const ServicesSection = () => {
       title: "Scholarly Commentary",
       description: "Access classical and modern commentaries on Nahj al-Balaghah",
       image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop",
-      gradient: "from-[#43896B] to-[#43896B]/80"
     },
     {
       id: 5,
@@ -46,7 +42,6 @@ const ServicesSection = () => {
       title: "Community Discussions",
       description: "Join discussions and share insights on the teachings of Imam Ali (AS)",
       image: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&h=300&fit=crop",
-      gradient: "from-[#43896B] to-[#43896B]/80"
     }
   ]
 
@@ -63,7 +58,7 @@ const ServicesSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex items-center justify-center gap-3 mb-4"
+            className="services-section__label-row"
           >
             <div className="services-dots">
               <div className="services-dot"></div>
@@ -99,7 +94,7 @@ const ServicesSection = () => {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 + (index * 0.1) }}
-              className="group relative h-full flex"
+              className="service-card__wrapper group"
             >
               <div className="service-card">
                 <div className="service-card__image-wrapper">
@@ -110,7 +105,7 @@ const ServicesSection = () => {
                     height={100}
                     className="service-card__image"
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${service.gradient} opacity-80 group-hover:opacity-70 transition-opacity duration-500`}></div>
+                  <div className="service-card__gradient-overlay"></div>
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}

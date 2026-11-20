@@ -28,29 +28,29 @@ export default function OrationsListing({
   subtitle
 }: OrationsListingProps) {
   return (
-    <div className="lg:w-3/4 relative">
+    <div className="orations-listing">
       {/* Section Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="orations-listing__header">
         <div>
-          <h2 className="font-display text-2xl lg:text-3xl text-[var(--color-ink)]">{title}</h2>
-          <p className="text-[var(--color-warm-gray)] mt-2 font-body text-sm">
+          <h2 className="orations-listing__title">{title}</h2>
+          <p className="orations-listing__subtitle">
             {loading ? "Loading..." : (subtitle || `Showing ${orations.length} of ${total} results`)}
           </p>
         </div>
       </div>
-      
+
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="orations-listing__grid">
           {[...Array(9)].map((_, index) => (
-            <div key={index} className="bg-white border border-[var(--color-stone)] overflow-hidden animate-pulse">
-              <div className="h-40 bg-[var(--color-stone)]"></div>
-              <div className="p-5">
-                <div className="h-5 bg-[var(--color-stone)] mb-3"></div>
-                <div className="h-4 bg-[var(--color-stone)] mb-2 w-4/5"></div>
-                <div className="h-4 bg-[var(--color-stone)] mb-3 w-3/5"></div>
-                <div className="flex gap-2 mt-4">
-                  <div className="h-6 bg-[var(--color-stone)] w-16"></div>
-                  <div className="h-6 bg-[var(--color-stone)] w-20"></div>
+            <div key={index} className="orations-listing__skeleton">
+              <div className="orations-listing__skeleton-image"></div>
+              <div className="orations-listing__skeleton-body">
+                <div className="orations-listing__skeleton-line"></div>
+                <div className="orations-listing__skeleton-line orations-listing__skeleton-line--medium"></div>
+                <div className="orations-listing__skeleton-line orations-listing__skeleton-line--short"></div>
+                <div className="orations-listing__skeleton-tags">
+                  <div className="orations-listing__skeleton-tag orations-listing__skeleton-tag--small"></div>
+                  <div className="orations-listing__skeleton-tag orations-listing__skeleton-tag--large"></div>
                 </div>
               </div>
             </div>
@@ -58,7 +58,7 @@ export default function OrationsListing({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="orations-listing__grid">
             {orations.map((oration) => (
               <ListingCard
                 key={oration.id}
@@ -68,9 +68,9 @@ export default function OrationsListing({
               />
             ))}
           </div>
-          
+
           {totalPages > 1 && onPageChange && (
-            <div className="mt-16">
+            <div className="orations-listing__pagination">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

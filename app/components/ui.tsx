@@ -26,19 +26,11 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   ...props
 }) => {
-  const sizes = {
-    sm: "text-xs px-4 py-2",
-    md: "text-sm px-6 py-3",
-    lg: "text-sm px-8 py-4",
+  const sizes: Record<string, string> = {
+    sm: "ui-button--sm",
+    md: "ui-button--md",
+    lg: "ui-button--lg",
   };
-
-  const baseClasses = `
-    inline-flex items-center justify-center gap-3
-    font-body font-medium tracking-[0.1em] uppercase
-    transition-all duration-300
-    disabled:opacity-50 disabled:cursor-not-allowed
-    focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2
-  `;
 
   // Map aliases to base variants
   const normalizedVariant =
@@ -48,38 +40,20 @@ export const Button: React.FC<ButtonProps> = ({
     variant;
 
   const variantClasses: Record<string, string> = {
-    primary: `
-      bg-[var(--color-primary)] text-white
-      hover:bg-[var(--color-primary-dark)]
-      hover:shadow-lg hover:shadow-[var(--color-primary)]/15
-    `,
-    outline: `
-      bg-transparent text-[var(--color-primary)] border border-[var(--color-primary)]
-      hover:bg-[var(--color-primary)] hover:text-white
-    `,
-    ghost: `
-      bg-transparent text-[var(--color-charcoal)]
-      hover:bg-[var(--color-stone)]/50
-    `,
-    accent: `
-      bg-[var(--color-accent)] text-white
-      hover:bg-[var(--color-accent-dark)]
-      hover:shadow-lg hover:shadow-[var(--color-accent)]/15
-    `,
-    danger: `
-      bg-red-600 text-white
-      hover:bg-red-700
-      hover:shadow-lg hover:shadow-red-600/15
-    `,
+    primary: "ui-button--primary",
+    outline: "ui-button--outline",
+    ghost: "ui-button--ghost",
+    accent: "ui-button--accent",
+    danger: "ui-button--danger",
   };
 
   return (
     <button
-      className={`${baseClasses} ${variantClasses[normalizedVariant] || variantClasses.primary} ${sizes[size]} ${className}`}
+      className={`ui-button ${variantClasses[normalizedVariant] || variantClasses.primary} ${sizes[size]} ${className}`}
       disabled={isLoading || disabled}
       {...props}
     >
-      {icon && <span className="flex-shrink-0">{icon}</span>}
+      {icon && <span className="ui-button__icon">{icon}</span>}
       <span>{isLoading ? "Loading..." : children}</span>
     </button>
   );
@@ -104,32 +78,22 @@ export const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   return (
-    <div className="w-full">
+    <div className="ui-input">
       {label && (
-        <label className="block text-sm font-medium text-[var(--color-charcoal)] mb-2">
+        <label className="ui-input__label">
           {label}
         </label>
       )}
-      <div className="relative">
+      <div className="ui-input__wrapper">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-warm-gray)]">
+          <div className="ui-input__icon">
             {icon}
           </div>
         )}
         <input
           type="text"
           placeholder={placeholder}
-          className={`
-            w-full py-3 px-4 ${icon ? 'pl-11' : 'pl-4'}
-            bg-[var(--color-parchment)]
-            border border-[var(--color-stone)]
-            text-[var(--color-charcoal)]
-            placeholder:text-[var(--color-warm-gray)]
-            text-sm font-body
-            focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20
-            transition-all duration-300
-            ${className}
-          `}
+          className={`ui-input__field ${icon ? 'ui-input__field--with-icon' : ''} ${className}`}
           {...props}
         />
       </div>
@@ -180,33 +144,23 @@ export const Select: React.FC<SelectProps> = ({
   }, []);
 
   return (
-    <div ref={selectRef} className={`relative ${className}`}>
+    <div ref={selectRef} className={`ui-select ${className}`}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`
-          w-full flex items-center justify-between gap-2 px-4 py-3
-          bg-[var(--color-parchment)] border border-[var(--color-stone)]
-          text-sm font-body text-left
-          transition-all duration-200
-          ${disabled
-            ? 'opacity-50 cursor-not-allowed'
-            : 'hover:border-[var(--color-primary)]/50 focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20'
-          }
-          ${isOpen ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]/20' : ''}
-        `}
+        className={`ui-select__trigger ${disabled ? 'ui-select__trigger--disabled' : ''} ${isOpen ? 'ui-select__trigger--open' : ''}`}
       >
-        <span className={selectedOption ? 'text-[var(--color-charcoal)]' : 'text-[var(--color-warm-gray)]'}>
+        <span className={selectedOption ? 'ui-select__value' : 'ui-select__placeholder'}>
           {selectedOption?.label || placeholder}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-[var(--color-warm-gray)] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 ui-select__chevron ${isOpen ? 'ui-select__chevron--open' : ''}`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-[var(--color-stone)] shadow-lg max-h-60 overflow-auto">
+        <div className="ui-select__dropdown">
           {options.map((option) => (
             <button
               key={option.value}
@@ -215,14 +169,11 @@ export const Select: React.FC<SelectProps> = ({
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`
-                w-full px-4 py-3 text-left text-sm font-body
-                transition-colors duration-150
-                ${option.value === value
-                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                  : 'text-[var(--color-charcoal)] hover:bg-[var(--color-parchment)]'
-                }
-              `}
+              className={`ui-select__option ${
+                option.value === value
+                  ? 'ui-select__option--selected'
+                  : 'ui-select__option--unselected'
+              }`}
             >
               {option.label}
             </button>
@@ -255,34 +206,24 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   return (
     <label
       htmlFor={id}
-      className={`flex items-center gap-3 cursor-pointer group ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`ui-checkbox ${disabled ? 'ui-checkbox--disabled' : ''}`}
     >
-      <div className="relative">
+      <div className="ui-checkbox__wrapper">
         <input
           type="checkbox"
           id={id}
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           disabled={disabled}
-          className="sr-only peer"
+          className="ui-checkbox__input"
         />
-        <div className={`
-          w-5 h-5 border transition-all duration-200
-          ${checked
-            ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
-            : 'bg-white border-[var(--color-stone)] group-hover:border-[var(--color-primary)]/50'
-          }
-        `}>
+        <div className={`ui-checkbox__box ${checked ? 'ui-checkbox__box--checked' : ''}`}>
           {checked && (
             <Check className="w-full h-full text-white p-0.5" strokeWidth={3} />
           )}
         </div>
       </div>
-      <span className={`
-        text-sm font-body transition-colors duration-200
-        ${checked ? 'text-[var(--color-ink)]' : 'text-[var(--color-charcoal)]'}
-        group-hover:text-[var(--color-primary)]
-      `}>
+      <span className={`ui-checkbox__label ${checked ? 'ui-checkbox__label--checked' : ''}`}>
         {label}
       </span>
     </label>
@@ -390,9 +331,9 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
   return (
     <AnimatePresence mode="wait">
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="ui-modal">
           <motion.div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            className="ui-modal__backdrop"
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
@@ -400,7 +341,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
             onClick={onClose}
           />
           <motion.div
-            className="relative bg-white rounded-2xl shadow-2xl max-w-6xl max-h-[90vh] w-full mx-4 overflow-hidden"
+            className="ui-modal__panel"
             variants={modalVariants}
             initial="hidden"
             animate="visible"
@@ -408,13 +349,13 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <motion.div
-              className="flex items-center justify-between p-6 border-b border-gray-200"
+              className="ui-modal__header"
               variants={headerVariants}
               initial="hidden"
               animate="visible"
             >
               <motion.h3
-                className="text-xl font-bold text-gray-900"
+                className="ui-modal__title"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
@@ -423,7 +364,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
               </motion.h3>
               <motion.button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="ui-modal__close-btn"
                 variants={closeButtonVariants}
                 initial="hidden"
                 animate="visible"
@@ -446,7 +387,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
               </motion.button>
             </motion.div>
             <motion.div
-              className="overflow-auto max-h-[calc(90vh-80px)]"
+              className="ui-modal__body"
               variants={contentVariants}
               initial="hidden"
               animate="visible"
@@ -471,13 +412,13 @@ interface ViewToggleProps {
 
 export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
   return (
-    <div className="flex bg-gray-100 rounded-lg p-1">
+    <div className="ui-view-toggle">
       <button
         onClick={() => onViewChange('grid')}
-        className={`cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+        className={`ui-view-toggle__btn ${
           view === 'grid'
-            ? 'bg-white text-[#43896B] shadow-sm'
-            : 'text-gray-600 hover:text-gray-900'
+            ? 'ui-view-toggle__btn--active'
+            : 'ui-view-toggle__btn--inactive'
         }`}
       >
         <Grid3X3 className="w-4 h-4" />
@@ -485,10 +426,10 @@ export function ViewToggle({ view, onViewChange }: ViewToggleProps) {
       </button>
       <button
         onClick={() => onViewChange('list')}
-        className={`cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+        className={`ui-view-toggle__btn ${
           view === 'list'
-            ? 'bg-white text-[#43896B] shadow-sm'
-            : 'text-gray-600 hover:text-gray-900'
+            ? 'ui-view-toggle__btn--active'
+            : 'ui-view-toggle__btn--inactive'
         }`}
       >
         <List className="w-4 h-4" />

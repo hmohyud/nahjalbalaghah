@@ -44,46 +44,36 @@ const FeaturedManuscriptsSection = () => {
   }, [])
 
   return (
-    <section ref={sectionRef} className="section-dark" style={{ backgroundColor: '#1A1816' }}>
+    <section ref={sectionRef} className="section-dark section-dark--manuscripts">
       {/* Subtle dot pattern */}
-      <div
-        className="dot-pattern"
-        style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0)`,
-          backgroundSize: '32px 32px'
-        }}
-      />
+      <div className="dot-pattern dot-pattern--manuscripts" />
 
       {/* Section frame corners - subtle, atmospheric */}
-      <div className="corner-frame corner-frame--top-left" style={{ borderColor: 'rgba(184, 149, 107, 0.15)' }} />
-      <div className="corner-frame corner-frame--bottom-right" style={{ borderColor: 'rgba(184, 149, 107, 0.15)' }} />
+      <div className="corner-frame corner-frame--top-left corner-frame--gold" />
+      <div className="corner-frame corner-frame--bottom-right corner-frame--gold" />
 
-      <div className="section-container relative z-20">
+      <div className="section-container section-container--relative-z20">
         {/* Header */}
         <div className="manuscripts-header">
           <div>
             <span
-              className={`section-label fade-in-up ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
-              style={{ color: '#B8956B' }}
+              className={`section-label text-gold fade-in-up ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
             >
               Historical Treasures
             </span>
             <h2
               className={`section-title section-title--white fade-in-up fade-delay-100 ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
-              style={{ color: '#FFFFFF' }}
             >
               Featured Manuscripts
             </h2>
             <div
-              className={`section-accent-bar mt-6 fade-in-up fade-delay-200 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
-              style={{ backgroundColor: '#B8956B' }}
+              className={`section-accent-bar bg-gold mt-6 fade-in-up fade-delay-200 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
             />
           </div>
 
           <Link
             href="/manuscripts"
-            className={`manuscripts-view-all group ${isVisible ? 'opacity-60' : 'opacity-0'}`}
-            style={{ color: '#FFFFFF' }}
+            className={`manuscripts-view-all group ${isVisible ? 'manuscripts-view-all--visible' : 'manuscripts-view-all--hidden'}`}
           >
             <span className="manuscripts-view-all__text">View All Manuscripts</span>
             <ArrowRight className="manuscripts-view-all__arrow" />
@@ -104,9 +94,9 @@ const FeaturedManuscriptsSection = () => {
                 className={`group block fade-in-up ${isVisible ? 'fade-in-up--visible' : 'fade-in-up-lg--hidden'}`}
                 style={{ transitionDelay: `${400 + index * 150}ms` }}
               >
-                <div className="relative">
+                <div className="relative-wrapper">
                   {/* Image container */}
-                  <div className="manuscript-card-image" style={{ backgroundColor: '#2C2825' }}>
+                  <div className="manuscript-card-image bg-manuscript-dark">
                     {manuscript.files && manuscript.files.length > 0 ? (
                       <img
                         src={getManuscriptImageUrl(manuscript.files[0].url)}
@@ -125,15 +115,15 @@ const FeaturedManuscriptsSection = () => {
                   {/* Content */}
                   <div className="manuscript-card-content">
                     {manuscript.gregorianYear && (
-                      <div className="manuscript-card-year" style={{ color: '#B8956B' }}>
+                      <div className="manuscript-card-year text-gold">
                         {manuscript.gregorianYear}
                       </div>
                     )}
-                    <h3 className="manuscript-card-title line-clamp-2" style={{ color: '#FFFFFF' }}>
+                    <h3 className="manuscript-card-title line-clamp-2 text-white-full">
                       {manuscript.bookName || `Section ${manuscript.section}`}
                     </h3>
                     {manuscript.holdingInstitution && (
-                      <p className="manuscript-card-institution line-clamp-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                      <p className="manuscript-card-institution line-clamp-1 text-white-muted">
                         {manuscript.holdingInstitution}
                       </p>
                     )}
@@ -153,7 +143,7 @@ const FeaturedManuscriptsSection = () => {
           className={`section-ornament fade-in-up fade-delay-1000 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
         >
           <div className="section-ornament__line section-ornament__line--light-right" />
-          <div className="section-ornament__diamond--bordered" style={{ borderColor: '#B8956B' }} />
+          <div className="section-ornament__diamond--bordered border-gold" />
           <div className="section-ornament__line section-ornament__line--light-left" />
         </div>
       </div>

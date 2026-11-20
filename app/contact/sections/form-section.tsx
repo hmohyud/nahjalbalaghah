@@ -50,61 +50,61 @@ const ContactFormSection = () => {
   };
 
   return (
-    <section id="contact-form-section" className="bg-[var(--color-parchment)] py-16 lg:py-24">
-      <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+    <section id="contact-form-section" className="contact-form">
+      <div className="contact-form__container">
+        <div className="contact-form__grid">
           {/* Left Side - Contact Info */}
           <div>
-            <h2 className="font-display text-3xl lg:text-4xl text-[var(--color-ink)] mb-6">
+            <h2 className="contact-form__title">
               Send Us a Message
             </h2>
-            <p className="font-body text-[var(--color-warm-gray)] mb-8 leading-relaxed">
+            <p className="contact-form__description">
               Our team will respond as soon as possible. You can also reach us directly through the contact information below.
             </p>
 
             {/* Contact Details */}
-            <div className="space-y-4 mb-12">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-5 h-5 text-[var(--color-primary)]" />
+            <div className="contact-form__details">
+              <div className="contact-form__detail-row">
+                <div className="contact-form__detail-icon-box">
+                  <Mail className="w-5 h-5 contact-form__detail-icon" />
                 </div>
                 <div>
-                  <span className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body block">Email</span>
-                  <span className="font-body text-[var(--color-charcoal)]">info@nahj-al-balagha.com</span>
+                  <span className="contact-form__detail-label">Email</span>
+                  <span className="contact-form__detail-value">info@nahj-al-balagha.com</span>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-[var(--color-primary)]" />
+              <div className="contact-form__detail-row">
+                <div className="contact-form__detail-icon-box">
+                  <Phone className="w-5 h-5 contact-form__detail-icon" />
                 </div>
                 <div>
-                  <span className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body block">Phone</span>
-                  <span className="font-body text-[var(--color-charcoal)]">+98 21 1234 5678</span>
+                  <span className="contact-form__detail-label">Phone</span>
+                  <span className="contact-form__detail-value">+98 21 1234 5678</span>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-[var(--color-primary)]" />
+              <div className="contact-form__detail-row">
+                <div className="contact-form__detail-icon-box">
+                  <MapPin className="w-5 h-5 contact-form__detail-icon" />
                 </div>
                 <div>
-                  <span className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body block">Location</span>
-                  <span className="font-body text-[var(--color-charcoal)]">Qom, Iran</span>
+                  <span className="contact-form__detail-label">Location</span>
+                  <span className="contact-form__detail-value">Qom, Iran</span>
                 </div>
               </div>
             </div>
 
             {/* Why Contact Us */}
             <div>
-              <h3 className="font-display text-xl text-[var(--color-ink)] mb-6">Why Contact Us?</h3>
-              <div className="space-y-4">
+              <h3 className="contact-form__why-title">Why Contact Us?</h3>
+              <div className="contact-form__why-list">
                 {whyContact.map((item) => (
-                  <div key={item.title} className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-[var(--color-accent)]/20 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="w-5 h-5 text-[var(--color-accent)]" />
+                  <div key={item.title} className="contact-form__why-item">
+                    <div className="contact-form__why-icon-box">
+                      <item.icon className="w-5 h-5 contact-form__why-icon" />
                     </div>
                     <div>
-                      <h4 className="font-body font-medium text-[var(--color-charcoal)] mb-1">{item.title}</h4>
-                      <p className="font-body text-sm text-[var(--color-warm-gray)]">{item.desc}</p>
+                      <h4 className="contact-form__why-item-title">{item.title}</h4>
+                      <p className="contact-form__why-item-desc">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -114,19 +114,19 @@ const ContactFormSection = () => {
 
           {/* Right Side - Form */}
           <div>
-            <div className="relative bg-white border border-[var(--color-stone)]">
+            <div className="contact-form__card">
               {/* Corner accents */}
-              <div className="absolute top-0 left-0 w-5 h-5 border-l-2 border-t-2 border-[var(--color-accent)]" />
-              <div className="absolute bottom-0 right-0 w-5 h-5 border-r-2 border-b-2 border-[var(--color-accent)]" />
+              <div className="contact-form__corner--top" />
+              <div className="contact-form__corner--bottom" />
 
-              <div className="p-6 lg:p-8">
+              <div className="contact-form__card-inner">
                 {submitted ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto mb-6">
-                      <CheckCircle className="w-8 h-8 text-green-600" />
+                  <div className="contact-form__success">
+                    <div className="contact-form__success-icon-box">
+                      <CheckCircle className="w-8 h-8 contact-form__success-icon" />
                     </div>
-                    <h3 className="font-display text-2xl text-[var(--color-ink)] mb-4">Message Sent!</h3>
-                    <p className="font-body text-[var(--color-warm-gray)] mb-6">
+                    <h3 className="contact-form__success-title">Message Sent!</h3>
+                    <p className="contact-form__success-text">
                       Thank you for reaching out! We have received your message and our team will get back to you soon.
                     </p>
                     <button
@@ -134,27 +134,27 @@ const ContactFormSection = () => {
                         setSubmitted(false);
                         setForm({ name: '', email: '', message: '', consent: false });
                       }}
-                      className="font-body text-[var(--color-primary)] hover:underline"
+                      className="contact-form__success-link"
                     >
                       Send another message
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="contact-form__fields">
                     {/* Name Field */}
                     <div>
-                      <label className="block text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body mb-2">
+                      <label className="contact-form__label">
                         Name
                       </label>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-warm-gray)]" />
+                      <div className="contact-form__input-wrapper">
+                        <User className="w-5 h-5 contact-form__input-icon" />
                         <input
                           type="text"
                           name="name"
                           value={form.name}
                           onChange={handleChange}
                           placeholder="Your Name"
-                          className="w-full pl-12 pr-4 py-3 border border-[var(--color-stone)] font-body text-[var(--color-charcoal)] placeholder:text-[var(--color-warm-gray)]/60 focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                          className="contact-form__input"
                           required
                         />
                       </div>
@@ -162,18 +162,18 @@ const ContactFormSection = () => {
 
                     {/* Email Field */}
                     <div>
-                      <label className="block text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body mb-2">
+                      <label className="contact-form__label">
                         Email
                       </label>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-warm-gray)]" />
+                      <div className="contact-form__input-wrapper">
+                        <Mail className="w-5 h-5 contact-form__input-icon" />
                         <input
                           type="email"
                           name="email"
                           value={form.email}
                           onChange={handleChange}
                           placeholder="you@email.com"
-                          className="w-full pl-12 pr-4 py-3 border border-[var(--color-stone)] font-body text-[var(--color-charcoal)] placeholder:text-[var(--color-warm-gray)]/60 focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                          className="contact-form__input"
                           required
                         />
                       </div>
@@ -181,7 +181,7 @@ const ContactFormSection = () => {
 
                     {/* Message Field */}
                     <div>
-                      <label className="block text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body mb-2">
+                      <label className="contact-form__label">
                         Message
                       </label>
                       <textarea
@@ -190,35 +190,35 @@ const ContactFormSection = () => {
                         onChange={handleChange}
                         placeholder="Type your message here..."
                         rows={5}
-                        className="w-full px-4 py-3 border border-[var(--color-stone)] font-body text-[var(--color-charcoal)] placeholder:text-[var(--color-warm-gray)]/60 focus:outline-none focus:border-[var(--color-primary)] transition-colors resize-none"
+                        className="contact-form__textarea"
                         required
                       />
                     </div>
 
                     {/* Consent Checkbox */}
-                    <div className="flex items-start gap-3">
+                    <div className="contact-form__consent">
                       <input
                         type="checkbox"
                         id="consent"
                         name="consent"
                         checked={form.consent}
                         onChange={handleCheckboxChange}
-                        className="mt-1 w-4 h-4 border-[var(--color-stone)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                        className="contact-form__checkbox"
                       />
-                      <label htmlFor="consent" className="font-body text-sm text-[var(--color-warm-gray)]">
-                        I agree to the <a href="/privacy" className="text-[var(--color-primary)] hover:underline">privacy policy</a>.
+                      <label htmlFor="consent" className="contact-form__consent-label">
+                        I agree to the <a href="/privacy" className="contact-form__consent-link">privacy policy</a>.
                       </label>
                     </div>
 
                     {/* Error Message */}
                     {error && (
-                      <div className="text-red-600 text-sm font-body">{error}</div>
+                      <div className="contact-form__error">{error}</div>
                     )}
 
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="btn-primary w-full justify-center"
+                      className="btn-primary contact-form__submit"
                     >
                       <Send className="w-5 h-5" />
                       Send Message

@@ -15,7 +15,7 @@ export default function LettersTimelinePage() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch all letters
         const batchSize = 100;
         let currentPage = 1;
@@ -25,10 +25,10 @@ export default function LettersTimelinePage() {
         while (hasMore) {
           const response = await lettersApi.getLetters(currentPage, batchSize);
           if (!response || !response.data) break;
-          
+
           const filteredData = response.data.filter(item => item.heading);
           allData.push(...filteredData);
-          
+
           const totalPages = response.meta?.pagination?.pageCount || 1;
           hasMore = currentPage < totalPages;
           currentPage++;
@@ -47,47 +47,47 @@ export default function LettersTimelinePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="timeline-wrapper">
+      <div className="timeline-wrapper__container">
         {/* Header */}
-        <div className="mb-6 lg:mb-8">
+        <div className="timeline-wrapper__header">
           <Link
             href="/letters"
-            className="inline-flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-body text-sm lg:text-base transition-colors mb-4"
+            className="timeline-wrapper__back-link"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Letters
           </Link>
-          
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-[var(--color-primary)]/10">
-              <Calendar className="w-5 h-5 lg:w-6 lg:h-6 text-[var(--color-primary)]" />
+
+          <div className="timeline-wrapper__title-row">
+            <div className="timeline-wrapper__icon-box">
+              <Calendar className="w-5 h-5 lg:w-6 lg:h-6" />
             </div>
-            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-ink)]">
+            <h1 className="timeline-wrapper__title">
               Letters Timeline
             </h1>
           </div>
-          
-          <p className="font-body text-sm lg:text-base text-[var(--color-warm-gray)] max-w-2xl">
-            Explore the epistles and correspondence of Imam Ali in chronological order. 
+
+          <p className="timeline-wrapper__subtitle">
+            Explore the epistles and correspondence of Imam Ali in chronological order.
             Click on any point to view details and navigate to the full text.
           </p>
-          
-          <div className="w-12 lg:w-16 h-[2px] bg-[var(--color-accent)] mt-4 lg:mt-6" />
+
+          <div className="timeline-wrapper__accent-line" />
         </div>
 
         {/* Timeline */}
-        <div className="bg-white border border-[var(--color-stone)] p-4 sm:p-6 lg:p-8 relative">
+        <div className="timeline-wrapper__content-box">
           {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-4 h-4 lg:w-6 lg:h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 lg:w-6 lg:h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
-          
+          <div className="timeline-wrapper__corner-accent--top-left" />
+          <div className="timeline-wrapper__corner-accent--bottom-right" />
+
           {error ? (
-            <div className="text-center py-12">
-              <p className="text-[var(--color-warm-gray)] font-body mb-4">{error}</p>
+            <div className="timeline-wrapper__error">
+              <p className="timeline-wrapper__error-text">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white font-body hover:bg-[var(--color-primary-dark)] transition-colors"
+                className="timeline-wrapper__retry-btn"
               >
                 Try Again
               </button>
@@ -95,7 +95,7 @@ export default function LettersTimelinePage() {
           ) : (
             <Timeline
               contentType="letters"
-              title="Letters (المكتوبات)"
+              title="Letters (&#x627;&#x644;&#x645;&#x643;&#x62A;&#x648;&#x628;&#x627;&#x62A;)"
               items={letters}
               loading={loading}
             />
@@ -103,9 +103,9 @@ export default function LettersTimelinePage() {
         </div>
 
         {/* Help Text */}
-        <div className="mt-6 lg:mt-8 p-4 bg-[var(--color-cream)] border border-[var(--color-stone)]">
-          <h3 className="font-display text-base lg:text-lg text-[var(--color-ink)] mb-2">How to use the timeline</h3>
-          <ul className="space-y-1 text-sm text-[var(--color-charcoal)] font-body">
+        <div className="timeline-wrapper__help-box">
+          <h3 className="timeline-wrapper__help-title">How to use the timeline</h3>
+          <ul className="timeline-wrapper__help-list">
             <li>• Click on any point to see a preview of that letter</li>
             <li>• Use the arrow buttons to navigate through the timeline</li>
             <li>• Type a number and press Enter to jump to a specific letter</li>

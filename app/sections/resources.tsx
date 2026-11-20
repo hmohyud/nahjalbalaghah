@@ -47,7 +47,7 @@ const ResourcesSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0}}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex justify-center items-center gap-3"
+            className="resources-section__label-row"
           >
             <BookOpen className="green-section-icon" />
             <span className="section-label--green">Historical Treasures</span>
@@ -56,7 +56,7 @@ const ResourcesSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0}}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="section-title--green mt-4"
+            className="section-title--green section-title--green-mt"
           >
             Islamic <span className="green-section-title-accent">Resources & Maps</span>
           </motion.h2>
@@ -86,13 +86,13 @@ const ResourcesSection = () => {
               transition={{ duration: 0.6, delay: 0.7 + (index * 0.1) }}
               className="collection-card"
             >
-              <div className="flex items-center gap-4 mb-4">
+              <div className="resources-section__card-header">
                 <div className="collection-card__icon-wrapper">
                   <collection.icon className="collection-card__icon" />
                 </div>
                 <div>
                   <h3 className="collection-card__title">{collection.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="resources-section__card-period-row">
                     <Calendar className="green-section-icon--sm" />
                     <span className="collection-card__period">{collection.period}</span>
                   </div>

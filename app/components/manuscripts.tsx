@@ -26,14 +26,14 @@ interface ManuscriptViewerProps {
 }
 
 const MissingPagePlaceholder: React.FC<{ pageNumber: number; className?: string }> = ({ pageNumber, className = '' }) => (
-  <div className={`flex items-center justify-center bg-gray-100 min-h-[400px] lg:min-h-[600px] rounded-lg ${className}`}>
-    <div className="text-center p-8">
-      <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div className={`ms-viewer__missing-page ${className}`}>
+    <div className="ms-viewer__missing-page-inner">
+      <svg className="w-16 h-16 ms-viewer__missing-page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">Page Missing</h3>
-      <p className="text-gray-500">This page is missing from this manuscript.</p>
-      <p className="text-sm text-gray-400 mt-2">Page {pageNumber}</p>
+      <h3 className="ms-viewer__missing-page-title">Page Missing</h3>
+      <p className="ms-viewer__missing-page-text">This page is missing from this manuscript.</p>
+      <p className="ms-viewer__missing-page-number">Page {pageNumber}</p>
     </div>
   </div>
 );
@@ -79,45 +79,42 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
     <>
       {isExpanded && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+          className="ms-viewer__overlay"
           onClick={toggleExpand}
         />
       )}
 
-      <div className={`bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-500 ease-in-out ${
-        isExpanded ? 'fixed inset-4 z-50 animate-expand' : 'relative'
+      <div className={`ms-viewer__wrapper ${
+        isExpanded ? 'ms-viewer__wrapper--expanded' : 'ms-viewer__wrapper--relative'
       }`}
-      style={{
-        transform: isExpanded ? 'scale(1)' : 'scale(1)',
-        opacity: isExpanded ? 1 : 1
-      }}>
-        <div className="bg-[#F5F6FA] border-b border-[#E2E3E9] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+>
+        <div className="ms-viewer__toolbar">
+        <div className="ms-viewer__toolbar-group">
           <button
             onClick={handleZoomOut}
             disabled={zoom <= 50}
-            className="cursor-pointer p-2 hover:bg-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ms-viewer__btn"
             aria-label="Zoom out"
           >
-            <ZoomOut className="w-5 h-5 text-gray-700" />
+            <ZoomOut className="w-5 h-5" />
           </button>
-          <span className="text-sm font-medium text-gray-700 min-w-[60px] text-center">
+          <span className="ms-viewer__zoom-label">
             {zoom}%
           </span>
           <button
             onClick={handleZoomIn}
             disabled={zoom >= 200}
-            className="cursor-pointer p-2 hover:bg-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ms-viewer__btn"
             aria-label="Zoom in"
           >
-            <ZoomIn className="w-5 h-5 text-gray-700" />
+            <ZoomIn className="w-5 h-5" />
           </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="ms-viewer__toolbar-group">
           <button
             onClick={toggleViewMode}
-            className={`cursor-pointer p-2 rounded-lg transition-colors ${
-              viewMode === 'gallery' ? 'bg-[#43896B] text-white' : 'hover:bg-white text-gray-700'
+            className={`ms-viewer__btn ${
+              viewMode === 'gallery' ? 'ms-viewer__btn--active' : ''
             }`}
             aria-label={viewMode === 'gallery' ? 'Single page view' : 'Gallery view'}
           >
@@ -125,28 +122,28 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
           </button>
           <button
             onClick={toggleExpand}
-            className="cursor-pointer p-2 hover:bg-white rounded-lg transition-colors"
+            className="ms-viewer__btn"
             aria-label={isExpanded ? 'Minimize' : 'Expand'}
           >
             {isExpanded ? (
-              <Minimize2 className="w-5 h-5 text-gray-700" />
+              <Minimize2 className="w-5 h-5" />
             ) : (
-              <Maximize2 className="w-5 h-5 text-gray-700" />
+              <Maximize2 className="w-5 h-5" />
             )}
           </button>
         </div>
       </div>
-      <div className="flex flex-col lg:flex-row h-full">
-        <div className="lg:w-24 bg-[#F5F6FA] border-b lg:border-b-0 lg:border-r border-[#E2E3E9] p-2 overflow-y-auto">
-          <div className="flex lg:flex-col gap-2">
+      <div className="ms-viewer__layout">
+        <div className="ms-viewer__sidebar">
+          <div className="ms-viewer__sidebar-thumbs">
               {pages.map((page, index) => (
               <button
                 key={index}
                 onClick={() => handleThumbnailClick(index)}
-                className={`flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                className={`ms-viewer__thumb ${
                   currentPage === index
-                    ? 'border-[#43896B] shadow-md'
-                    : 'border-transparent hover:border-gray-300'
+                    ? 'ms-viewer__thumb--active'
+                    : ''
                 }`}
                 aria-label={`Page ${index + 1}`}
               >
@@ -154,7 +151,7 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
                   <img
                     src={page}
                     alt={`Page ${index + 1} thumbnail`}
-                    className="w-full h-full object-cover"
+                    className="ms-viewer__thumb-img"
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement;
                       target.onerror = null;
@@ -162,8 +159,8 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="ms-viewer__thumb-missing">
+                    <svg className="w-6 h-6" style={{ color: '#9ca3af' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </div>
@@ -172,12 +169,12 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
             ))}
           </div>
         </div>
-        <div className="flex-1 overflow-auto bg-white">
+        <div className="ms-viewer__main">
           {viewMode === 'single' ? (
             pages[currentPage] ? (
-              <div className="flex items-center justify-center min-h-[400px] lg:min-h-[600px] p-4">
+              <div className="ms-viewer__single-page">
                 <div
-                  className="relative bg-white shadow-2xl rounded-lg overflow-hidden transition-transform duration-300"
+                  className="ms-viewer__page-image-wrapper"
                   style={{
                     transform: `scale(${zoom / 100})`,
                     transformOrigin: 'center'
@@ -186,7 +183,7 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
                   <img
                     src={pages[currentPage]}
                     alt={`${bookName} - Page ${currentPage + 1}`}
-                    className="max-w-full h-auto"
+                    className="ms-viewer__page-image"
                   />
                 </div>
               </div>
@@ -194,19 +191,19 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
               <MissingPagePlaceholder pageNumber={currentPage + 1} />
             )
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+            <div className="ms-viewer__gallery">
               {pages.map((page, index) => (
                 <div
                   key={index}
                   onClick={() => handleThumbnailClick(index)}
-                  className="relative group rounded-lg overflow-hidden transition-all cursor-pointer bg-gray-100"
+                  className="ms-viewer__gallery-item"
                 >
                   {page ? (
                     <>
                       <img
                         src={page}
                         alt={`${bookName} - Page ${index + 1}`}
-                        className="w-full h-auto block"
+                        className="ms-viewer__gallery-item-img"
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement;
                           console.error('Image failed to load:', page);
@@ -214,20 +211,20 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
                           target.src = '/file.svg';
                         }}
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center pointer-events-none">
-                        <span className="text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg">
+                      <div className="ms-viewer__gallery-overlay">
+                        <span className="ms-viewer__gallery-overlay-text">
                           Page {index + 1}
                         </span>
                       </div>
                     </>
                   ) : (
-                    <div className="aspect-[3/4] flex items-center justify-center bg-gray-200">
-                      <div className="text-center p-4">
-                        <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="ms-viewer__gallery-missing">
+                      <div className="ms-viewer__gallery-missing-inner">
+                        <svg className="w-12 h-12" style={{ color: '#9ca3af', margin: '0 auto 0.5rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <p className="text-xs text-gray-500 font-medium">Page {index + 1}</p>
-                        <p className="text-xs text-gray-400">Missing</p>
+                        <p className="ms-viewer__gallery-missing-page">Page {index + 1}</p>
+                        <p className="ms-viewer__gallery-missing-label">Missing</p>
                       </div>
                     </div>
                   )}
@@ -238,28 +235,28 @@ export const ManuscriptViewer: React.FC<ManuscriptViewerProps> = ({ pages, bookN
         </div>
       </div>
       {viewMode === 'single' && (
-        <div className="bg-[#F5F6FA] border-t border-[#E2E3E9] px-4 py-3 flex items-center justify-between">
+        <div className="ms-viewer__pagination-bar">
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ms-viewer__nav-btn"
             aria-label="Previous page"
           >
             <ChevronLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Previous</span>
+            <span className="ms-viewer__nav-btn-text">Previous</span>
           </button>
 
-          <div className="text-sm font-medium text-gray-700">
+          <div className="ms-viewer__page-counter">
             Page {currentPage + 1} of {pages.length}
           </div>
 
           <button
             onClick={handleNextPage}
             disabled={currentPage === pages.length - 1}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ms-viewer__nav-btn"
             aria-label="Next page"
           >
-            <span className="text-sm font-medium">Next</span>
+            <span className="ms-viewer__nav-btn-text">Next</span>
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -294,14 +291,14 @@ interface RadisContent {
 }
 
 const ComparisonMissingPagePlaceholder: React.FC<{ pageNumber: number; className?: string }> = ({ pageNumber, className = '' }) => (
-    <div className={`flex items-center justify-center bg-gray-100 min-h-[300px] lg:min-h-[400px] rounded-lg ${className}`}>
-        <div className="text-center p-4 lg:p-8">
-            <svg className="w-12 h-12 lg:w-16 lg:h-16 text-gray-400 mx-auto mb-3 lg:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className={`ms-comparison__missing-page ${className}`}>
+        <div className="ms-comparison__missing-page-inner">
+            <svg className="w-12 h-12 lg:w-16 lg:h-16 ms-comparison__missing-page-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h3 className="text-base lg:text-lg font-semibold text-gray-700 mb-2">Page Missing</h3>
-            <p className="text-sm text-gray-500">This page is missing from this manuscript.</p>
-            <p className="text-xs lg:text-sm text-gray-400 mt-2">Page {pageNumber}</p>
+            <h3 className="ms-comparison__missing-page-title">Page Missing</h3>
+            <p className="ms-comparison__missing-page-text">This page is missing from this manuscript.</p>
+            <p className="ms-comparison__missing-page-number">Page {pageNumber}</p>
         </div>
     </div>
 );
@@ -476,10 +473,10 @@ export function ManuscriptComparisonModal({
     };
 
     const InternalManuscriptViewer = ({ isMobileView = false }: { isMobileView?: boolean }) => (
-        <div className={`flex flex-col ${isMobileView ? 'h-full' : 'h-full'}`}>
+        <div className="ms-comparison__viewer">
             {manuscripts.length > 0 && (
-                <div className={`${isMobileView ? 'px-3 py-2' : 'px-4 py-3'} border-b border-gray-200 bg-white`}>
-                    <label className={`${isMobileView ? 'text-xs' : 'text-sm'} font-medium text-gray-700 mb-1.5 lg:mb-2 block`}>
+                <div className={`ms-comparison__viewer-select ${isMobileView ? 'ms-comparison__viewer-select--mobile' : ''}`}>
+                    <label className={`ms-comparison__viewer-select-label ${isMobileView ? 'ms-comparison__viewer-select-label--mobile' : ''}`}>
                         Select Manuscript:
                     </label>
                     <Select
@@ -496,73 +493,73 @@ export function ManuscriptComparisonModal({
                 </div>
             )}
 
-            <div className={`${isMobileView ? 'px-3 py-2' : 'px-4 py-2'} border-b border-gray-200 bg-white flex items-center justify-between gap-2`}>
-                <div className="flex items-center gap-1 lg:gap-2">
+            <div className={`ms-comparison__viewer-toolbar ${isMobileView ? 'ms-comparison__viewer-toolbar--mobile' : ''}`}>
+                <div className="ms-comparison__viewer-toolbar-group">
                     <button
                         onClick={handleZoomOut}
                         disabled={zoom <= 50}
-                        className="p-1.5 lg:p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                        className="ms-comparison__viewer-btn"
                     >
                         <ZoomOut className="w-4 h-4" />
                     </button>
-                    <span className={`${isMobileView ? 'text-xs' : 'text-sm'} font-medium text-gray-600 min-w-[40px] lg:min-w-[50px] text-center`}>
+                    <span className={`ms-comparison__viewer-zoom-label ${isMobileView ? 'ms-comparison__viewer-zoom-label--mobile' : ''}`}>
                         {zoom}%
                     </span>
                     <button
                         onClick={handleZoomIn}
                         disabled={zoom >= 200}
-                        className="p-1.5 lg:p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                        className="ms-comparison__viewer-btn"
                     >
                         <ZoomIn className="w-4 h-4" />
                     </button>
                 </div>
-                <div className="flex items-center gap-1 lg:gap-3">
+                <div className="ms-comparison__viewer-toolbar-nav-group">
                     <button
                         onClick={handlePrevPage}
                         disabled={currentPage === 0}
-                        className={`p-1.5 lg:p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-0.5 lg:gap-1 text-gray-700 ${isMobileView ? 'text-xs' : 'text-sm'} font-medium`}
+                        className={`ms-comparison__viewer-nav-btn ${isMobileView ? 'ms-comparison__viewer-nav-btn--mobile' : 'ms-comparison__viewer-nav-btn--default'}`}
                         aria-label="Previous page"
                     >
                         <ChevronLeft className="w-4 h-4 lg:w-5 lg:h-5" />
-                        <span className="hidden sm:inline">Prev</span>
+                        <span className="ms-comparison__viewer-nav-label">Prev</span>
                     </button>
                     <button
                         onClick={handleNextPage}
                         disabled={currentPage === allPages.length - 1}
-                        className={`p-1.5 lg:p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-0.5 lg:gap-1 text-gray-700 ${isMobileView ? 'text-xs' : 'text-sm'} font-medium`}
+                        className={`ms-comparison__viewer-nav-btn ${isMobileView ? 'ms-comparison__viewer-nav-btn--mobile' : 'ms-comparison__viewer-nav-btn--default'}`}
                         aria-label="Next page"
                     >
-                        <span className="hidden sm:inline">Next</span>
+                        <span className="ms-comparison__viewer-nav-label">Next</span>
                         <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
                     </button>
                 </div>
-                <div className="flex items-center gap-1 lg:gap-2">
-                    <div className={`${isMobileView ? 'text-xs' : 'text-sm'} text-gray-500 hidden sm:block`}>
+                <div className="ms-comparison__viewer-toolbar-group">
+                    <div className={`ms-comparison__viewer-page-counter ${isMobileView ? 'ms-comparison__viewer-page-counter--mobile' : ''}`}>
                         {currentPage + 1}/{allPages.length}
                     </div>
                     <button
                         onClick={toggleImageFullscreen}
-                        className="p-1.5 lg:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="ms-comparison__viewer-btn"
                         aria-label={isImageFullscreen ? 'Exit fullscreen' : 'View fullscreen'}
                     >
                         {isImageFullscreen ? (
-                            <Minimize2 className="w-4 h-4 text-gray-700" />
+                            <Minimize2 className="w-4 h-4" />
                         ) : (
-                            <Maximize2 className="w-4 h-4 text-gray-700" />
+                            <Maximize2 className="w-4 h-4" />
                         )}
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-2 lg:p-4 bg-gray-50">
+            <div className="ms-comparison__viewer-image-area">
                 {allPages.length > 0 ? (
                     currentPageUrl ? (
-                        <div className="flex items-center justify-center min-h-full">
+                        <div className="ms-comparison__viewer-center">
                             <img
                                 key={`page-${currentPage}-${currentPageUrl}`}
                                 src={currentPageUrl}
                                 alt={`Manuscript page ${currentPage + 1}`}
-                                className="max-w-full h-auto shadow-lg rounded-lg transition-transform duration-300"
+                                className="ms-comparison__viewer-img"
                                 style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}
                             />
                         </div>
@@ -570,19 +567,19 @@ export function ManuscriptComparisonModal({
                         <ComparisonMissingPagePlaceholder pageNumber={currentPage + 1} />
                     )
                 ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400">
+                    <div className="ms-comparison__viewer-empty">
                         <p>No images available</p>
                     </div>
                 )}
             </div>
 
-            <div className={`${isMobileView ? 'px-2 py-2' : 'px-4 py-3'} border-t border-gray-200 bg-white flex items-center justify-center`}>
-                <div className="flex gap-1 flex-wrap justify-center max-w-full overflow-x-auto">
+            <div className={`ms-comparison__viewer-dots-bar ${isMobileView ? 'ms-comparison__viewer-dots-bar--mobile' : ''}`}>
+                <div className="ms-viewer__pagination-dots">
                     {allPages.map((_, idx) => (
                         <button
                             key={idx}
                             onClick={() => handlePageClick(idx)}
-                            className={`w-2 h-2 rounded-full transition-colors flex-shrink-0 ${currentPage === idx ? 'bg-[#43896B]' : 'bg-gray-300 hover:bg-gray-400'}`}
+                            className={`ms-viewer__pagination-dot ${currentPage === idx ? 'ms-viewer__pagination-dot--active' : 'ms-viewer__pagination-dot--default'}`}
                         />
                     ))}
                 </div>
@@ -591,22 +588,22 @@ export function ManuscriptComparisonModal({
     );
 
     const ContentViewer = ({ isMobileView = false }: { isMobileView?: boolean }) => (
-        <div className="flex flex-col h-full bg-white">
-            <div className={`${isMobileView ? 'px-3 py-2' : 'px-4 py-3'} border-b border-gray-200 bg-gray-50`}>
-                <h4 className={`font-semibold text-gray-900 ${isMobileView ? 'text-sm' : ''}`}>Content</h4>
-                <p className={`${isMobileView ? 'text-xs' : 'text-sm'} text-gray-500`}>Section {content.sermonNumber}</p>
+        <div className="ms-comparison__content">
+            <div className={`ms-comparison__content-header ${isMobileView ? 'ms-comparison__content-header--mobile' : ''}`}>
+                <h4 className={`ms-comparison__content-title ${isMobileView ? 'ms-comparison__content-title--mobile' : ''}`}>Content</h4>
+                <p className={`ms-comparison__content-section-number ${isMobileView ? 'ms-comparison__content-section-number--mobile' : ''}`}>Section {content.sermonNumber}</p>
             </div>
-            <div className={`flex-1 overflow-auto ${isMobileView ? 'p-3' : 'p-6'}`}>
+            <div className={`ms-comparison__content-body ${isMobileView ? 'ms-comparison__content-body--mobile' : ''}`}>
                 {content.title && (
-                    <div className={`${isMobileView ? 'mb-4 pb-4' : 'mb-6 pb-6'} border-b border-gray-100`}>
-                        <div className={`text-right ${isMobileView ? 'mb-2' : 'mb-4'}`}>
-                            <p className={`${isMobileView ? 'text-base' : 'text-lg'} leading-relaxed text-gray-900 font-taha`} dir="rtl">
+                    <div className={`ms-comparison__content-title-block ${isMobileView ? 'ms-comparison__content-title-block--mobile' : ''}`}>
+                        <div className={`ms-comparison__content-title-arabic ${isMobileView ? 'ms-comparison__content-title-arabic--mobile' : ''}`}>
+                            <p className={`ms-comparison__content-title-arabic-text font-taha ${isMobileView ? 'ms-comparison__content-title-arabic-text--mobile' : ''}`} dir="rtl">
                                 {formatTextWithFootnotes(cleanArabicText(content.title), allFootnotes, true, content.sermonNumber || 'main')}
                             </p>
                         </div>
                         {content.translations?.find((t: { type: string; text: string }) => t.type === 'en') && (
-                            <div className={`bg-gray-50 rounded-lg ${isMobileView ? 'p-3 mt-2' : 'p-4 mt-4'}`}>
-                                <p className={`text-gray-700 font-brill leading-relaxed ${isMobileView ? 'text-sm' : ''}`}>
+                            <div className={`ms-comparison__content-title-english ${isMobileView ? 'ms-comparison__content-title-english--mobile' : ''}`}>
+                                <p className={`ms-comparison__content-title-english-text font-brill ${isMobileView ? 'ms-comparison__content-title-english-text--mobile' : ''}`}>
                                     {formatTextWithFootnotes(
                                         content.translations!.find((t: { type: string; text: string }) => t.type === 'en')!.text,
                                         allFootnotes,
@@ -622,22 +619,22 @@ export function ManuscriptComparisonModal({
                 {sortedParagraphs.map((paragraph) => {
                     const englishTranslation = paragraph.translations?.find((t: { type: string; text: string }) => t.type === 'en');
                     return (
-                        <div key={paragraph.id} className={`${isMobileView ? 'mb-4 pb-4' : 'mb-6 pb-6'} border-b border-gray-100 last:border-b-0`}>
+                        <div key={paragraph.id} className={`ms-comparison__content-block ${isMobileView ? 'ms-comparison__content-block--mobile' : ''}`}>
                             {paragraph.number && (
-                                <span className={`inline-flex items-center px-2 py-0.5 ${isMobileView ? 'text-xs' : 'text-xs'} font-semibold text-[#43896B] bg-[#43896B]/10 rounded-full mb-2`}>
+                                <span className="ms-comparison__content-paragraph-badge">
                                     {paragraph.number}
                                 </span>
                             )}
                             {paragraph.arabic && (
-                                <div className={`text-right ${isMobileView ? 'mb-2' : 'mb-3'}`}>
-                                    <p className={`${isMobileView ? 'text-base leading-loose' : 'text-lg leading-loose'} text-gray-900 font-taha`} dir="rtl">
+                                <div className={`ms-comparison__content-arabic ${isMobileView ? 'ms-comparison__content-arabic--mobile' : ''}`}>
+                                    <p className={`ms-comparison__content-arabic-text font-taha ${isMobileView ? 'ms-comparison__content-arabic-text--mobile' : ''}`} dir="rtl">
                                         {formatTextWithFootnotes(cleanArabicText(paragraph.arabic), allFootnotes, true, paragraph.number)}
                                     </p>
                                 </div>
                             )}
                             {englishTranslation && (
-                                <div className={`bg-gray-50 rounded-lg ${isMobileView ? 'p-3' : 'p-4'}`}>
-                                    <p className={`text-gray-700 font-brill leading-relaxed ${isMobileView ? 'text-sm' : ''}`}>
+                                <div className={`ms-comparison__content-english-block ${isMobileView ? 'ms-comparison__content-english-block--mobile' : ''}`}>
+                                    <p className={`ms-comparison__content-english-text font-brill ${isMobileView ? 'ms-comparison__content-english-text--mobile' : ''}`}>
                                         {formatTextWithFootnotes(englishTranslation.text, allFootnotes, false, paragraph.number)}
                                     </p>
                                 </div>
@@ -647,7 +644,7 @@ export function ManuscriptComparisonModal({
                 })}
 
                 {sortedParagraphs.length === 0 && !content.title && (
-                    <div className="text-center py-8 lg:py-12 text-gray-400">
+                    <div className="ms-comparison__content-empty">
                         <p>No content available</p>
                     </div>
                 )}
@@ -658,9 +655,9 @@ export function ManuscriptComparisonModal({
     return (
         <AnimatePresence mode="wait">
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
+                <div className="ms-comparison__root">
                     <motion.div
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        className="ms-comparison__backdrop"
                         variants={backdropVariants}
                         initial="hidden"
                         animate="visible"
@@ -668,27 +665,27 @@ export function ManuscriptComparisonModal({
                         onClick={onClose}
                     />
                     <motion.div
-                        className="relative bg-white rounded-xl lg:rounded-2xl shadow-2xl w-full max-w-[98vw] lg:max-w-[95vw] h-[95vh] lg:h-[90vh] overflow-hidden flex flex-col"
+                        className="ms-comparison__modal"
                         variants={modalVariants}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between px-3 py-2 lg:px-6 lg:py-4 border-b border-gray-200 bg-gray-50">
-                            <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-                                <div className="p-1.5 lg:p-2 bg-[#43896B]/10 rounded-lg flex-shrink-0">
-                                    <Book className="w-4 h-4 lg:w-5 lg:h-5 text-[#43896B]" />
+                        <div className="ms-comparison__header">
+                            <div className="ms-comparison__header-left">
+                                <div className="ms-comparison__header-icon">
+                                    <Book className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: '#43896B' }} />
                                 </div>
-                                <div className="min-w-0">
-                                    <h3 className="text-sm lg:text-lg font-bold text-gray-900 truncate">Compare Manuscripts</h3>
-                                    <p className="text-xs lg:text-sm text-gray-500 truncate">
+                                <div className="ms-comparison__header-info">
+                                    <h3 className="ms-comparison__header-title">Compare Manuscripts</h3>
+                                    <p className="ms-comparison__header-subtitle">
                                         {content.heading ? (
-                                            <span className="hidden sm:inline">{content.heading}</span>
+                                            <span className="ms-comparison__header-subtitle-heading">{content.heading}</span>
                                         ) : null}
                                         {!loading && manuscripts.length > 0 && (
-                                            <span className="text-[#43896B]">
-                                                {content.heading && <span className="hidden sm:inline ml-1">•</span>} {manuscripts.length} manuscript{manuscripts.length > 1 ? 's' : ''}
+                                            <span className="ms-comparison__header-count">
+                                                {content.heading && <span className="ms-comparison__header-separator">•</span>} {manuscripts.length} manuscript{manuscripts.length > 1 ? 's' : ''}
                                             </span>
                                         )}
                                     </p>
@@ -696,28 +693,28 @@ export function ManuscriptComparisonModal({
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-1.5 lg:p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+                                className="ms-comparison__close-btn"
                             >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                        <div className="ms-comparison__body">
                             {loading ? (
-                                <div className="flex-1 flex items-center justify-center">
-                                    <div className="text-center">
-                                        <Loader2 className="w-6 h-6 lg:w-8 lg:h-8 animate-spin text-[#43896B] mx-auto mb-3" />
-                                        <p className="text-sm lg:text-base text-gray-600">Loading manuscripts...</p>
+                                <div className="ms-comparison__loading">
+                                    <div className="ms-comparison__loading-inner">
+                                        <Loader2 className="w-6 h-6 lg:w-8 lg:h-8 animate-spin ms-comparison__spinner" />
+                                        <p className="ms-comparison__loading-text">Loading manuscripts...</p>
                                     </div>
                                 </div>
                             ) : error ? (
-                                <div className="flex-1 flex items-center justify-center p-4">
-                                    <div className="text-center max-w-md">
-                                        <FileText className="w-10 h-10 lg:w-12 lg:h-12 text-gray-300 mx-auto mb-4" />
-                                        <p className="text-sm lg:text-base text-gray-600 mb-4">{error}</p>
+                                <div className="ms-comparison__error">
+                                    <div className="ms-comparison__error-inner">
+                                        <FileText className="w-10 h-10 lg:w-12 lg:h-12 ms-comparison__error-icon" />
+                                        <p className="ms-comparison__error-text">{error}</p>
                                         <button
                                             onClick={fetchManuscripts}
-                                            className="px-4 py-2 bg-[#43896B] text-white text-sm lg:text-base rounded-lg hover:bg-[#367556] transition-colors"
+                                            className="ms-comparison__retry-btn"
                                         >
                                             Try Again
                                         </button>
@@ -726,68 +723,68 @@ export function ManuscriptComparisonModal({
                             ) : (
                                 <>
                                     {isImageFullscreen && (
-                                        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
-                                            <div className="px-3 py-2 lg:px-4 lg:py-3 bg-white/10 backdrop-blur-sm border-b border-white/20 flex items-center justify-between">
-                                                <div className="flex items-center gap-1 lg:gap-2">
+                                        <div className="ms-comparison__fullscreen">
+                                            <div className="ms-comparison__fullscreen-toolbar">
+                                                <div className="ms-comparison__fullscreen-group">
                                                     <button
                                                         onClick={handleZoomOut}
                                                         disabled={zoom <= 50}
-                                                        className="p-1.5 lg:p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+                                                        className="ms-comparison__fullscreen-btn"
                                                     >
-                                                        <ZoomOut className="w-4 h-4 text-white" />
+                                                        <ZoomOut className="w-4 h-4" style={{ color: 'white' }} />
                                                     </button>
-                                                    <span className="text-xs lg:text-sm font-medium text-white min-w-[40px] lg:min-w-[50px] text-center">{zoom}%</span>
+                                                    <span className="ms-comparison__fullscreen-zoom-label">{zoom}%</span>
                                                     <button
                                                         onClick={handleZoomIn}
                                                         disabled={zoom >= 200}
-                                                        className="p-1.5 lg:p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+                                                        className="ms-comparison__fullscreen-btn"
                                                     >
-                                                        <ZoomIn className="w-4 h-4 text-white" />
+                                                        <ZoomIn className="w-4 h-4" style={{ color: 'white' }} />
                                                     </button>
                                                 </div>
-                                                <div className="flex items-center gap-1 lg:gap-3">
+                                                <div className="ms-comparison__fullscreen-nav-group">
                                                     <button
                                                         onClick={handlePrevPage}
                                                         disabled={currentPage === 0}
-                                                        className="p-1.5 lg:p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-white text-xs lg:text-sm font-medium"
+                                                        className="ms-comparison__fullscreen-nav-btn"
                                                         aria-label="Previous page"
                                                     >
                                                         <ChevronLeft className="w-4 h-4 lg:w-5 lg:h-5" />
-                                                        <span className="hidden sm:inline">Prev</span>
+                                                        <span className="ms-comparison__fullscreen-nav-label">Prev</span>
                                                     </button>
                                                     <button
                                                         onClick={handleNextPage}
                                                         disabled={currentPage === allPages.length - 1}
-                                                        className="p-1.5 lg:p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-white text-xs lg:text-sm font-medium"
+                                                        className="ms-comparison__fullscreen-nav-btn"
                                                         aria-label="Next page"
                                                     >
-                                                        <span className="hidden sm:inline">Next</span>
+                                                        <span className="ms-comparison__fullscreen-nav-label">Next</span>
                                                         <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
                                                     </button>
                                                 </div>
-                                                <div className="flex items-center gap-1 lg:gap-2">
-                                                    <div className="text-xs lg:text-sm text-white">
+                                                <div className="ms-comparison__fullscreen-group">
+                                                    <div className="ms-comparison__fullscreen-page-counter">
                                                         {currentPage + 1}/{allPages.length}
                                                     </div>
                                                     <button
                                                         onClick={toggleImageFullscreen}
-                                                        className="p-1.5 lg:p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                                        className="ms-comparison__fullscreen-btn"
                                                         aria-label="Exit fullscreen"
                                                     >
-                                                        <Minimize2 className="w-4 h-4 text-white" />
+                                                        <Minimize2 className="w-4 h-4" style={{ color: 'white' }} />
                                                     </button>
                                                 </div>
                                             </div>
 
-                                            <div className="flex-1 overflow-auto p-2 lg:p-4">
+                                            <div className="ms-comparison__fullscreen-content">
                                                 {allPages.length > 0 ? (
                                                     currentPageUrl ? (
-                                                        <div className="flex items-center justify-center min-h-full">
+                                                        <div className="ms-comparison__fullscreen-center">
                                                             <img
                                                                 key={`fullscreen-${currentPage}-${currentPageUrl}`}
                                                                 src={currentPageUrl}
                                                                 alt={`Manuscript page ${currentPage + 1}`}
-                                                                className="max-w-full h-auto shadow-2xl rounded-lg transition-transform duration-300"
+                                                                className="ms-comparison__fullscreen-img"
                                                                 style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}
                                                             />
                                                         </div>
@@ -795,19 +792,19 @@ export function ManuscriptComparisonModal({
                                                         <ComparisonMissingPagePlaceholder pageNumber={currentPage + 1} className="text-white" />
                                                     )
                                                 ) : (
-                                                    <div className="flex items-center justify-center h-full text-white">
+                                                    <div className="ms-comparison__fullscreen-empty">
                                                         <p>No images available</p>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            <div className="px-3 py-2 lg:px-4 lg:py-3 bg-white/10 backdrop-blur-sm border-t border-white/20 flex items-center justify-center">
-                                                <div className="flex gap-1 flex-wrap justify-center">
+                                            <div className="ms-comparison__fullscreen-dots-bar">
+                                                <div className="ms-comparison__fullscreen-dots">
                                                     {allPages.map((_, idx) => (
                                                         <button
                                                             key={idx}
                                                             onClick={() => handlePageClick(idx)}
-                                                            className={`w-2 h-2 rounded-full transition-colors ${currentPage === idx ? 'bg-white' : 'bg-white/40 hover:bg-white/60'}`}
+                                                            className={`ms-comparison__fullscreen-dot ${currentPage === idx ? 'ms-comparison__fullscreen-dot--active' : 'ms-comparison__fullscreen-dot--default'}`}
                                                         />
                                                     ))}
                                                 </div>
@@ -815,14 +812,14 @@ export function ManuscriptComparisonModal({
                                         </div>
                                     )}
 
-                                    <div className="lg:hidden border-b border-gray-200 bg-white">
-                                        <div className="flex">
+                                    <div className="ms-comparison__mobile-tabs">
+                                        <div className="ms-comparison__mobile-tabs-inner">
                                             <button
                                                 onClick={() => setActiveTab('manuscript')}
-                                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                                                className={`ms-comparison__tab-btn ${
                                                     activeTab === 'manuscript'
-                                                        ? 'text-[#43896B] border-b-2 border-[#43896B] bg-[#43896B]/5'
-                                                        : 'text-gray-500 hover:text-gray-700'
+                                                        ? 'ms-comparison__tab-btn--active'
+                                                        : 'ms-comparison__tab-btn--inactive'
                                                 }`}
                                             >
                                                 <Image className="w-4 h-4" />
@@ -830,10 +827,10 @@ export function ManuscriptComparisonModal({
                                             </button>
                                             <button
                                                 onClick={() => setActiveTab('content')}
-                                                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+                                                className={`ms-comparison__tab-btn ${
                                                     activeTab === 'content'
-                                                        ? 'text-[#43896B] border-b-2 border-[#43896B] bg-[#43896B]/5'
-                                                        : 'text-gray-500 hover:text-gray-700'
+                                                        ? 'ms-comparison__tab-btn--active'
+                                                        : 'ms-comparison__tab-btn--inactive'
                                                 }`}
                                             >
                                                 <TextIcon className="w-4 h-4" />
@@ -842,7 +839,7 @@ export function ManuscriptComparisonModal({
                                         </div>
                                     </div>
 
-                                    <div className="lg:hidden flex-1 overflow-hidden">
+                                    <div className="ms-comparison__mobile-panel">
                                         {activeTab === 'manuscript' ? (
                                             <InternalManuscriptViewer isMobileView={true} />
                                         ) : (
@@ -850,11 +847,11 @@ export function ManuscriptComparisonModal({
                                         )}
                                     </div>
 
-                                    <div className="hidden lg:flex flex-1 overflow-hidden">
-                                        <div className="w-1/2 border-r border-gray-200 flex flex-col bg-gray-50">
+                                    <div className="ms-comparison__desktop-split">
+                                        <div className="ms-comparison__desktop-left">
                                             <InternalManuscriptViewer isMobileView={false} />
                                         </div>
-                                        <div className="w-1/2 flex flex-col">
+                                        <div className="ms-comparison__desktop-right">
                                             <ContentViewer isMobileView={false} />
                                         </div>
                                     </div>
@@ -894,7 +891,7 @@ export const ManuscriptCountBadge: React.FC<ManuscriptCountBadgeProps> = ({ coun
   return (
     <button
       onClick={handleClick}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-[#43896B]/10 text-[#43896B] rounded-full border border-[#43896B]/20 hover:bg-[#43896B]/20 hover:border-[#43896B]/30 transition-all cursor-pointer active:scale-95"
+      className="ms-badge__btn"
       aria-label={`Scroll to ${count} manuscript ${count === 1 ? 'reference' : 'references'}`}
     >
       <BookOpen className="w-3.5 h-3.5" />
@@ -957,20 +954,20 @@ export const ManuscriptMetadataDisplay: React.FC<ManuscriptMetadataDisplayProps>
   ];
 
   const renderFields = (fields: MetadataField[]) => (
-    <div className="space-y-4">
+    <div className="ms-metadata__fields">
       {fields.map((field, index) => (
-        <div key={index} className="border-b border-[#E2E3E9] pb-4 last:border-0">
-          <div className="flex items-start gap-2">
+        <div key={index} className="ms-metadata__field">
+          <div className="ms-metadata__field-row">
             {field.icon && (
-              <div className="text-[#43896B] mt-1">
+              <div className="ms-metadata__field-icon">
                 {field.icon}
               </div>
             )}
-            <div className="flex-1">
-              <dt className="text-sm font-semibold text-gray-700 mb-1">
+            <div className="ms-metadata__field-content">
+              <dt className="ms-metadata__field-label">
                 {field.label}
               </dt>
-              <dd className="text-sm text-gray-600 leading-relaxed">
+              <dd className="ms-metadata__field-value">
                 {field.value}
               </dd>
             </div>
@@ -981,31 +978,31 @@ export const ManuscriptMetadataDisplay: React.FC<ManuscriptMetadataDisplayProps>
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden h-full flex flex-col">
-      <div className="bg-gradient-to-r from-[#43896B] to-[#5CAF8B] px-6 py-4">
-        <h2 className="text-xl font-bold text-white">Manuscript Information</h2>
+    <div className="ms-metadata__wrapper">
+      <div className="ms-metadata__header">
+        <h2 className="ms-metadata__header-title">Manuscript Information</h2>
       </div>
-      <div className="border-b border-[#E2E3E9] bg-[#F5F6FA]">
-        <div className="flex">
+      <div className="ms-metadata__tabs">
+        <div className="ms-metadata__tabs-inner">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`cursor-pointer flex-1 px-4 py-3 text-sm font-medium transition-colors relative ${
+              className={`ms-metadata__tab-btn ${
                 activeTab === tab.id
-                  ? 'text-[#43896B] bg-white'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'ms-metadata__tab-btn--active'
+                  : 'ms-metadata__tab-btn--inactive'
               }`}
             >
               {tab.label}
               {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#43896B]" />
+                <div className="ms-metadata__tab-indicator" />
               )}
             </button>
           ))}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="ms-metadata__body">
         {activeTab === 'overview' && (
           <div className="animate-fadeIn">
             {renderFields(overviewFields)}
@@ -1051,42 +1048,42 @@ export const ManuscriptReference: React.FC<ManuscriptReferenceProps> = ({ manusc
   return (
     <div
       id="manuscript-references"
-      className="bg-gradient-to-br from-[#43896B]/5 to-[#43896B]/10 rounded-2xl border border-[#43896B]/20 p-4 lg:p-6 mt-8 scroll-mt-24"
+      className="ms-reference__wrapper"
     >
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-[#43896B] rounded-lg">
-          <BookOpen className="w-5 h-5 text-white" />
+      <div className="ms-reference__header">
+        <div className="ms-reference__header-icon">
+          <BookOpen className="w-5 h-5" style={{ color: 'white' }} />
         </div>
-        <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+        <h2 className="ms-reference__header-title">
           Related Manuscripts
         </h2>
       </div>
 
-      <p className="text-gray-600 mb-6 text-sm">
+      <p className="ms-reference__description">
         This {contentType.slice(0, -1)} appears in the following historical manuscripts:
       </p>
 
-      <div className="space-y-4">
+      <div className="ms-reference__list">
         {manuscripts.map((manuscript) => (
           <div
             key={manuscript.id}
-            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-[#43896B]/40 hover:shadow-md transition-all duration-200"
+            className="ms-reference__card"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#43896B]" />
+            <div className="ms-reference__card-layout">
+              <div className="ms-reference__card-info">
+                <h3 className="ms-reference__card-title">
+                  <FileText className="w-4 h-4" style={{ color: '#43896B' }} />
                   {manuscript.title}
                 </h3>
 
-                <div className="space-y-1 text-sm">
-                  <p className="text-gray-600">
-                    <span className="font-medium text-gray-700">Source:</span> {manuscript.sourceReference}
+                <div className="ms-reference__card-fields">
+                  <p className="ms-reference__card-field">
+                    <span className="ms-reference__card-field-label">Source:</span> {manuscript.sourceReference}
                   </p>
 
                   {(manuscript.pageNumber || manuscript.folioNumber) && (
-                    <p className="text-gray-600">
-                      <span className="font-medium text-gray-700">
+                    <p className="ms-reference__card-field">
+                      <span className="ms-reference__card-field-label">
                         {manuscript.folioNumber ? 'Folio:' : 'Page:'}
                       </span>{' '}
                       {manuscript.folioNumber || manuscript.pageNumber}
@@ -1107,8 +1104,8 @@ export const ManuscriptReference: React.FC<ManuscriptReferenceProps> = ({ manusc
         ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-[#43896B]/20">
-        <p className="text-xs text-gray-500 italic">
+      <div className="ms-reference__footer">
+        <p className="ms-reference__footer-note">
           Note: Manuscript references are based on historical compilations and may vary across different editions.
         </p>
       </div>

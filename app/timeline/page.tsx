@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { type Post, orationsApi, lettersApi } from '@/api/posts';
 import Link from 'next/link';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ArrowRight, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
   Calendar,
   BookOpen,
   Mail,
@@ -41,10 +41,10 @@ async function fetchAllOrations(): Promise<Post[]> {
       if (!response || !response.data) {
         break;
       }
-      
+
       const filteredData = response.data.filter((item: Post) => item.heading);
       allData.push(...filteredData);
-      
+
       const totalPages = response.meta?.pagination?.pageCount || 1;
       hasMore = currentPage < totalPages;
       currentPage++;
@@ -69,10 +69,10 @@ async function fetchAllLetters(): Promise<Post[]> {
       if (!response || !response.data) {
         break;
       }
-      
+
       const filteredData = response.data.filter((item: Post) => item.heading);
       allData.push(...filteredData);
-      
+
       const totalPages = response.meta?.pagination?.pageCount || 1;
       hasMore = currentPage < totalPages;
       currentPage++;
@@ -202,11 +202,11 @@ export default function TimelinePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)] pt-32 lg:pt-36">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-white border border-[var(--color-stone)] w-48 mb-6"></div>
-            <div className="h-64 bg-white border border-[var(--color-stone)]"></div>
+      <div className="timeline-page">
+        <div className="timeline-page__container">
+          <div className="timeline-page__skeleton">
+            <div className="timeline-page__skeleton-title"></div>
+            <div className="timeline-page__skeleton-body"></div>
           </div>
         </div>
       </div>
@@ -214,37 +214,35 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)] pt-32 lg:pt-36">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="timeline-page">
+      <div className="timeline-page__container">
         {/* Header */}
-        <div className="mb-6 lg:mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div className="timeline-page__header">
+          <div className="timeline-page__header-top">
             <div>
-              <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl text-[var(--color-ink)] mb-2">
+              <h1 className="timeline-page__title">
                 Timeline
               </h1>
-              <p className="text-sm lg:text-base text-[var(--color-warm-gray)] font-body">
+              <p className="timeline-page__subtitle">
                 Explore the orations and letters in sequential order
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[var(--color-warm-gray)]">
+            <div className="timeline-page__item-count">
+              <span className="timeline-page__item-count-text">
                 {timelineItems.length} items
               </span>
             </div>
           </div>
 
           {/* Controls Bar */}
-          <div className="flex flex-wrap items-center gap-3 p-3 lg:p-4 bg-white border border-[var(--color-stone)]">
+          <div className="timeline-page__controls">
             {/* Filter Toggles */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-[var(--color-warm-gray)]" />
+            <div className="timeline-page__filter-group">
+              <Filter className="w-4 h-4 timeline-page__filter-icon" />
               <button
                 onClick={() => setShowOrations(!showOrations)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs lg:text-sm font-body border transition-all ${
-                  showOrations 
-                    ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' 
-                    : 'bg-white text-[var(--color-charcoal)] border-[var(--color-stone)] hover:border-[var(--color-primary)]'
+                className={`timeline-page__filter-btn ${
+                  showOrations ? 'timeline-page__filter-btn--orations-active' : ''
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
@@ -252,10 +250,10 @@ export default function TimelinePage() {
               </button>
               <button
                 onClick={() => setShowLetters(!showLetters)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs lg:text-sm font-body border transition-all ${
-                  showLetters 
-                    ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)]' 
-                    : 'bg-white text-[var(--color-charcoal)] border-[var(--color-stone)] hover:border-[var(--color-accent)]'
+                className={`timeline-page__filter-btn ${
+                  showLetters
+                    ? 'timeline-page__filter-btn--letters-active'
+                    : 'timeline-page__filter-btn--letters'
                 }`}
               >
                 <Mail className="w-3.5 h-3.5" />
@@ -263,43 +261,43 @@ export default function TimelinePage() {
               </button>
             </div>
 
-            <div className="hidden sm:block w-px h-6 bg-[var(--color-stone)]"></div>
+            <div className="timeline-page__divider"></div>
 
             {/* Jump to Number */}
-            <div className="flex items-center gap-2">
+            <div className="timeline-page__jump-group">
               <input
                 type="number"
                 value={jumpToNumber}
                 onChange={(e) => setJumpToNumber(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleJumpTo()}
                 placeholder="Jump to #"
-                className="w-20 lg:w-24 px-2 py-1.5 text-xs lg:text-sm border border-[var(--color-stone)] focus:outline-none focus:border-[var(--color-primary)]"
+                className="timeline-page__jump-input"
               />
               <button
                 onClick={handleJumpTo}
-                className="px-2 py-1.5 text-xs lg:text-sm bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-colors"
+                className="timeline-page__jump-btn"
               >
                 Go
               </button>
             </div>
 
-            <div className="hidden sm:block w-px h-6 bg-[var(--color-stone)]"></div>
+            <div className="timeline-page__divider"></div>
 
             {/* Zoom Controls */}
-            <div className="flex items-center gap-1">
+            <div className="timeline-page__zoom-group">
               <button
                 onClick={() => handleZoom('out')}
-                className="p-1.5 text-[var(--color-charcoal)] hover:text-[var(--color-primary)] hover:bg-[var(--color-cream)] transition-colors"
+                className="timeline-page__zoom-btn"
                 title="Zoom out"
               >
                 <Minus className="w-4 h-4" />
               </button>
-              <span className="text-xs text-[var(--color-warm-gray)] min-w-[3rem] text-center">
+              <span className="timeline-page__zoom-label">
                 {Math.round(zoomLevel * 100)}%
               </span>
               <button
                 onClick={() => handleZoom('in')}
-                className="p-1.5 text-[var(--color-charcoal)] hover:text-[var(--color-primary)] hover:bg-[var(--color-cream)] transition-colors"
+                className="timeline-page__zoom-btn"
                 title="Zoom in"
               >
                 <Plus className="w-4 h-4" />
@@ -308,7 +306,7 @@ export default function TimelinePage() {
 
             <button
               onClick={resetView}
-              className="p-1.5 text-[var(--color-charcoal)] hover:text-[var(--color-primary)] hover:bg-[var(--color-cream)] transition-colors ml-auto"
+              className="timeline-page__reset-btn"
               title="Reset view"
             >
               <RotateCcw className="w-4 h-4" />
@@ -317,40 +315,39 @@ export default function TimelinePage() {
         </div>
 
         {/* Timeline Container */}
-        <div className="relative bg-white border border-[var(--color-stone)] p-4 lg:p-6">
+        <div className="timeline-page__timeline-box">
           {/* Corner Accents */}
-          <div className="absolute top-0 left-0 w-4 h-4 lg:w-6 lg:h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 lg:w-6 lg:h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
+          <div className="timeline-page__corner-accent timeline-page__corner-accent--tl" />
+          <div className="timeline-page__corner-accent timeline-page__corner-accent--br" />
 
           {/* Navigation Arrows */}
           <button
             onClick={() => handleScroll('left')}
             disabled={scrollPosition <= 0}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center bg-white border border-[var(--color-stone)] shadow-md hover:border-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="timeline-page__nav-btn timeline-page__nav-btn--left"
           >
-            <ChevronLeft className="w-5 h-5 text-[var(--color-primary)]" />
+            <ChevronLeft className="w-5 h-5 timeline-page__nav-icon" />
           </button>
           <button
             onClick={() => handleScroll('right')}
             disabled={scrollPosition >= (timelineItems.length * itemWidth - 800)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center bg-white border border-[var(--color-stone)] shadow-md hover:border-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="timeline-page__nav-btn timeline-page__nav-btn--right"
           >
-            <ChevronRight className="w-5 h-5 text-[var(--color-primary)]" />
+            <ChevronRight className="w-5 h-5 timeline-page__nav-icon" />
           </button>
 
           {/* Timeline Track */}
-          <div 
+          <div
             ref={timelineRef}
-            className="relative overflow-hidden mx-10 lg:mx-14"
-            style={{ height: '120px' }}
+            className="timeline-page__track-area timeline-track"
           >
             {/* Center Line */}
-            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-[var(--color-stone)]" />
+            <div className="timeline-page__center-line" />
 
             {/* Timeline Points */}
-            <div 
-              className="absolute top-0 bottom-0 flex items-center transition-transform duration-300"
-              style={{ 
+            <div
+              className="timeline-page__points-strip"
+              style={{
                 transform: `translateX(-${scrollPosition}px)`,
                 width: `${timelineItems.length * itemWidth}px`
               }}
@@ -359,40 +356,40 @@ export default function TimelinePage() {
                 <button
                   key={`${item.type}-${item.id}`}
                   onClick={() => setSelectedItem(selectedItem?.id === item.id && selectedItem?.type === item.type ? null : item)}
-                  className="flex flex-col items-center justify-center group"
+                  className="timeline-page__point-btn"
                   style={{ width: `${itemWidth}px` }}
                 >
                   {/* Number Label - Above */}
-                  <span className={`text-[10px] lg:text-xs font-display mb-1 transition-colors ${
+                  <span className={`timeline-page__point-label ${
                     selectedItem?.id === item.id && selectedItem?.type === item.type
-                      ? 'text-[var(--color-primary)] font-semibold'
-                      : 'text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)]'
+                      ? 'timeline-page__point-label--selected'
+                      : ''
                   }`}>
                     {item.displayNumber}
                   </span>
 
                   {/* Point */}
-                  <div className={`relative w-3 h-3 lg:w-4 lg:h-4 transition-all duration-200 ${
+                  <div className={`timeline-page__point-wrap ${
                     selectedItem?.id === item.id && selectedItem?.type === item.type
-                      ? 'scale-150'
-                      : 'group-hover:scale-125'
+                      ? 'timeline-page__point-wrap--selected'
+                      : ''
                   }`}>
-                    <div className={`absolute inset-0 rotate-45 border-2 transition-colors ${
+                    <div className={`timeline-page__point-diamond ${
                       item.type === 'oration'
                         ? selectedItem?.id === item.id && selectedItem?.type === item.type
-                          ? 'bg-[var(--color-primary)] border-[var(--color-primary)]'
-                          : 'bg-white border-[var(--color-primary)] group-hover:bg-[var(--color-primary)]/20'
+                          ? 'timeline-page__point-diamond--oration-selected'
+                          : 'timeline-page__point-diamond--oration'
                         : selectedItem?.id === item.id && selectedItem?.type === item.type
-                          ? 'bg-[var(--color-accent)] border-[var(--color-accent)]'
-                          : 'bg-white border-[var(--color-accent)] group-hover:bg-[var(--color-accent)]/20'
+                          ? 'timeline-page__point-diamond--letter-selected'
+                          : 'timeline-page__point-diamond--letter'
                     }`} />
                   </div>
 
                   {/* Type Label - Below */}
-                  <span className={`text-[8px] lg:text-[10px] mt-1 uppercase tracking-wider transition-colors ${
+                  <span className={`timeline-page__type-label ${
                     selectedItem?.id === item.id && selectedItem?.type === item.type
-                      ? item.type === 'oration' ? 'text-[var(--color-primary)]' : 'text-[var(--color-accent)]'
-                      : 'text-[var(--color-warm-gray)] group-hover:text-[var(--color-charcoal)]'
+                      ? item.type === 'oration' ? 'timeline-page__type-label--oration-selected' : 'timeline-page__type-label--letter-selected'
+                      : ''
                   }`}>
                     {item.type === 'oration' ? 'O' : 'L'}
                   </span>
@@ -402,50 +399,50 @@ export default function TimelinePage() {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-[var(--color-stone)]">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rotate-45 border-2 border-[var(--color-primary)] bg-[var(--color-primary)]/20" />
-              <span className="text-xs text-[var(--color-warm-gray)]">Oration</span>
+          <div className="timeline-page__legend">
+            <div className="timeline-page__legend-item">
+              <div className="timeline-page__legend-diamond timeline-page__legend-diamond--oration" />
+              <span className="timeline-page__legend-text">Oration</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rotate-45 border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/20" />
-              <span className="text-xs text-[var(--color-warm-gray)]">Letter</span>
+            <div className="timeline-page__legend-item">
+              <div className="timeline-page__legend-diamond timeline-page__legend-diamond--letter" />
+              <span className="timeline-page__legend-text">Letter</span>
             </div>
           </div>
         </div>
 
         {/* Selected Item Preview */}
         {selectedItem && (
-          <div className="mt-6 lg:mt-8 bg-white border border-[var(--color-stone)] relative">
+          <div className="timeline-page__preview">
             {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-3 h-3 lg:w-4 lg:h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 lg:w-4 lg:h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+            <div className="timeline-page__preview-corner timeline-page__preview-corner--tl" />
+            <div className="timeline-page__preview-corner timeline-page__preview-corner--br" />
 
             {/* Header */}
-            <div className={`px-4 lg:px-6 py-3 lg:py-4 border-b border-[var(--color-stone)] ${
-              selectedItem.type === 'oration' ? 'bg-[var(--color-primary)]/5' : 'bg-[var(--color-accent)]/5'
+            <div className={`timeline-page__preview-header ${
+              selectedItem.type === 'oration' ? 'timeline-page__preview-header--oration' : 'timeline-page__preview-header--letter'
             }`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center ${
-                  selectedItem.type === 'oration' ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-accent)]'
+              <div className="timeline-page__preview-header-row">
+                <div className={`timeline-page__preview-icon-box ${
+                  selectedItem.type === 'oration' ? 'timeline-page__preview-icon-box--oration' : 'timeline-page__preview-icon-box--letter'
                 }`}>
-                  {selectedItem.type === 'oration' 
-                    ? <BookOpen className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-                    : <Mail className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+                  {selectedItem.type === 'oration'
+                    ? <BookOpen className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: 'white' }} />
+                    : <Mail className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: 'white' }} />
                   }
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs uppercase tracking-wider ${
-                      selectedItem.type === 'oration' ? 'text-[var(--color-primary)]' : 'text-[var(--color-accent)]'
+                  <div className="timeline-page__preview-meta-row">
+                    <span className={`timeline-page__preview-type-label ${
+                      selectedItem.type === 'oration' ? 'timeline-page__preview-type-label--oration' : 'timeline-page__preview-type-label--letter'
                     }`}>
                       {selectedItem.type === 'oration' ? 'Oration' : 'Letter'} #{selectedItem.displayNumber}
                     </span>
-                    <span className="text-xs text-[var(--color-warm-gray)]">
+                    <span className="timeline-page__preview-sermon-num">
                       ({selectedItem.sermonNumber})
                     </span>
                   </div>
-                  <h3 className="font-display text-lg lg:text-xl text-[var(--color-ink)]">
+                  <h3 className="timeline-page__preview-heading">
                     {selectedItem.heading}
                   </h3>
                 </div>
@@ -453,11 +450,11 @@ export default function TimelinePage() {
             </div>
 
             {/* Content */}
-            <div className="p-4 lg:p-6">
+            <div className="timeline-page__preview-content">
               {/* Arabic Title */}
               {selectedItem.arabicTitle && (
-                <div className="mb-4 p-3 lg:p-4 bg-[var(--color-parchment)]/50 border-r-2 border-[var(--color-primary)]">
-                  <p className="font-taha text-base lg:text-lg text-[var(--color-ink)] leading-loose" dir="rtl">
+                <div className="timeline-page__arabic-block">
+                  <p className="timeline-page__arabic-text" dir="rtl">
                     {selectedItem.arabicTitle.slice(0, 150)}{selectedItem.arabicTitle.length > 150 ? '...' : ''}
                   </p>
                 </div>
@@ -465,9 +462,9 @@ export default function TimelinePage() {
 
               {/* English Summary */}
               {selectedItem.englishSummary && (
-                <div className="mb-4">
-                  <h4 className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] mb-2">Summary</h4>
-                  <p className="font-body text-sm lg:text-base text-[var(--color-charcoal)] leading-relaxed">
+                <div className="timeline-page__summary-section">
+                  <h4 className="timeline-page__summary-label">Summary</h4>
+                  <p className="timeline-page__summary-english">
                     {selectedItem.englishSummary}
                   </p>
                 </div>
@@ -475,9 +472,9 @@ export default function TimelinePage() {
 
               {/* Arabic Summary */}
               {selectedItem.arabicSummary && (
-                <div className="mb-4">
-                  <h4 className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] mb-2">ملخص</h4>
-                  <p className="font-taha text-sm lg:text-base text-[var(--color-ink)] leading-loose" dir="rtl">
+                <div className="timeline-page__summary-section">
+                  <h4 className="timeline-page__summary-label">ملخص</h4>
+                  <p className="timeline-page__summary-arabic" dir="rtl">
                     {selectedItem.arabicSummary}
                   </p>
                 </div>
@@ -485,11 +482,11 @@ export default function TimelinePage() {
 
               {/* Tags */}
               {selectedItem.tags && selectedItem.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="timeline-page__tags">
                   {selectedItem.tags.slice(0, 5).map((tag) => (
                     <span
                       key={tag.id}
-                      className="inline-flex px-2 py-0.5 text-[10px] lg:text-xs font-body text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20"
+                      className="timeline-page__tag"
                     >
                       {tag.name}
                     </span>
@@ -500,7 +497,7 @@ export default function TimelinePage() {
               {/* Action Button */}
               <Link
                 href={`/${selectedItem.type === 'oration' ? 'orations' : 'letters'}/details/${selectedItem.id}`}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white font-body text-sm hover:bg-[var(--color-primary-dark)] transition-colors"
+                className="timeline-page__action-link"
               >
                 <BookOpen className="w-4 h-4" />
                 Go to {selectedItem.type === 'oration' ? 'Oration' : 'Letter'}
@@ -512,9 +509,9 @@ export default function TimelinePage() {
 
         {/* Empty State */}
         {!showOrations && !showLetters && (
-          <div className="mt-6 p-8 bg-white border border-[var(--color-stone)] text-center">
-            <Calendar className="w-12 h-12 text-[var(--color-warm-gray)] mx-auto mb-4" />
-            <p className="text-[var(--color-warm-gray)] font-body">
+          <div className="timeline-page__empty">
+            <Calendar className="w-12 h-12 timeline-page__empty-icon" />
+            <p className="timeline-page__empty-text">
               Enable at least one filter to view the timeline
             </p>
           </div>

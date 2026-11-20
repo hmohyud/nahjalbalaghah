@@ -43,80 +43,80 @@ export default function IndexesPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)] pt-32 lg:pt-36">
+    <div className="indexes-page">
       {/* Hero Section */}
-      <section className="relative py-16 lg:py-24">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8 text-center">
+      <section className="indexes-page__hero">
+        <div className="indexes-page__hero-inner">
           {/* Icon */}
-          <div 
-            className={`flex justify-center mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          <div
+            className={`indexes-page__icon-wrap ${isVisible ? 'indexes-page__icon-wrap--visible' : ''}`}
           >
-            <div className="w-16 h-16 bg-[var(--color-primary)] flex items-center justify-center">
-              <BookOpen className="w-8 h-8 text-white" />
+            <div className="indexes-page__icon-box">
+              <BookOpen className="w-8 h-8" style={{ color: 'white' }} />
             </div>
           </div>
 
           {/* Title */}
-          <h1 
-            className={`font-display text-4xl lg:text-6xl text-[var(--color-ink)] mb-6 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          <h1
+            className={`indexes-page__title ${isVisible ? 'indexes-page__title--visible' : ''}`}
           >
             Scholarly Indexes
           </h1>
 
           {/* Decorative ornament */}
-          <div 
-            className={`flex items-center justify-center gap-4 mb-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+          <div
+            className={`indexes-page__ornament ${isVisible ? 'indexes-page__ornament--visible' : ''}`}
           >
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+            <div className="indexes-page__ornament-line indexes-page__ornament-line--left" />
+            <div className="indexes-page__ornament-diamond" />
+            <div className="indexes-page__ornament-line indexes-page__ornament-line--right" />
           </div>
 
-          <p 
-            className={`font-body text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          <p
+            className={`indexes-page__description ${isVisible ? 'indexes-page__description--visible' : ''}`}
           >
-            Navigate Nahj al-Balaghah through comprehensive indexes of names, places, terms, 
+            Navigate Nahj al-Balaghah through comprehensive indexes of names, places, terms,
             scriptural references, and religious concepts.
           </p>
         </div>
       </section>
 
       {/* Index Cards Section */}
-      <section className="py-12 lg:py-20">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+      <section className="indexes-page__cards-section">
+        <div className="indexes-page__cards-inner">
+          <div className="indexes-page__cards-grid">
             {indexes.map((index, i) => (
-              <Link 
-                href={index.href} 
+              <Link
+                href={index.href}
                 key={index.title}
-                className={`group block transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+                className={`indexes-page__card-link ${isVisible ? 'indexes-page__card-link--visible' : ''}`}
                 style={{ transitionDelay: `${400 + i * 100}ms` }}
               >
-                <div className="relative h-full p-8 lg:p-10 bg-white border border-[var(--color-stone)] transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-xl hover:-translate-y-1">
+                <div className="indexes-page__card">
                   {/* Count badge */}
-                  <div className="absolute top-6 right-6 text-xs tracking-[0.15em] text-[var(--color-warm-gray)]">
+                  <div className="indexes-page__card-count">
                     {index.count} entries
                   </div>
 
                   {/* Icon */}
-                  <div className="w-14 h-14 bg-[var(--color-primary)] flex items-center justify-center mb-6">
-                    <index.icon className="w-7 h-7 text-white" />
+                  <div className="indexes-page__card-icon-box">
+                    <index.icon className="w-7 h-7" style={{ color: 'white' }} />
                   </div>
 
                   {/* Content */}
-                  <h3 className="font-display text-2xl text-[var(--color-ink)] mb-3">{index.title}</h3>
-                  <p className="font-body text-[var(--color-warm-gray)] leading-relaxed mb-6">{index.description}</p>
+                  <h3 className="indexes-page__card-title">{index.title}</h3>
+                  <p className="indexes-page__card-desc">{index.description}</p>
 
                   {/* Hover indicator */}
-                  <div className="flex items-center gap-3 text-[var(--color-primary)]">
-                    <div className="h-[1px] w-0 bg-[var(--color-accent)] group-hover:w-8 transition-all duration-300" />
-                    <span className="text-xs tracking-[0.15em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">Browse Index</span>
-                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="indexes-page__card-hover-row">
+                    <div className="indexes-page__card-hover-line" />
+                    <span className="indexes-page__card-hover-text">Browse Index</span>
+                    <ArrowRight className="w-4 h-4 indexes-page__card-hover-arrow" />
                   </div>
 
                   {/* Corner accents on hover */}
-                  <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
-                  <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-8 group-hover:h-8 transition-all duration-300" />
+                  <div className="indexes-page__card-corner indexes-page__card-corner--tl" />
+                  <div className="indexes-page__card-corner indexes-page__card-corner--br" />
                 </div>
               </Link>
             ))}
@@ -125,28 +125,28 @@ export default function IndexesPage() {
       </section>
 
       {/* Bottom Section */}
-      <section className="py-16 lg:py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <div className="relative bg-[var(--color-parchment)] border border-[var(--color-stone)] p-10 lg:p-14 text-center">
+      <section className="indexes-page__bottom">
+        <div className="indexes-page__bottom-inner">
+          <div className="indexes-page__bottom-box">
             {/* Corner accents */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[var(--color-accent)]" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[var(--color-accent)]" />
+            <div className="indexes-page__bottom-corner indexes-page__bottom-corner--tl" />
+            <div className="indexes-page__bottom-corner indexes-page__bottom-corner--br" />
 
-            <Search className="w-12 h-12 text-[var(--color-primary)] mx-auto mb-6" />
-            <h3 className="font-display text-2xl lg:text-3xl text-[var(--color-ink)] mb-4">
+            <Search className="w-12 h-12 indexes-page__bottom-icon" />
+            <h3 className="indexes-page__bottom-title">
               Can't Find What You're Looking For?
             </h3>
-            <p className="font-body text-[var(--color-warm-gray)] mb-8 max-w-lg mx-auto">
+            <p className="indexes-page__bottom-text">
               Use our advanced search to find specific passages, themes, or references across the entire text of Nahj al-Balaghah.
             </p>
-            <Link href="/search" className="group relative inline-block">
-              <button className="inline-flex items-center gap-3 px-8 py-4 bg-[var(--color-primary)] text-white text-sm tracking-[0.15em] uppercase font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200">
+            <Link href="/search" className="indexes-page__cta-wrap">
+              <button className="indexes-page__cta-btn">
                 <span>Search the Text</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               {/* Outer corners on hover */}
-              <div className="absolute -top-1.5 -left-1.5 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
-              <div className="absolute -bottom-1.5 -right-1.5 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
+              <div className="indexes-page__cta-corner indexes-page__cta-corner--tl" />
+              <div className="indexes-page__cta-corner indexes-page__cta-corner--br" />
             </Link>
           </div>
         </div>

@@ -23,7 +23,7 @@ interface ListingCardProps {
 
 export default function ListingCard({ sermon, oration, onClick, contentType = 'orations' }: ListingCardProps) {
   const searchParams = useSearchParams();
-  
+
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -47,16 +47,16 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
 
   const tocData = isOration ? (() => {
     const post = oration!;
-    
+
     return {
       heading: post.heading || '',
       TocEnglish: post.TocEnglish || '',
       TocArabic: post.TocArabic || ''
     };
   })() : null;
-  
+
   const title = isOration ? oration!.title : sermon!.title;
-  const englishTranslation = isOration 
+  const englishTranslation = isOration
     ? oration!.translations?.find((t: any) => t.type === 'en')?.text || ''
     : sermon!.description;
 
@@ -64,59 +64,59 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
   const displayNumber = isOration ? String(oration!.sermonNumber || '') : '';
 
   return (
-    <Link href={getCardLink()} className="block h-full">
-      <div className="listing-grid-card group h-full flex flex-col">
-        <div className="listing-grid-card__header relative overflow-hidden flex-shrink-0">
-          <div className="absolute inset-0 flex items-center justify-start pl-6">
+    <Link href={getCardLink()} className="listing-grid-card__link">
+      <div className="listing-grid-card group">
+        <div className="listing-grid-card__header">
+          <div className="listing-grid-card__header-overlay">
             {isOration && displayNumber ? (
-              <div className="relative">
-                <span className="listing-grid-card__number select-none">
+              <div className="listing-grid-card__number-wrapper">
+                <span className="listing-grid-card__number">
                   {displayNumber}
                 </span>
-                <div className="absolute inset-0 flex items-center justify-start">
-                  <span className="text-7xl font-black text-white/20 blur-sm group-hover:text-white/30 transition-all duration-300">
+                <div className="listing-grid-card__glow-overlay">
+                  <span className="listing-grid-card__number-glow">
                     {displayNumber}
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="listing-grid-card__icon-wrapper flex items-center justify-center">
-                <Book className="w-5 h-5 text-white" />
+              <div className="listing-grid-card__icon-wrapper">
+                <Book className="w-5 h-5" />
               </div>
             )}
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
+          <div className="listing-grid-card__gradient-fade"></div>
         </div>
-        <div className="p-4 flex-grow flex flex-col justify-between">
+        <div className="listing-grid-card__body">
           <div>
             {isOration && tocData && (tocData.heading || tocData.TocEnglish || tocData.TocArabic) ? (
-              <div className="space-y-2">
+              <div className="listing-grid-card__toc-section">
                 {tocData.heading && (
-                  <h4 className="text-xs font-semibold text-[#43896B] line-clamp-1">
+                  <h4 className="listing-grid-card__toc-heading">
                     {truncateText(tocData.heading, 80)}
                   </h4>
                 )}
                 {tocData.TocEnglish && (
-                  <p className="text-sm text-gray-700 line-clamp-2 font-brill leading-snug">
+                  <p className="listing-grid-card__toc-english">
                     {truncateText(tocData.TocEnglish, 120)}
                   </p>
                 )}
                 {tocData.TocArabic && (
-                  <p className="text-sm font-taha text-gray-800 line-clamp-2 leading-snug" dir="rtl">
+                  <p className="listing-grid-card__toc-arabic" dir="rtl">
                     {truncateText(tocData.TocArabic, 120)}
                   </p>
                 )}
               </div>
             ) : (
-              <h3 className={`font-medium text-gray-900 text-base line-clamp-3 group-hover:text-[#43896B] transition-colors mb-3 leading-relaxed ${typeof displayTitle === 'string' && isArabicText(displayTitle) ? 'font-taha' : ''}`}>
-                {typeof displayTitle === 'string' 
+              <h3 className={`listing-grid-card__title ${typeof displayTitle === 'string' && isArabicText(displayTitle) ? 'font-taha' : ''}`}>
+                {typeof displayTitle === 'string'
                   ? formatTextWithFootnotes(truncateText(displayTitle, 120), (oration?.footnotes || []), isArabicText(displayTitle), oration?.sermonNumber || undefined)
                   : truncateText(displayTitle, 120)
                 }
               </h3>
             )}
             {isOration && oration!.tags && oration!.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
+              <div className="listing-grid-card__tags-row">
                 {oration!.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag.id}
@@ -127,7 +127,7 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
                   </span>
                 ))}
                 {oration!.tags.length > 3 && (
-                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                  <span className="listing-grid-card__tag-overflow">
                     +{oration!.tags.length - 3} more
                   </span>
                 )}

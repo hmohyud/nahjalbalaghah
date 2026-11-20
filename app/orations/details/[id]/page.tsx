@@ -10,7 +10,7 @@ export default function OrationDetailsPage() {
   }), []);
 
   return (
-    <div className="pt-32 lg:pt-36 bg-[var(--color-parchment)] min-h-screen">
+    <div className="content-wrapper">
       <ContentDetailsPage
         contentType="orations"
         title="Orations"

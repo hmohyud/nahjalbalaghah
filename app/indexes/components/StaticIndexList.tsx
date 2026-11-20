@@ -93,18 +93,18 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
     const hasActiveFilters = searchQuery || startLetter;
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-3">{category.title}</h1>
-                    <p className="text-lg text-gray-600">
+        <div className="static-index-list">
+            <div className="static-index-list__container">
+                <div className="static-index-list__header">
+                    <h1 className="static-index-list__title">{category.title}</h1>
+                    <p className="static-index-list__description">
                         {category.description}
                     </p>
                 </div>
 
-                <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold text-gray-800">Filters</h2>
+                <div className="static-index-list__filters">
+                    <div className="static-index-list__filters-header">
+                        <h2 className="static-index-list__filters-title">Filters</h2>
                         {hasActiveFilters && (
                             <Button
                                 onClick={handleClearFilters}
@@ -116,8 +116,8 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
                         )}
                     </div>
 
-                    <div className="flex gap-4 items-end">
-                        <div className="flex-1">
+                    <div className="static-index-list__filters-row">
+                        <div className="static-index-list__filters-input">
                             <Input
                                 label="Search"
                                 placeholder={`Search ${category.title}...`}
@@ -126,7 +126,7 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
                                 onKeyDown={(e) => e.key === 'Enter' && handleApplyFilters()}
                             />
                         </div>
-                        <div className="mb-[2px]">
+                        <div className="static-index-list__filters-btn">
                             <Button
                                 onClick={handleApplyFilters}
                                 variant='outlined'
@@ -138,7 +138,7 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
                     </div>
                 </div>
 
-                <div className="mb-6">
+                <div className="static-index-list__alphabet">
                     <AlphabetChips
                         selectedLetter={startLetter}
                         onSelectLetter={handleLetterSelect}
@@ -148,54 +148,54 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
 
                 <div>
                     {total === 0 ? (
-                        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                            <Book className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-600 font-medium text-lg">No items found</p>
-                            <p className="text-gray-500 text-sm mt-2">Try adjusting your filters</p>
+                        <div className="static-index-list__empty">
+                            <Book className="w-16 h-16 static-index-list__empty-icon" />
+                            <p className="static-index-list__empty-title">No items found</p>
+                            <p className="static-index-list__empty-subtitle">Try adjusting your filters</p>
                         </div>
                     ) : (
                         <>
-                            <div className="mb-4 flex items-center justify-between">
-                                <p className="text-sm text-gray-600">
-                                    Showing <span className="font-semibold text-gray-900">{(page - 1) * pageSize + 1}</span>-<span className="font-semibold text-gray-900">{Math.min(page * pageSize, total)}</span> of <span className="font-semibold text-gray-900">{total}</span>
+                            <div className="static-index-list__results-info">
+                                <p className="static-index-list__results-text">
+                                    Showing <span className="static-index-list__results-bold">{(page - 1) * pageSize + 1}</span>-<span className="static-index-list__results-bold">{Math.min(page * pageSize, total)}</span> of <span className="static-index-list__results-bold">{total}</span>
                                 </p>
                             </div>
 
                             {/* Desktop Table */}
-                            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full table-fixed">
+                            <div className="static-index-list__table-wrapper">
+                                <div className="static-index-list__table-scroll">
+                                    <table className="static-index-list__table">
                                         <colgroup>
-                                            <col className="w-1/3" />
+                                            <col className="static-index-list__col-word" />
                                             <col />
-                                            <col className="w-24" />
+                                            <col className="static-index-list__col-action" />
                                         </colgroup>
-                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                        <thead className="static-index-list__thead">
                                             <tr>
-                                                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Word</th>
-                                                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Ref Count</th>
-                                                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Action</th>
+                                                <th className="static-index-list__th">Word</th>
+                                                <th className="static-index-list__th">Ref Count</th>
+                                                <th className="static-index-list__th--center">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-200">
+                                        <tbody className="static-index-list__tbody">
                                             {paginatedItems.map((item) => {
                                                 const targetUrl = `${pathname}/${encodeURIComponent(item.word)}`;
 
                                                 return (
                                                     <tr
                                                         key={item.word}
-                                                        className="hover:bg-gray-50 transition-colors cursor-pointer group"
+                                                        className="static-index-list__row"
                                                         onClick={() => router.push(targetUrl)}
                                                     >
-                                                        <td className="px-6 py-4 text-gray-800 font-medium group-hover:text-[#43896B] transition-colors">
+                                                        <td className="static-index-list__cell-word">
                                                             {item.word}
                                                         </td>
-                                                        <td className="px-6 py-4 text-gray-600">
+                                                        <td className="static-index-list__cell-refs">
                                                             {item.references.length} references
                                                         </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex justify-center">
-                                                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#43896B] group-hover:text-white transition-colors">
+                                                        <td className="static-index-list__cell-action">
+                                                            <div className="static-index-list__action-center">
+                                                                <div className="static-index-list__action-circle">
                                                                     <ArrowRight className="w-4 h-4" />
                                                                 </div>
                                                             </div>
@@ -209,25 +209,25 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
                             </div>
 
                             {/* Mobile List */}
-                            <div className="md:hidden space-y-4">
+                            <div className="static-index-list__mobile">
                                 {paginatedItems.map((item) => {
                                     const targetUrl = `${pathname}/${encodeURIComponent(item.word)}`;
                                     return (
                                         <div
                                             key={item.word}
-                                            className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm cursor-pointer hover:border-[#43896B] transition-colors group"
+                                            className="static-index-list__mobile-card"
                                             onClick={() => router.push(targetUrl)}
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="text-base font-semibold text-gray-900 group-hover:text-[#43896B] transition-colors">
+                                            <div className="static-index-list__mobile-card-row">
+                                                <div className="static-index-list__mobile-card-content">
+                                                    <div className="static-index-list__mobile-card-word">
                                                         {item.word}
                                                     </div>
-                                                    <div className="text-sm text-gray-500 mt-1">
+                                                    <div className="static-index-list__mobile-card-refs">
                                                         {item.references.length} references
                                                     </div>
                                                 </div>
-                                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[#43896B] group-hover:text-white transition-colors">
+                                                <div className="static-index-list__mobile-action-circle">
                                                     <ArrowRight className="w-4 h-4" />
                                                 </div>
                                             </div>
@@ -237,7 +237,7 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
                             </div>
 
                             {totalPages > 1 && (
-                                <div className="mt-8">
+                                <div className="static-index-list__pagination">
                                     <Pagination
                                         currentPage={page}
                                         totalPages={totalPages}

@@ -52,7 +52,7 @@ const IslamicScholarsSection = () => {
         <div className="scholars-bg-circle--left"></div>
         <div className="scholars-bg-circle--right"></div>
       </div>
-      <div className="section-container relative">
+      <div className="section-container section-container--relative">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -112,11 +112,11 @@ const IslamicScholarsSection = () => {
                 </div>
               </div>
               <div className="scholar-card__body">
-                <div className="mb-6">
+                <div className="scholar-card__info-wrapper">
                   <h3 className="scholar-card__name">
                     {scholar.name}
                   </h3>
-                  <div className="flex justify-center mb-4">
+                  <div className="scholar-card__divider-row">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: "60px" }}
@@ -175,7 +175,7 @@ const IslamicScholarsSection = () => {
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className='flex justify-center'
+            className='scholars-action-row'
           >
             <Button variant='solid' icon={<Heart size={16} />} >Meet All Our Scholars</Button>
           </motion.div>

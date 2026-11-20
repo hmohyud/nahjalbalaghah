@@ -27,7 +27,7 @@ export default function SayingTOCPage() {
           return;
         }
         const postData = await sayingsApi.getSayingById(Number(id));
-        
+
         if (!postData) {
           setError('Content not found');
           return;
@@ -59,10 +59,10 @@ export default function SayingTOCPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center pt-32 lg:pt-36">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin mx-auto mb-4" />
-          <p className="text-[var(--color-warm-gray)] font-body">Loading Table of Contents...</p>
+      <div className="detail-toc__loading">
+        <div className="detail-toc__loading-center">
+          <Loader2 className="w-12 h-12 detail-toc__loading-icon" />
+          <p className="detail-toc__loading-text">Loading Table of Contents...</p>
         </div>
       </div>
     );
@@ -70,12 +70,12 @@ export default function SayingTOCPage() {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center pt-32 lg:pt-36">
-        <div className="text-center">
-          <p className="text-red-600 mb-4 font-body">{error || 'Content not found'}</p>
+      <div className="detail-toc__loading">
+        <div className="detail-toc__loading-center">
+          <p className="detail-toc__error-text">{error || 'Content not found'}</p>
           <button
             onClick={() => router.back()}
-            className="text-[var(--color-primary)] hover:underline font-body"
+            className="detail-toc__error-back"
           >
             Go Back
           </button>
@@ -85,40 +85,40 @@ export default function SayingTOCPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)] pt-32 lg:pt-36">
+    <div className="detail-toc">
       {/* Sub Header */}
-      <div className="bg-white border-b border-[var(--color-stone)]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+      <div className="detail-toc__subheader">
+        <div className="detail-toc__subheader-inner">
+          <div className="detail-toc__subheader-row">
             <button
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-[var(--color-charcoal)] hover:text-[var(--color-primary)] transition-colors font-body"
+              className="detail-toc__back-btn"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>Back</span>
             </button>
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-[var(--color-primary)]" />
-              <span className="font-display text-lg text-[var(--color-ink)]">Table of Contents</span>
+            <div className="detail-toc__subheader-title">
+              <BookOpen className="w-5 h-5 detail-toc__subheader-icon" />
+              <span className="detail-toc__subheader-label">Table of Contents</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="detail-toc__content">
+        <div className="detail-toc__grid">
           {/* Left Side - TOC Content */}
-          <div className="lg:col-span-2">
-            <div className="relative bg-white border border-[var(--color-stone)]">
+          <div className="detail-toc__main">
+            <div className="detail-toc__card">
               {/* Corner accents */}
-              <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
+              <div className="detail-toc__corner--top-left" />
+              <div className="detail-toc__corner--bottom-right" />
 
-              <div className="p-8">
+              <div className="detail-toc__card-body--compact">
                 {/* Saying Number Badge */}
                 {post.sermonNumber && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-sm font-body mb-6">
+                  <div className="detail-toc__badge--compact">
                     <Quote className="w-4 h-4" />
                     Saying {post.sermonNumber}
                   </div>
@@ -126,36 +126,36 @@ export default function SayingTOCPage() {
 
                 {/* Heading */}
                 {post.heading && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileText className="w-4 h-4 text-[var(--color-warm-gray)]" />
-                      <h3 className="text-xs tracking-[0.2em] uppercase text-[var(--color-warm-gray)] font-body">
+                  <div className="detail-toc__section--compact">
+                    <div className="detail-toc__section-label-row">
+                      <FileText className="w-4 h-4 detail-toc__section-label-icon" />
+                      <h3 className="detail-toc__section-label">
                         Heading
                       </h3>
                     </div>
-                    <h1 className="font-display text-2xl lg:text-3xl text-[var(--color-ink)]">
+                    <h1 className="detail-toc__heading--compact">
                       {post.heading}
                     </h1>
                   </div>
                 )}
 
                 {/* Divider */}
-                <div className="flex items-center gap-4 my-8">
-                  <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
-                  <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-                  <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
+                <div className="detail-toc__divider">
+                  <div className="detail-toc__divider-line--solid" />
+                  <div className="detail-toc__divider-diamond" />
+                  <div className="detail-toc__divider-line--solid" />
                 </div>
 
                 {/* TocEnglish */}
                 {post.TocEnglish && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileText className="w-4 h-4 text-[var(--color-warm-gray)]" />
-                      <h3 className="text-xs tracking-[0.2em] uppercase text-[var(--color-warm-gray)] font-body">
+                  <div className="detail-toc__section--compact">
+                    <div className="detail-toc__section-label-row">
+                      <FileText className="w-4 h-4 detail-toc__section-label-icon" />
+                      <h3 className="detail-toc__section-label">
                         English
                       </h3>
                     </div>
-                    <p className="font-body text-lg text-[var(--color-charcoal)] leading-relaxed">
+                    <p className="detail-toc__english-text">
                       {post.TocEnglish}
                     </p>
                   </div>
@@ -163,15 +163,15 @@ export default function SayingTOCPage() {
 
                 {/* TocArabic */}
                 {post.TocArabic && (
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileText className="w-4 h-4 text-[var(--color-warm-gray)]" />
-                      <h3 className="text-xs tracking-[0.2em] uppercase text-[var(--color-warm-gray)] font-body">
+                  <div className="detail-toc__section--compact">
+                    <div className="detail-toc__section-label-row">
+                      <FileText className="w-4 h-4 detail-toc__section-label-icon" />
+                      <h3 className="detail-toc__section-label">
                         Arabic
                       </h3>
                     </div>
-                    <div className="bg-[var(--color-parchment)] p-6 border-r-4 border-[var(--color-primary)]">
-                      <p className="font-taha text-xl text-[var(--color-ink)] leading-relaxed" dir="rtl">
+                    <div className="detail-toc__arabic-block">
+                      <p className="detail-toc__arabic-block-text" dir="rtl">
                         {post.TocArabic}
                       </p>
                     </div>
@@ -179,10 +179,10 @@ export default function SayingTOCPage() {
                 )}
 
                 {/* Link to Full Content */}
-                <div className="mt-8 pt-8 border-t border-[var(--color-stone)]">
+                <div className="detail-toc__read-full--compact">
                   <Link
                     href={`/sayings/details/${post.id}`}
-                    className="group inline-flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-body hover:bg-[var(--color-primary-dark)] transition-colors"
+                    className="detail-toc__read-full-simple"
                   >
                     <Quote className="w-5 h-5" />
                     Read Full Saying
@@ -193,37 +193,37 @@ export default function SayingTOCPage() {
           </div>
 
           {/* Right Side - Manuscripts */}
-          <div className="lg:col-span-1">
-            <div className="relative bg-white border border-[var(--color-stone)] sticky top-28">
+          <div className="detail-toc__sidebar">
+            <div className="detail-toc__manuscripts-panel detail-toc__manuscripts-panel--relative">
               {/* Corner accents */}
-              <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]" />
-              <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]" />
+              <div className="detail-toc__corner--top-left-sm" />
+              <div className="detail-toc__corner--bottom-right-sm" />
 
-              <div className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <ImageIcon className="w-5 h-5 text-[var(--color-primary)]" />
-                  <h2 className="font-display text-lg text-[var(--color-ink)]">
+              <div className="detail-toc__manuscripts-header--no-border">
+                <div className="detail-toc__manuscripts-title-row--compact">
+                  <ImageIcon className="w-5 h-5 detail-toc__manuscripts-icon" />
+                  <h2 className="detail-toc__manuscripts-title--compact">
                     Manuscripts
                   </h2>
                 </div>
 
                 {manuscripts.length > 0 ? (
-                  <div className="space-y-6">
+                  <div className="detail-toc__manuscripts-list">
                     {manuscripts.map((manuscript) => (
-                      <div key={manuscript.id} className="border-b border-[var(--color-stone)] pb-6 last:border-b-0 last:pb-0">
+                      <div key={manuscript.id} className="detail-toc__manuscript-item">
                         {/* Manuscript Images - just zoom on hover */}
                         {manuscript.files && manuscript.files.length > 0 && (
-                          <div className="space-y-3 mb-4">
+                          <div className="detail-toc__manuscript-images">
                             {manuscript.files.map((file, index) => (
-                              <div 
-                                key={file.id} 
-                                className="relative overflow-hidden cursor-pointer"
+                              <div
+                                key={file.id}
+                                className="detail-toc__manuscript-image-wrapper--hoverable"
                                 onClick={() => window.open(getManuscriptImageUrl(file.url), '_blank')}
                               >
                                 <img
                                   src={getManuscriptImageUrl(file.url)}
                                   alt={file.alternativeText || `Manuscript ${index + 1}`}
-                                  className="w-full border border-[var(--color-stone)] hover:scale-105 transition-transform duration-300"
+                                  className="detail-toc__manuscript-image--hoverable"
                                 />
                               </div>
                             ))}
@@ -231,41 +231,41 @@ export default function SayingTOCPage() {
                         )}
 
                         {/* Manuscript Metadata */}
-                        <div className="space-y-2 text-sm font-body">
+                        <div className="detail-toc__manuscript-meta">
                           {manuscript.bookName && (
                             <div>
-                              <span className="text-[var(--color-charcoal)]">Book:</span>
-                              <span className="ml-2 text-[var(--color-warm-gray)]">{manuscript.bookName}</span>
+                              <span className="detail-toc__meta-label-inline">Book:</span>
+                              <span className="detail-toc__meta-value-inline">{manuscript.bookName}</span>
                             </div>
                           )}
                           {manuscript.siglaEnglish && (
                             <div>
-                              <span className="text-[var(--color-charcoal)]">Sigla:</span>
-                              <span className="ml-2 text-[var(--color-warm-gray)]">{manuscript.siglaEnglish}</span>
+                              <span className="detail-toc__meta-label-inline">Sigla:</span>
+                              <span className="detail-toc__meta-value-inline">{manuscript.siglaEnglish}</span>
                             </div>
                           )}
                           {manuscript.gregorianYear && (
                             <div>
-                              <span className="text-[var(--color-charcoal)]">Year:</span>
-                              <span className="ml-2 text-[var(--color-warm-gray)]">{manuscript.gregorianYear}</span>
+                              <span className="detail-toc__meta-label-inline">Year:</span>
+                              <span className="detail-toc__meta-value-inline">{manuscript.gregorianYear}</span>
                             </div>
                           )}
                           {manuscript.holdingInstitution && (
                             <div>
-                              <span className="text-[var(--color-charcoal)]">Institution:</span>
-                              <span className="ml-2 text-[var(--color-warm-gray)]">{manuscript.holdingInstitution}</span>
+                              <span className="detail-toc__meta-label-inline">Institution:</span>
+                              <span className="detail-toc__meta-value-inline">{manuscript.holdingInstitution}</span>
                             </div>
                           )}
                           {manuscript.city && manuscript.country && (
                             <div>
-                              <span className="text-[var(--color-charcoal)]">Location:</span>
-                              <span className="ml-2 text-[var(--color-warm-gray)]">{manuscript.city}, {manuscript.country}</span>
+                              <span className="detail-toc__meta-label-inline">Location:</span>
+                              <span className="detail-toc__meta-value-inline">{manuscript.city}, {manuscript.country}</span>
                             </div>
                           )}
                           {manuscript.catalogNumber && (
                             <div>
-                              <span className="text-[var(--color-charcoal)]">Catalog #:</span>
-                              <span className="ml-2 text-[var(--color-warm-gray)]">{manuscript.catalogNumber}</span>
+                              <span className="detail-toc__meta-label-inline">Catalog #:</span>
+                              <span className="detail-toc__meta-value-inline">{manuscript.catalogNumber}</span>
                             </div>
                           )}
                         </div>
@@ -273,9 +273,9 @@ export default function SayingTOCPage() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <ImageIcon className="w-12 h-12 text-[var(--color-stone)] mx-auto mb-3" />
-                    <p className="text-[var(--color-warm-gray)] text-sm font-body">
+                  <div className="detail-toc__manuscripts-empty--compact">
+                    <ImageIcon className="w-12 h-12 detail-toc__manuscripts-empty-icon--compact" />
+                    <p className="detail-toc__manuscripts-empty-text">
                       No manuscripts available for this section yet.
                     </p>
                   </div>

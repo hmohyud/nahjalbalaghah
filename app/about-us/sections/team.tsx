@@ -35,62 +35,62 @@ const TeamSection = () => {
   ]
 
   return (
-    <section className="py-24 bg-[var(--color-parchment)]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="team-section">
+      <div className="team-section__container">
         {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-xs tracking-[0.3em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+        <div className="team-section__header">
+          <p className="team-section__label">
             The People Behind Our Mission
           </p>
-          <h2 className="font-display text-3xl lg:text-5xl text-[var(--color-ink)] mb-6">
+          <h2 className="team-section__title">
             Our Team
           </h2>
-          
+
           {/* Decorative ornament */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+          <div className="team-section__ornament">
+            <div className="team-section__ornament-line team-section__ornament-line--right" />
+            <div className="team-section__ornament-diamond" />
+            <div className="team-section__ornament-line team-section__ornament-line--left" />
           </div>
-          
-          <p className="font-body text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto">
+
+          <p className="team-section__description">
             Meet the dedicated scholars and professionals who work tirelessly to preserve and share
             the wisdom of Nahj al-Balaghah with the world.
           </p>
         </div>
 
         {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="team-section__grid">
           {teamMembers.map((member) => (
             <div
               key={member.name}
-              className="relative bg-white border border-[var(--color-stone)] p-6 text-center"
+              className="team-section__card"
             >
               {/* Avatar */}
-              <div className="w-20 h-20 bg-[var(--color-primary)]/10 mx-auto mb-5 flex items-center justify-center">
-                <User className="w-10 h-10 text-[var(--color-primary)]" />
+              <div className="team-section__avatar">
+                <User className="team-section__avatar-icon" />
               </div>
 
               {/* Name & Role */}
-              <h3 className="font-display text-lg text-[var(--color-ink)] mb-1">{member.name}</h3>
-              <p className="text-sm font-body text-[var(--color-primary)] mb-4">{member.role}</p>
+              <h3 className="team-section__name">{member.name}</h3>
+              <p className="team-section__role">{member.role}</p>
 
               {/* Bio */}
-              <p className="font-body text-sm text-[var(--color-warm-gray)] leading-relaxed mb-5">
+              <p className="team-section__bio">
                 {member.bio}
               </p>
 
               {/* Social Links - these ARE clickable, so keep hover */}
-              <div className="flex justify-center gap-3">
+              <div className="team-section__socials">
                 <a
                   href={`mailto:${member.email}`}
-                  className="w-9 h-9 border border-[var(--color-stone)] flex items-center justify-center text-[var(--color-warm-gray)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition-all duration-200"
+                  className="team-section__social-link"
                 >
                   <Mail className="w-4 h-4" />
                 </a>
                 <a
                   href={member.linkedin}
-                  className="w-9 h-9 border border-[var(--color-stone)] flex items-center justify-center text-[var(--color-warm-gray)] hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:text-white transition-all duration-200"
+                  className="team-section__social-link"
                 >
                   <Linkedin className="w-4 h-4" />
                 </a>

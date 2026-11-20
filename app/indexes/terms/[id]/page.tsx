@@ -42,12 +42,12 @@ const checkTextMatch = (text: string, term: string) => {
 // Extract only the sentence or portion containing the term
 const extractMatchingSentence = (text: string, term: string): string | null => {
     if (!text || !term) return null;
-    
+
     const t = term.toLowerCase().trim();
     const txtLower = text.toLowerCase();
-    
+
     let termIndex = txtLower.indexOf(t);
-    
+
     if (termIndex === -1) {
         if (t.endsWith('s')) {
             termIndex = txtLower.indexOf(t.slice(0, -1));
@@ -57,11 +57,11 @@ const extractMatchingSentence = (text: string, term: string): string | null => {
             termIndex = txtLower.indexOf(t.slice(0, -2));
         }
     }
-    
+
     if (termIndex === -1) return null;
-    
+
     const sentenceEnders = /[.!?؟]/;
-    
+
     let sentenceStart = 0;
     for (let i = termIndex - 1; i >= 0; i--) {
         if (sentenceEnders.test(text[i])) {
@@ -69,7 +69,7 @@ const extractMatchingSentence = (text: string, term: string): string | null => {
             break;
         }
     }
-    
+
     let sentenceEnd = text.length;
     for (let i = termIndex; i < text.length; i++) {
         if (sentenceEnders.test(text[i])) {
@@ -77,18 +77,18 @@ const extractMatchingSentence = (text: string, term: string): string | null => {
             break;
         }
     }
-    
+
     let sentence = text.slice(sentenceStart, sentenceEnd).trim();
-    
+
     if (sentence.length < 50 && text.length > sentence.length) {
         const contextStart = Math.max(0, termIndex - 100);
         const contextEnd = Math.min(text.length, termIndex + 100);
         sentence = text.slice(contextStart, contextEnd).trim();
-        
+
         if (contextStart > 0) sentence = '...' + sentence;
         if (contextEnd < text.length) sentence = sentence + '...';
     }
-    
+
     return sentence;
 };
 
@@ -199,9 +199,9 @@ export default function TermDetailsPage() {
                                     if (matchEng || matchAra) {
                                         const textToSearch = detectedLanguage === 'arabic' ? (item.arabic || '') : (item.translation || '');
                                         const matchingSentence = extractMatchingSentence(textToSearch, term);
-                                        return { 
-                                            type: 'Radis', 
-                                            data: item, 
+                                        return {
+                                            type: 'Radis',
+                                            data: item,
                                             reference: refValue,
                                             matchingContent: matchingSentence || textToSearch
                                         };
@@ -235,10 +235,10 @@ export default function TermDetailsPage() {
                                                 if (checkTextMatch(eng, term) || checkTextMatch(ara, term)) {
                                                     const textToSearch = detectedLanguage === 'arabic' ? ara : eng;
                                                     const matchingSentence = extractMatchingSentence(textToSearch, term);
-                                                    return { 
-                                                        type: 'Post', 
-                                                        data: matchedPost, 
-                                                        reference: refValue, 
+                                                    return {
+                                                        type: 'Post',
+                                                        data: matchedPost,
+                                                        reference: refValue,
                                                         sourceType: matchedPost.type as any,
                                                         matchingParagraphNumber: targetPara.number,
                                                         matchingContent: matchingSentence || textToSearch
@@ -248,10 +248,10 @@ export default function TermDetailsPage() {
                                         } else {
                                             const matchResult = getMatchingContent(matchedPost, term, detectedLanguage);
                                             if (matchResult) {
-                                                return { 
-                                                    type: 'Post', 
-                                                    data: matchedPost, 
-                                                    reference: refValue, 
+                                                return {
+                                                    type: 'Post',
+                                                    data: matchedPost,
+                                                    reference: refValue,
                                                     sourceType: matchedPost.type as any,
                                                     matchingParagraphNumber: matchResult.paragraphNumber,
                                                     matchingContent: matchResult.content
@@ -297,21 +297,21 @@ export default function TermDetailsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
-                <div className="animate-spin h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
+            <div className="index-detail__loading">
+                <div className="index-detail__spinner"></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-[var(--color-parchment)] flex flex-col items-center justify-center p-4">
-                <div className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-8 relative">
-                    <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]"></div>
-                    <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-[var(--color-accent)]"></div>
-                    <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-[var(--color-accent)]"></div>
-                    <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]"></div>
-                    <div className="text-red-600 mb-4 font-body">{error}</div>
+            <div className="index-detail__error-wrapper">
+                <div className="index-detail__error-box">
+                    <div className="index-detail__corner--tl"></div>
+                    <div className="index-detail__corner--tr"></div>
+                    <div className="index-detail__corner--bl"></div>
+                    <div className="index-detail__corner--br"></div>
+                    <div className="index-detail__error-msg">{error}</div>
                     <Button onClick={() => router.back()} variant="outlined">Go Back</Button>
                 </div>
             </div>
@@ -319,47 +319,47 @@ export default function TermDetailsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[var(--color-parchment)] pb-12">
+        <div className="index-detail__page">
             {/* Header */}
-            <div className="bg-[var(--color-cream)] border-b border-[var(--color-stone)] sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div className="index-detail__header">
+                <div className="index-detail__header-inner">
                     <button
                         onClick={() => router.back()}
-                        className="flex items-center gap-2 text-[var(--color-warm-gray)] hover:text-[var(--color-primary)] transition-colors"
+                        className="index-detail__back-btn"
                     >
                         <ArrowLeft className="w-5 h-5" />
-                        <span className="font-body text-sm hidden sm:inline">Back</span>
+                        <span className="index-detail__back-label">Back</span>
                     </button>
-                    <div className="flex items-center gap-3 flex-1 justify-center">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[var(--color-primary)] flex items-center justify-center">
+                    <div className="index-detail__header-center">
+                        <div className="index-detail__icon-box">
                             <Languages className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <div className="text-center">
-                            <h1 className="text-lg sm:text-xl font-display text-[var(--color-primary)] line-clamp-1">
+                        <div className="index-detail__title-wrap">
+                            <h1 className="index-detail__title">
                                 &ldquo;{term}&rdquo;
                             </h1>
                             {language && (
-                                <span className="text-xs tracking-[0.1em] uppercase text-[var(--color-warm-gray)] font-body">{language}</span>
+                                <span className="index-detail__language-label">{language}</span>
                             )}
                         </div>
                     </div>
-                    <div className="w-10"></div>
+                    <div className="index-detail__header-spacer"></div>
                 </div>
             </div>
 
             {/* Results */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8 space-y-4 sm:space-y-6">
+            <div className="index-detail__results">
                 {results.length === 0 ? (
-                    <div className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-8 sm:p-12 relative text-center">
-                        <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]"></div>
-                        <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-[var(--color-accent)]"></div>
-                        <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-[var(--color-accent)]"></div>
-                        <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]"></div>
-                        <p className="text-lg sm:text-xl text-[var(--color-warm-gray)] font-body">No content found for &ldquo;{term}&rdquo;.</p>
+                    <div className="index-detail__empty">
+                        <div className="index-detail__corner--tl"></div>
+                        <div className="index-detail__corner--tr"></div>
+                        <div className="index-detail__corner--bl"></div>
+                        <div className="index-detail__corner--br"></div>
+                        <p className="index-detail__empty-text">No content found for &ldquo;{term}&rdquo;.</p>
                     </div>
                 ) : (
                     <>
-                        <p className="text-sm text-[var(--color-warm-gray)] font-body">
+                        <p className="index-detail__count">
                             Found {results.length} reference{results.length !== 1 ? 's' : ''}
                         </p>
                         {results.map((item, index) => (
@@ -385,30 +385,30 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
                 'Saying': 'sayings'
             };
             const contentType = contentTypeMap[post.type] || 'orations';
-            
+
             const params = new URLSearchParams();
-            
+
             const highlightRef = matchingParagraphNumber || post.sermonNumber;
             if (highlightRef) {
                 params.set('highlightRef', highlightRef);
             }
-            
+
             const isArabicTerm = /[\u0600-\u06FF]/.test(term);
             if (isArabicTerm) {
                 params.set('arabicWord', term);
             } else {
                 params.set('word', term);
             }
-            
+
             const queryString = params.toString();
             return `/${contentType}/details/${post.id}${queryString ? `?${queryString}` : ''}`;
         }
-        
+
         if (type === 'Radis') {
             const radis = data as RadisIntroduction;
             return `/radis?highlightRef=${radis.number.startsWith('0.') ? radis.number : `0.${radis.number}`}`;
         }
-        
+
         return null;
     };
 
@@ -421,7 +421,7 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
 
     if (type === 'Post') {
         const post = data as Post;
-        
+
         const displayContent = matchingContent || 'No content available';
 
         let displayTitle = post.title || post.heading || `Oration ${post.sermonNumber}`;
@@ -441,41 +441,41 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
         }
 
         return (
-            <div 
-                className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-4 sm:p-6 hover:border-[var(--color-primary)] transition-all cursor-pointer relative group"
+            <div
+                className="index-detail__card group"
                 onClick={handleCardClick}
             >
                 {/* Accent corners on hover */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="index-detail__corner-hover--tl"></div>
+                <div className="index-detail__corner-hover--tr"></div>
+                <div className="index-detail__corner-hover--bl"></div>
+                <div className="index-detail__corner-hover--br"></div>
 
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="bg-[var(--color-primary)] text-white text-[10px] sm:text-xs font-body px-2 py-1 uppercase tracking-[0.1em]">
+                <div className="index-detail__card-header">
+                    <div className="index-detail__card-tags">
+                        <span className="index-detail__tag--primary">
                             {post.type}
                         </span>
-                        <span className="text-[var(--color-warm-gray)] text-xs sm:text-sm font-body">#{post.sermonNumber}</span>
+                        <span className="index-detail__tag--secondary">#{post.sermonNumber}</span>
                         {matchingParagraphNumber && (
-                            <span className="bg-[var(--color-stone)] text-[var(--color-charcoal)] text-[10px] sm:text-xs px-2 py-1 font-body">
+                            <span className="index-detail__tag--para">
                                 Para: {matchingParagraphNumber}
                             </span>
                         )}
                     </div>
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] transition-colors">
-                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--color-charcoal)] group-hover:text-white transition-colors" />
+                    <div className="index-detail__arrow-box">
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 index-detail__arrow-icon" />
                     </div>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-display text-[var(--color-ink)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">{displayTitle}</h3>
+                <h3 className="index-detail__card-title">{displayTitle}</h3>
 
-                <div className="text-[var(--color-charcoal)] leading-relaxed font-body text-sm sm:text-base">
+                <div className="index-detail__card-body">
                     <HighlightText text={displayContent} term={term} />
                 </div>
-                
-                <div className="mt-3 sm:mt-4 pt-3 border-t border-[var(--color-stone)]">
-                    <span className="text-xs sm:text-sm text-[var(--color-primary)] font-body group-hover:underline">
+
+                <div className="index-detail__card-footer">
+                    <span className="index-detail__card-link">
                         View full {post.type.toLowerCase()} →
                     </span>
                 </div>
@@ -494,24 +494,24 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
         if (!showEng && !showAra) return null;
 
         return (
-            <div className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-4 sm:p-6 relative">
-                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-[var(--color-accent)]"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-[var(--color-accent)]"></div>
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-[var(--color-accent)]"></div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-[var(--color-accent)]"></div>
+            <div className="index-detail__card--static">
+                <div className="index-detail__corner--tl"></div>
+                <div className="index-detail__corner--tr"></div>
+                <div className="index-detail__corner--bl"></div>
+                <div className="index-detail__corner--br"></div>
 
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-[var(--color-accent)] text-[var(--color-ink)] text-[10px] sm:text-xs font-body px-2 py-1 uppercase tracking-[0.1em]">
+                <div className="index-detail__card-header">
+                    <div className="index-detail__card-tags">
+                        <span className="index-detail__tag--accent">
                             Paragraph
                         </span>
-                        <span className="text-[var(--color-warm-gray)] text-xs sm:text-sm font-body">#{para.number}</span>
+                        <span className="index-detail__tag--secondary">#{para.number}</span>
                     </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="index-detail__para-grid">
                     {showAra && (
-                        <div className="text-right" dir="rtl">
+                        <div className="text-align-right" dir="rtl">
                             <HighlightText text={arabicText} term={term} />
                         </div>
                     )}
@@ -527,7 +527,7 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
 
     if (type === 'Radis') {
         const radis = data as RadisIntroduction;
-        
+
         const displayContent = matchingContent || (language === 'arabic' ? radis.arabic : radis.translation) || '';
 
         const showEng = language !== 'arabic' && radis.translation;
@@ -536,34 +536,34 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
         if (!showEng && !showAra) return null;
 
         return (
-            <div 
-                className="bg-[var(--color-cream)] border border-[var(--color-stone)] p-4 sm:p-6 hover:border-[var(--color-primary)] transition-all cursor-pointer relative group"
+            <div
+                className="index-detail__card group"
                 onClick={handleCardClick}
             >
                 {/* Accent corners on hover */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-transparent group-hover:border-[var(--color-accent)] transition-colors"></div>
+                <div className="index-detail__corner-hover--tl"></div>
+                <div className="index-detail__corner-hover--tr"></div>
+                <div className="index-detail__corner-hover--bl"></div>
+                <div className="index-detail__corner-hover--br"></div>
 
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-[var(--color-accent)] text-[var(--color-ink)] text-[10px] sm:text-xs font-body px-2 py-1 uppercase tracking-[0.1em]">
+                <div className="index-detail__card-header">
+                    <div className="index-detail__card-tags">
+                        <span className="index-detail__tag--accent">
                             Radis Introduction
                         </span>
-                        <span className="text-[var(--color-warm-gray)] text-xs sm:text-sm font-body">#{radis.number}</span>
+                        <span className="index-detail__tag--secondary">#{radis.number}</span>
                     </div>
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[var(--color-stone)] flex items-center justify-center group-hover:bg-[var(--color-primary)] transition-colors">
-                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-[var(--color-charcoal)] group-hover:text-white transition-colors" />
+                    <div className="index-detail__arrow-box">
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 index-detail__arrow-icon" />
                     </div>
                 </div>
 
-                <div className="text-[var(--color-charcoal)] leading-relaxed font-body text-sm sm:text-base">
+                <div className="index-detail__card-body">
                     <HighlightText text={displayContent} term={term} />
                 </div>
-                
-                <div className="mt-3 sm:mt-4 pt-3 border-t border-[var(--color-stone)]">
-                    <span className="text-xs sm:text-sm text-[var(--color-primary)] font-body group-hover:underline">
+
+                <div className="index-detail__card-footer">
+                    <span className="index-detail__card-link">
                         View full introduction →
                     </span>
                 </div>
@@ -576,7 +576,7 @@ function ContentCard({ item, term, language }: { item: CombinedResult; term: str
 
 function HighlightText({ text, term }: { text: string; term: string }) {
     if (!text) return null;
-    if (!term) return <p className="text-[var(--color-charcoal)] leading-loose">{text}</p>;
+    if (!term) return <p className="index-detail__text">{text}</p>;
 
     const t = term.toLowerCase().trim();
 
@@ -591,10 +591,10 @@ function HighlightText({ text, term }: { text: string; term: string }) {
     const parts = text.split(new RegExp(`(${regexStr})`, 'gi'));
 
     return (
-        <p className="text-[var(--color-charcoal)] leading-loose">
+        <p className="index-detail__text">
             {parts.map((part, i) =>
                 new RegExp(`^${regexStr}$`, 'i').test(part) ? (
-                    <span key={i} className="bg-[var(--color-accent)] text-[var(--color-ink)] font-medium px-1">
+                    <span key={i} className="index-detail__highlight">
                         {part}
                     </span>
                 ) : (

@@ -74,12 +74,7 @@ const HeroSection = () => {
       <section className="hero-section">
         {/* Background */}
         <div className="hero-background">
-          <div
-            className="hero-background-texture"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-          />
+          <div className="hero-background-texture bg-pattern-cross" />
         </div>
 
         {/* Decorative page frame - like manuscript edges */}
@@ -94,7 +89,7 @@ const HeroSection = () => {
         <div className="hero-main">
           <div className="hero-backdrop">
             {/* Arabic Title Image */}
-            <div className="mb-6">
+            <div className="hero-title-image-wrapper">
               <Image
                 src={TitleImage}
                 alt="نهج البلاغة"
@@ -104,8 +99,7 @@ const HeroSection = () => {
             </div>
 
             {/* Decorative Ornament */}
-            <div className={`flex items-center justify-center gap-4 mb-6 fade-in-up--slow ${isVisible ? "fade-in--visible" : "fade-in--hidden"}`}
-              style={{ transitionDelay: '200ms' }}
+            <div className={`hero-ornament-row fade-in-up--slow hero-ornament-delay ${isVisible ? "fade-in--visible" : "fade-in--hidden"}`}
             >
               <div className="hero-ornament-line hero-ornament-line--right" />
               <div className="hero-ornament-diamond" />
@@ -190,14 +184,14 @@ const HeroSection = () => {
           <div className="hero-radi-container">
             <div className="hero-radi-grid">
               {/* Left link - right aligned */}
-              <Link href="/radis" className="group text-right">
+              <Link href="/radis" className="group hero-radi-link-left">
                 <span className="hero-radi-link">
                   ← Radi's Introduction
                 </span>
               </Link>
 
               {/* Center ornament */}
-              <div className="flex items-center gap-3">
+              <div className="hero-radi-ornament-row">
                 <div className="hero-ornament-line hero-ornament-line--right" />
                 <div className="hero-ornament-diamond" />
                 <div className="hero-ornament-line hero-ornament-line--left" />
@@ -213,7 +207,7 @@ const HeroSection = () => {
           </div>
 
           {/* Scroll Indicator */}
-          <div className="hero-radi-container mt-6">
+          <div className="hero-radi-container hero-radi-scroll-wrapper">
             <div className={`hero-radi-grid fade-in-up--slow fade-delay-1000 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}>
               <div />
               <ChevronDown className="hero-scroll-indicator animate-bounce" />

@@ -104,7 +104,7 @@ export default function StaticIndexDetails({ categorySlug, termSlug }: StaticInd
 
                 const item = category.items.find(i => i.word.toLowerCase() === term.toLowerCase());
 
-                // If not found, maybe show a "Not Found" message, but let's try to proceed if we had IDs... 
+                // If not found, maybe show a "Not Found" message, but let's try to proceed if we had IDs...
                 // but actually we rely on static data for IDs.
                 if (!item) {
                     setError(`Term "${term}" not found in this index.`);
@@ -202,45 +202,45 @@ export default function StaticIndexDetails({ categorySlug, termSlug }: StaticInd
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#43896B]"></div>
+            <div className="static-index-details__loading">
+                <div className="static-index-details__spinner"></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-                <div className="text-red-500 mb-4">{error}</div>
+            <div className="static-index-details__error">
+                <div className="static-index-details__error-text">{error}</div>
                 <Button onClick={() => router.back()} variant="outlined">Go Back</Button>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
+        <div className="static-index-details">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div className="static-index-details__header">
+                <div className="static-index-details__header-inner">
                     <Button
                         onClick={() => router.back()}
                         variant="outlined"
-                        className="!p-2 -ml-2 border-none text-gray-500 hover:text-gray-700"
+                        className="static-index-details__back-btn"
                         icon={<ArrowLeft className="w-5 h-5" />}
                     >
                         Back
                     </Button>
-                    <h1 className="text-xl font-bold text-gray-800 text-center flex-1">
+                    <h1 className="static-index-details__title">
                         "{term}"
                     </h1>
-                    <div className="w-10"></div>
+                    <div className="static-index-details__spacer"></div>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-8 space-y-6">
+            <div className="static-index-details__content">
                 {results.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                        <p className="text-xl mb-4">No content found for "{term}".</p>
+                    <div className="static-index-details__empty">
+                        <p className="static-index-details__empty-text">No content found for "{term}".</p>
                     </div>
                 ) : (
                     results.map((item, index) => (
@@ -270,21 +270,21 @@ function ContentCard({ item, term }: { item: CombinedResult; term: string }) {
         const displayTitle = post.title || post.heading || `Oration ${post.sermonNumber}`;
 
         return (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow relative group">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">
+            <div className="static-index-details__card">
+                <div className="static-index-details__card-header">
+                    <div className="static-index-details__card-badges">
+                        <span className="static-index-details__card-type-badge">
                             {post.type}
                         </span>
-                        <span className="text-gray-500 text-sm font-medium">#{post.sermonNumber}</span>
+                        <span className="static-index-details__card-number">#{post.sermonNumber}</span>
                     </div>
                 </div>
 
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{displayTitle}</h3>
+                <h3 className="static-index-details__card-title">{displayTitle}</h3>
 
-                <div className="space-y-4">
-                    <div className="text-gray-700 leading-relaxed">
-                        <div className="line-clamp-4">
+                <div className="static-index-details__card-content">
+                    <div className="static-index-details__card-text">
+                        <div className="static-index-details__card-text-clamp">
                             <HighlightText text={mainContent} term={term} />
                         </div>
                     </div>
@@ -302,13 +302,13 @@ function ContentCard({ item, term }: { item: CombinedResult; term: string }) {
         const radis = data as RadisIntroduction;
 
         return (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow relative">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-purple-50 text-purple-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide">
+            <div className="static-index-details__card">
+                <div className="static-index-details__card-header">
+                    <div className="static-index-details__card-badges">
+                        <span className="static-index-details__card-type-badge--radis">
                             Radis Introduction
                         </span>
-                        <span className="text-gray-500 text-sm font-medium">#{radis.number}</span>
+                        <span className="static-index-details__card-number">#{radis.number}</span>
                     </div>
                 </div>
 
@@ -324,7 +324,7 @@ function ContentCard({ item, term }: { item: CombinedResult; term: string }) {
 
 function HighlightText({ text, term }: { text: string; term: string }) {
     if (!text) return null;
-    if (!term) return <p className="text-gray-800 text-lg leading-loose">{text}</p>;
+    if (!term) return <p className="static-index-details__highlight-text">{text}</p>;
 
     const t = term.toLowerCase().trim();
 
@@ -337,10 +337,10 @@ function HighlightText({ text, term }: { text: string; term: string }) {
     const parts = text.split(new RegExp(`(${regexStr})`, 'gi'));
 
     return (
-        <p className="text-gray-800 text-lg leading-loose">
+        <p className="static-index-details__highlight-text">
             {parts.map((part, i) =>
                 new RegExp(`^${regexStr}$`, 'i').test(part) ? (
-                    <span key={i} className="bg-yellow-200 text-gray-900 font-medium px-1 rounded">
+                    <span key={i} className="static-index-details__highlight-mark">
                         {part}
                     </span>
                 ) : (

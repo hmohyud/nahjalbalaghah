@@ -18,8 +18,8 @@ export default function ManuscriptsPage() {
     <>
       <ManuscriptsHero />
       <Suspense fallback={
-        <div className="min-h-[400px] bg-[var(--color-parchment)] flex items-center justify-center">
-          <div className="text-[var(--color-warm-gray)] font-body">Loading manuscripts...</div>
+        <div className="manuscripts-fallback">
+          <div className="manuscripts-fallback__text">Loading manuscripts...</div>
         </div>
       }>
         <ManuscriptsContent />

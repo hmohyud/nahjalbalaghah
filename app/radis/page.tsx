@@ -127,11 +127,11 @@ function RadisContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)]">
-        <div className="max-w-6xl mx-auto px-6 py-32">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
-            <p className="mt-4 text-[var(--color-warm-gray)] font-body">Loading Radi's introductions...</p>
+      <div className="static-page">
+        <div className="static-page__loading">
+          <div className="static-page__loading-inner">
+            <div className="static-page__spinner"></div>
+            <p className="static-page__loading-text">Loading Radi's introductions...</p>
           </div>
         </div>
       </div>
@@ -140,10 +140,10 @@ function RadisContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[var(--color-parchment)]">
-        <div className="max-w-6xl mx-auto px-6 py-32">
-          <div className="text-center">
-            <p className="text-red-600 mb-4 font-body">{error}</p>
+      <div className="static-page">
+        <div className="static-page__loading">
+          <div className="static-page__loading-inner">
+            <p className="static-page__error-text">{error}</p>
             <Button onClick={fetchRadisIntroductions}>Try Again</Button>
           </div>
         </div>
@@ -152,33 +152,33 @@ function RadisContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)]">
+    <div className="static-page">
       {/* Hero Section */}
-      <div className="relative bg-[var(--color-primary)] text-white overflow-hidden pt-32 lg:pt-36">
+      <div className="static-page__hero">
         {/* Decorative corners */}
-        <div className="absolute top-32 lg:top-36 left-8 w-16 h-16 border-l border-t border-[var(--color-accent)]/30" />
-        <div className="absolute top-32 lg:top-36 right-8 w-16 h-16 border-r border-t border-[var(--color-accent)]/30" />
-        <div className="absolute bottom-8 left-8 w-16 h-16 border-l border-b border-[var(--color-accent)]/30" />
-        <div className="absolute bottom-8 right-8 w-16 h-16 border-r border-b border-[var(--color-accent)]/30" />
-        
-        <div className="max-w-5xl mx-auto px-6 py-16 lg:py-20 text-center relative">
+        <div className="static-page__hero-corner static-page__hero-corner--tl" />
+        <div className="static-page__hero-corner static-page__hero-corner--tr" />
+        <div className="static-page__hero-corner static-page__hero-corner--bl" />
+        <div className="static-page__hero-corner static-page__hero-corner--br" />
+
+        <div className="static-page__hero-inner">
           {/* Arabic Title */}
-          <div className="font-taha text-4xl lg:text-5xl mb-4 text-white/90">
+          <div className="static-page__arabic-title">
             مقدمة الرضي
           </div>
-          
+
           {/* Decorative Ornament */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+          <div className="static-page__ornament">
+            <div className="static-page__ornament-line--right" />
+            <div className="static-page__ornament-diamond" />
+            <div className="static-page__ornament-line--left" />
           </div>
 
-          <h1 className="font-display text-4xl lg:text-6xl font-light mb-6">
+          <h1 className="static-page__title">
             Radi's Introduction
           </h1>
-          
-          <p className="font-body text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+
+          <p className="static-page__subtitle static-page__subtitle--white">
             The enlightening introduction by al-Sharif al-Radi, compiler of Nahj al-Balaghah,
             explaining his methodology and the profound wisdom contained within.
           </p>
@@ -186,9 +186,9 @@ function RadisContent() {
       </div>
 
       {/* Search Section */}
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <form onSubmit={handleSearch} className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
+      <div className="static-page__search">
+        <form onSubmit={handleSearch} className="static-page__search-form">
+          <div className="static-page__search-input">
             <Input
               type="text"
               placeholder="Search in Arabic or English..."
@@ -209,38 +209,38 @@ function RadisContent() {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-5xl mx-auto px-6 pb-20">
+      <div className="static-page__content">
         {radisIntroductions.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--color-warm-gray)] font-body text-lg">
+          <div className="static-page__content-empty">
+            <p className="static-page__content-empty-text">
               {searchQuery ? 'No results found for your search.' : 'No introductions available.'}
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="static-page__content-list">
             {radisIntroductions.map((radis) => (
               <div
                 key={radis.id}
                 id={`radis-${radis.number}`}
                 data-text-ref={radis.number}
-                className="group relative bg-white border border-[var(--color-stone)] transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:shadow-lg"
+                className="group static-page__card"
               >
                 {/* Corner accents on hover */}
-                <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-6 group-hover:h-6 transition-all duration-300" />
-                <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-6 group-hover:h-6 transition-all duration-300" />
+                <div className="static-page__card-corner static-page__card-corner--tl" />
+                <div className="static-page__card-corner static-page__card-corner--br" />
 
-                <div className="p-8 lg:p-10">
+                <div className="static-page__card-inner">
                   {/* Header */}
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-[var(--color-primary)] text-white flex items-center justify-center font-display text-lg">
+                  <div className="static-page__card-header">
+                    <div className="static-page__card-title-group">
+                      <div className="static-page__card-number">
                         {radis.number}
                       </div>
-                      <h3 className="font-display text-2xl text-[var(--color-ink)]">
+                      <h3 className="static-page__card-title">
                         Introduction {radis.number}
                       </h3>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="static-page__card-actions">
                       <Button
                         variant="outline"
                         size="sm"
@@ -261,9 +261,9 @@ function RadisContent() {
                   </div>
 
                   {/* Arabic Text */}
-                  <div className="mb-8">
+                  <div className="static-page__card-arabic">
                     <div
-                      className="text-right text-xl lg:text-2xl leading-[2] text-[var(--color-ink)] font-taha"
+                      className="static-page__card-arabic-text"
                       dir="rtl"
                     >
                       {radis.arabic}
@@ -272,19 +272,19 @@ function RadisContent() {
 
                   {/* Translation */}
                   {radis.translation && (
-                    <div className="border-t border-[var(--color-stone)] pt-8">
-                      <div className="text-[var(--color-charcoal)] text-base lg:text-lg leading-relaxed font-body">
+                    <div className="static-page__card-translation">
+                      <div className="static-page__card-translation-text">
                         {radis.translation.split('<center>').map((part, idx) => {
                           if (part.includes('</center>')) {
                             const [centeredText, rest] = part.split('</center>');
                             return (
                               <React.Fragment key={idx}>
-                                <div className="my-8 text-center italic font-display text-lg">{centeredText.trim()}</div>
-                                {rest && <div className="my-4">{rest.trim()}</div>}
+                                <div className="static-page__card-centered-text">{centeredText.trim()}</div>
+                                {rest && <div className="static-page__card-paragraph">{rest.trim()}</div>}
                               </React.Fragment>
                             );
                           } else {
-                            return <div key={idx} className="my-4">{part.trim()}</div>;
+                            return <div key={idx} className="static-page__card-paragraph">{part.trim()}</div>;
                           }
                         })}
                       </div>
@@ -327,8 +327,8 @@ function RadisContent() {
 export default function RadisPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[var(--color-parchment)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
+      <div className="static-page__fallback">
+        <div className="static-page__spinner"></div>
       </div>
     }>
       <RadisContent />

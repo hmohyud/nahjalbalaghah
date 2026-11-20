@@ -44,63 +44,63 @@ const SponsorsSection = () => {
   ]
 
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="sponsors-section">
+      <div className="sponsors-section__container">
         {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-xs tracking-[0.3em] uppercase text-[var(--color-warm-gray)] mb-4 font-body">
+        <div className="sponsors-section__header">
+          <p className="sponsors-section__label">
             Supporting Our Mission
           </p>
-          <h2 className="font-display text-3xl lg:text-5xl text-[var(--color-ink)] mb-6">
+          <h2 className="sponsors-section__title">
             Our Sponsors & Partners
           </h2>
-          
+
           {/* Decorative ornament */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+          <div className="sponsors-section__ornament">
+            <div className="sponsors-section__ornament-line sponsors-section__ornament-line--right" />
+            <div className="sponsors-section__ornament-diamond" />
+            <div className="sponsors-section__ornament-line sponsors-section__ornament-line--left" />
           </div>
-          
-          <p className="font-body text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto">
+
+          <p className="sponsors-section__description">
             We are grateful to our sponsors and partners who support our mission to preserve
             and share the wisdom of Nahj al-Balaghah with the global community.
           </p>
         </div>
 
         {/* Sponsors Grid - Cards are clickable links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+        <div className="sponsors-section__grid">
           {sponsors.map((sponsor) => (
             <a
               key={sponsor.name}
               href={sponsor.website}
-              className="group relative bg-[var(--color-parchment)] border border-[var(--color-stone)] transition-all duration-300 hover:border-[var(--color-primary)]/40 hover:bg-white"
+              className="group sponsors-section__card"
             >
               {/* Corner accents on hover */}
-              <div className="absolute top-0 left-0 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-5 group-hover:h-5 transition-all duration-300" />
-              <div className="absolute bottom-0 right-0 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-hover:w-5 group-hover:h-5 transition-all duration-300" />
+              <div className="corner-accent-hover corner-accent-hover--top-left" />
+              <div className="corner-accent-hover corner-accent-hover--bottom-right" />
 
-              <div className="p-6">
+              <div className="sponsors-section__card-body">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-16 h-8 bg-white border border-[var(--color-stone)] flex items-center justify-center">
-                    <span className="text-xs font-body font-medium text-[var(--color-primary)]">
+                <div className="sponsors-section__card-header">
+                  <div className="sponsors-section__card-logo">
+                    <span className="sponsors-section__card-logo-text">
                       {sponsor.name.split(' ')[0]}
                     </span>
                   </div>
-                  <span className="text-xs tracking-[0.1em] uppercase font-body text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1">
+                  <span className="sponsors-section__card-badge">
                     {sponsor.type}
                   </span>
                 </div>
 
                 {/* Content */}
-                <h3 className="font-display text-lg text-[var(--color-ink)] mb-2">{sponsor.name}</h3>
-                <p className="font-body text-sm text-[var(--color-warm-gray)] leading-relaxed mb-4">
+                <h3 className="sponsors-section__card-name">{sponsor.name}</h3>
+                <p className="sponsors-section__card-desc">
                   {sponsor.description}
                 </p>
 
                 {/* Link indicator */}
-                <span className="inline-flex items-center gap-2 text-[var(--color-primary)] font-body text-sm">
+                <span className="sponsors-section__card-link">
                   Visit Website
                   <ExternalLink className="w-4 h-4" />
                 </span>
@@ -110,16 +110,16 @@ const SponsorsSection = () => {
         </div>
 
         {/* CTA */}
-        <div className="relative bg-[var(--color-parchment)] border border-[var(--color-stone)] max-w-3xl mx-auto">
+        <div className="sponsors-section__cta">
           {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-6 h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-          <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
+          <div className="sponsors-section__cta-corner--tl" />
+          <div className="sponsors-section__cta-corner--br" />
 
-          <div className="p-10 text-center">
-            <h3 className="font-display text-2xl text-[var(--color-ink)] mb-4">
+          <div className="sponsors-section__cta-body">
+            <h3 className="sponsors-section__cta-title">
               Become a Sponsor
             </h3>
-            <p className="font-body text-[var(--color-warm-gray)] mb-8 max-w-xl mx-auto">
+            <p className="sponsors-section__cta-text">
               Support our mission to preserve Islamic heritage and make Nahj al-Balaghah accessible
               to seekers of knowledge worldwide. Your partnership helps us continue this important work.
             </p>

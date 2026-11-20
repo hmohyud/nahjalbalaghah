@@ -35,7 +35,7 @@ export const metadata = {
 
 export default function Page() {
   return (
-    <div className="bg-[var(--color-parchment)]">
+    <div className="about-page">
       <AboutUsHero />
       <BannerSection />
       <AboutCardSection />

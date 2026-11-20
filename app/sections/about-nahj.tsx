@@ -67,11 +67,11 @@ const AboutNahjSection = () => {
               </p>
               <div className="about-nahj-theme-box">
                 <h3 className="about-nahj-theme-title">Historical Significance</h3>
-                <p className="text-gray-700 mb-0">
+                <p className="about-nahj-theme-desc">
                   Throughout history, Nahj al-Balaghah has influenced Islamic jurisprudence, philosophy, mysticism, and political thought. It serves as a guide for Muslims seeking to understand the principles of righteous living, just governance, and spiritual enlightenment. Commentaries on this work have been written by scholars from various schools of thought, demonstrating its universal appeal and enduring relevance.
                 </p>
               </div>
-              <p className="text-lg font-semibold mb-0">
+              <p className="about-nahj-closing">
                 This digital platform provides easy access to the complete text, enabling readers to explore, search, and reflect upon the timeless wisdom contained within Nahj al-Balaghah.
               </p>
             </div>

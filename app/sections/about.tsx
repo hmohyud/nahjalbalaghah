@@ -48,14 +48,9 @@ const AboutSection = () => {
   return (
     <section ref={sectionRef} className="section-parchment">
       {/* Subtle background texture */}
-      <div
-        className="subtle-texture"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z' fill='%23000000' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-        }}
-      />
+      <div className="subtle-texture bg-pattern-dots" />
 
-      <div className="section-container relative">
+      <div className="section-container section-container--relative">
         <div className="about-content-grid">
           {/* Left Column - Content */}
           <div>
@@ -100,7 +95,7 @@ const AboutSection = () => {
             className={`fade-in-up--slow fade-delay-400 ${isVisible ? 'fade-in-right--visible' : 'fade-in-right--hidden'}`}
           >
             {/* Outer wrapper for corner brackets */}
-            <div className="relative">
+            <div className="relative-wrapper">
               {/* Corner brackets - positioned outside the card */}
               <div className="about-quote-bracket about-quote-bracket--top-left" />
               <div className="about-quote-bracket about-quote-bracket--bottom-right" />

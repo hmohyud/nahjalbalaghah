@@ -19,52 +19,52 @@ export default function AboutNahjPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-parchment)] pt-32 lg:pt-36">
+    <div className="static-page static-page--padded">
       {/* Hero Section */}
-      <section className="relative py-16 lg:py-24">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8 text-center">
+      <section className="static-page__hero--light">
+        <div className="static-page__hero-light-inner">
           {/* Icon */}
-          <div 
-            className={`flex justify-center mb-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          <div
+            className={`static-page__icon-box-wrapper transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <div className="w-16 h-16 bg-[var(--color-primary)] flex items-center justify-center">
+            <div className="static-page__icon-box">
               <BookOpen className="w-8 h-8 text-white" />
             </div>
           </div>
 
           {/* Title */}
-          <h1 
-            className={`font-display text-4xl lg:text-6xl text-[var(--color-ink)] mb-6 transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          <h1
+            className={`static-page__title static-page__title--ink transition-all duration-700 delay-100 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             About Nahj al-Balaghah
           </h1>
 
           {/* Decorative ornament */}
-          <div 
-            className={`flex items-center justify-center gap-4 mb-8 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+          <div
+            className={`static-page__ornament transition-all duration-700 delay-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
           >
-            <div className="w-16 h-[1px] bg-gradient-to-r from-transparent to-[var(--color-accent)]" />
-            <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-            <div className="w-16 h-[1px] bg-gradient-to-l from-transparent to-[var(--color-accent)]" />
+            <div className="static-page__ornament-line--right" />
+            <div className="static-page__ornament-diamond" />
+            <div className="static-page__ornament-line--left" />
           </div>
 
-          <p 
-            className={`font-body text-lg text-[var(--color-warm-gray)] max-w-2xl mx-auto mb-8 transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          <p
+            className={`static-page__subtitle static-page__subtitle--muted transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            "The Way of Eloquence" — A masterpiece of Islamic literature containing the sermons, 
+            "The Way of Eloquence" — A masterpiece of Islamic literature containing the sermons,
             letters, and sayings of Imam Ali ibn Abi Talib (AS).
           </p>
 
           {/* Download CTA */}
-          <div 
+          <div
             className={`transition-all duration-700 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <Link 
-              href="/pdfs/TQ-Introduction-to-Nahj-al-Balaghah.pdf" 
+            <Link
+              href="/pdfs/TQ-Introduction-to-Nahj-al-Balaghah.pdf"
               target="_blank"
-              className="group relative inline-block"
+              className="static-page__cta-wrapper"
             >
-              <button className="inline-flex items-center gap-3 px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] text-sm tracking-[0.1em] uppercase font-medium hover:bg-[var(--color-primary)] hover:text-white transition-all duration-200">
+              <button className="static-page__cta-btn--outline">
                 <Download className="w-4 h-4" />
                 <span>Download Introduction PDF</span>
               </button>
@@ -74,40 +74,40 @@ export default function AboutNahjPage() {
       </section>
 
       {/* Main Content */}
-      <section className="py-12 lg:py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8">
-          <div className="relative bg-[var(--color-parchment)] border border-[var(--color-stone)]">
+      <section className="static-page__main">
+        <div className="static-page__main-inner">
+          <div className="static-page__panel">
             {/* Corner accents */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-[var(--color-accent)]" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-[var(--color-accent)]" />
+            <div className="static-page__panel-corner--tl" />
+            <div className="static-page__panel-corner--br" />
 
-            <div className="p-8 lg:p-12">
-              <div className="space-y-6 font-body text-[var(--color-charcoal)] leading-relaxed">
-                <p className="text-lg">
-                  <span className="font-display text-xl italic text-[var(--color-primary)]">Nahj al-Balaghah</span> (نَهْج البَلَاغَة, "The Way of Eloquence") is a collection of sermons, letters, and sayings attributed to Imam Ali ibn Abi Talib (AS), the cousin and son-in-law of Prophet Muhammad (PBUH), and the fourth caliph in Sunni Islam and the first Imam in Shia Islam.
+            <div className="static-page__panel-inner">
+              <div className="static-page__body-text">
+                <p className="static-page__body-text--lg">
+                  <span className="static-page__text-highlight static-page__text-highlight--xl">Nahj al-Balaghah</span> (&#1606;&#1614;&#1607;&#1618;&#1580; &#1575;&#1604;&#1576;&#1614;&#1604;&#1614;&#1575;&#1594;&#1577;, "The Way of Eloquence") is a collection of sermons, letters, and sayings attributed to Imam Ali ibn Abi Talib (AS), the cousin and son-in-law of Prophet Muhammad (PBUH), and the fourth caliph in Sunni Islam and the first Imam in Shia Islam.
                 </p>
-                
+
                 <p>
                   Compiled in the 10th century CE by Sharif al-Radi, a renowned Shia scholar, this work is celebrated as one of the most significant pieces of Arabic literature and Islamic thought. It addresses themes of governance, justice, spirituality, ethics, and human nature with profound eloquence and wisdom.
                 </p>
 
                 {/* Divider */}
-                <div className="flex items-center gap-4 my-10">
-                  <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
-                  <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-                  <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
+                <div className="static-page__divider">
+                  <div className="static-page__divider-line" />
+                  <div className="static-page__divider-diamond" />
+                  <div className="static-page__divider-line" />
                 </div>
 
                 {/* Key Themes */}
                 <div>
-                  <h2 className="font-display text-2xl text-[var(--color-ink)] mb-6">Key Themes</h2>
-                  <div className="space-y-4">
+                  <h2 className="static-page__themes-title">Key Themes</h2>
+                  <div className="static-page__themes-list">
                     {themes.map((theme) => (
-                      <div key={theme.title} className="flex items-start gap-4">
-                        <div className="w-2 h-2 mt-2 bg-[var(--color-accent)] rotate-45 flex-shrink-0" />
+                      <div key={theme.title} className="static-page__theme-item">
+                        <div className="static-page__theme-bullet" />
                         <div>
-                          <span className="font-display text-[var(--color-primary)]">{theme.title}:</span>
-                          <span className="text-[var(--color-warm-gray)] ml-2">{theme.description}</span>
+                          <span className="static-page__theme-label">{theme.title}:</span>
+                          <span className="static-page__theme-desc">{theme.description}</span>
                         </div>
                       </div>
                     ))}
@@ -115,14 +115,14 @@ export default function AboutNahjPage() {
                 </div>
 
                 {/* Divider */}
-                <div className="flex items-center gap-4 my-10">
-                  <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
-                  <div className="w-2 h-2 rotate-45 border border-[var(--color-accent)]" />
-                  <div className="flex-1 h-[1px] bg-[var(--color-stone)]" />
+                <div className="static-page__divider">
+                  <div className="static-page__divider-line" />
+                  <div className="static-page__divider-diamond" />
+                  <div className="static-page__divider-line" />
                 </div>
 
                 <p>
-                  The text is divided into three main sections: <span className="font-display text-[var(--color-primary)]">Khutab</span> (Sermons/Orations), <span className="font-display text-[var(--color-primary)]">Maktubat</span> (Letters), and <span className="font-display text-[var(--color-primary)]">Hikam</span> (Short Sayings). Each section offers unique insights into Imam Ali's teachings and his approach to leadership, spirituality, and daily life.
+                  The text is divided into three main sections: <span className="static-page__text-highlight">Khutab</span> (Sermons/Orations), <span className="static-page__text-highlight">Maktubat</span> (Letters), and <span className="static-page__text-highlight">Hikam</span> (Short Sayings). Each section offers unique insights into Imam Ali's teachings and his approach to leadership, spirituality, and daily life.
                 </p>
 
                 <p>
@@ -130,14 +130,14 @@ export default function AboutNahjPage() {
                 </p>
 
                 {/* Historical Significance Box */}
-                <div className="bg-white border-l-4 border-[var(--color-primary)] p-6 my-8">
-                  <h3 className="font-display text-xl text-[var(--color-primary)] mb-3">Historical Significance</h3>
-                  <p className="text-[var(--color-warm-gray)]">
+                <div className="static-page__highlight-box">
+                  <h3 className="static-page__highlight-title">Historical Significance</h3>
+                  <p className="static-page__highlight-text">
                     Throughout history, Nahj al-Balaghah has influenced Islamic jurisprudence, philosophy, mysticism, and political thought. It serves as a guide for Muslims seeking to understand the principles of righteous living, just governance, and spiritual enlightenment. Commentaries on this work have been written by scholars from various schools of thought, demonstrating its universal appeal and enduring relevance.
                   </p>
                 </div>
 
-                <p className="text-lg font-display text-[var(--color-ink)]">
+                <p className="static-page__closing-text">
                   This digital platform provides easy access to the complete text, enabling readers to explore, search, and reflect upon the timeless wisdom contained within Nahj al-Balaghah.
                 </p>
               </div>
@@ -147,21 +147,21 @@ export default function AboutNahjPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-          <h2 className="font-display text-3xl text-[var(--color-ink)] mb-6">
+      <section className="static-page__nav-section">
+        <div className="static-page__nav-inner">
+          <h2 className="static-page__nav-title static-page__nav-title--lg">
             Begin Your Journey
           </h2>
-          <p className="font-body text-[var(--color-warm-gray)] mb-8 max-w-lg mx-auto">
+          <p className="static-page__nav-subtitle">
             Explore the sermons, letters, and sayings that have inspired generations of seekers.
           </p>
-          <Link href="/orations" className="group relative inline-block">
-            <button className="inline-flex items-center gap-3 px-8 py-4 bg-[var(--color-primary)] text-white text-sm tracking-[0.15em] uppercase font-medium hover:bg-[var(--color-primary-dark)] transition-colors duration-200">
+          <Link href="/orations" className="group static-page__cta-wrapper">
+            <button className="static-page__cta-btn">
               <span>Start Reading</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-            <div className="absolute -top-1.5 -left-1.5 w-0 h-0 border-l-2 border-t-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
-            <div className="absolute -bottom-1.5 -right-1.5 w-0 h-0 border-r-2 border-b-2 border-[var(--color-accent)] group-hover:w-4 group-hover:h-4 transition-all duration-200" />
+            <div className="static-page__cta-corner static-page__cta-corner--tl" />
+            <div className="static-page__cta-corner static-page__cta-corner--br" />
           </Link>
         </div>
       </section>

@@ -31,19 +31,19 @@ const IndexesSection = () => {
 
   return (
     <section id="indexes-section" className="section-white">
-      <div className="section-container relative">
-        <div className="grid gap-16 items-center">
+      <div className="section-container section-container--relative">
+        <div className="indexes-section__grid-wrapper">
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           >
-            <div className="space-y-4">
+            <div className="indexes-section__header-group">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="flex items-center gap-3"
+                className="indexes-section__label-row"
               >
                 <ScrollText className="green-section-icon" />
                 <span className="section-label--green">Deeper Exploration</span>
@@ -71,7 +71,7 @@ const IndexesSection = () => {
             >
               {indexes.map((index, i) => {
                 const content = (
-                  <div className="flex items-start gap-4">
+                  <div className="indexes-section__item-content">
                     <div className="index-item-card__icon-wrapper">
                       <index.icon className="index-item-card__icon" />
                     </div>
@@ -99,7 +99,7 @@ const IndexesSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 1.2 }}
-              className="pt-4"
+              className="indexes-section__action-wrapper"
             >
               <motion.div
                 whileHover={{ scale: 1.02, y: -2 }}

@@ -25,10 +25,10 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
   useEffect(() => {
     if (highlightRef) {
       setHighlightedParagraphNumber(highlightRef);
-      
+
       const timer = setTimeout(() => {
         let element = document.querySelector(`[data-text-ref="${highlightRef}"]`);
-        
+
         if (!element) {
           const allTextRefElements = document.querySelectorAll('[data-text-ref]');
           for (const el of allTextRefElements) {
@@ -39,15 +39,15 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
             }
           }
         }
-        
+
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           element.classList.add('highlight-text-ref');
-          
+
           const wordToHighlight = englishWord || arabicWord;
           if (wordToHighlight) {
-            const textElement = englishWord 
-              ? element.querySelector('.font-brill') 
+            const textElement = englishWord
+              ? element.querySelector('.font-brill')
               : element.querySelector('.font-taha');
             if (textElement) {
               highlightWordInParagraph(textElement, wordToHighlight);
@@ -80,7 +80,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
       let match;
       const matches: Array<{ start: number; end: number }> = [];
       wordRegex.lastIndex = 0;
-      
+
       while ((match = wordRegex.exec(textNode.textContent || '')) !== null) {
         matches.push({ start: match.index, end: wordRegex.lastIndex });
       }
@@ -184,10 +184,10 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
           <h1 className="content-panel__title">
             {heading || `${getContentLabel()} Details`}
           </h1>
-          
+
           {/* Tags */}
           {content.tags && content.tags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 lg:gap-2 mt-3 lg:mt-4">
+            <div className="content-desc__tags">
               {content.tags.map((tag) => (
                 <span
                   key={tag.id}
@@ -201,13 +201,13 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
           )}
 
           {/* Display Controls */}
-          <div className="mt-4 lg:mt-6 flex flex-col sm:flex-row gap-2 lg:gap-3">
+          <div className="content-desc__controls">
             <Select
               options={displayOptions}
               value={displayMode}
               onChange={(value) => setDisplayMode(value as 'both' | 'english-only' | 'arabic-only')}
               placeholder="Display Mode"
-              className="w-full sm:w-48"
+              className="content-desc__select"
             />
             {availableTranslations.length > 1 && (
               <Select
@@ -215,7 +215,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                 value={selectedTranslation}
                 onChange={setSelectedTranslation}
                 placeholder="Translation"
-                className="w-full sm:w-40"
+                className="content-desc__select--narrow"
               />
             )}
           </div>
@@ -223,7 +223,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Sermon Number Badge */}
         {content.sermonNumber && (
-          <div className="mb-4 lg:mb-6">
+          <div className="content-desc__badge-wrapper">
             <span className="content-number-badge">
               {content.sermonNumber}
             </span>
@@ -232,16 +232,16 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Main Content */}
         {(content.title || mainTranslation) && (
-          <div 
-            className={`space-y-4 lg:space-y-6 mb-6 lg:mb-8 ${highlightedParagraphNumber === content.sermonNumber ? 'highlight-text-ref' : ''}`}
+          <div
+            className={`content-desc__main-block ${highlightedParagraphNumber === content.sermonNumber ? 'highlight-text-ref' : ''}`}
             data-text-ref={content.sermonNumber}
           >
-            <div className="border-b border-[var(--color-stone)] pb-6 lg:pb-8">
+            <div className="content-desc__section-divider">
               {/* Arabic Title */}
               {(displayMode === 'both' || displayMode === 'arabic-only') && content.title && (
-                <div className="mb-4 lg:mb-6">
-                  <div className="arabic-text-block text-right">
-                    <p className="text-base lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap" dir="rtl">
+                <div className="content-desc__arabic-wrapper">
+                  <div className="arabic-text-block text-align-right">
+                    <p className="content-desc__arabic-line" dir="rtl">
                       {formatTextWithFootnotes(cleanArabicText(content.title), allFootnotes, true, content.sermonNumber || 'main')}
                     </p>
                   </div>
@@ -256,7 +256,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
                   return (
                     <div className="english-text-block">
-                      <p className="text-sm lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
+                      <p className="content-desc__english-text">
                         {formatTextWithFootnotes(mainTranslation.text, allFootnotes, false, content.sermonNumber || 'main')}
                       </p>
                     </div>
@@ -269,18 +269,18 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Paragraphs */}
         {sortedParagraphs.length > 0 && (
-          <div className="space-y-6 lg:space-y-8">
+          <div className="content-desc__paragraphs">
             {sortedParagraphs.map((paragraph) => {
               const englishTranslation = paragraph.translations?.find(t => t.type === selectedTranslation);
               return (
-                <div 
-                  key={paragraph.id} 
+                <div
+                  key={paragraph.id}
                   data-text-ref={paragraph.number}
-                  className={`border-b border-[var(--color-stone)] pb-6 lg:pb-8 last:border-b-0 last:pb-0 ${highlightedParagraphNumber === paragraph.number ? 'highlight-text-ref' : ''}`}
+                  className={`content-desc__paragraph ${highlightedParagraphNumber === paragraph.number ? 'highlight-text-ref' : ''}`}
                 >
                   {/* Paragraph Number */}
                   {paragraph.number && (
-                    <div className="mb-3 lg:mb-4">
+                    <div className="content-desc__para-badge">
                       <span className="content-number-badge">
                         {paragraph.number}
                       </span>
@@ -292,7 +292,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                     const lines = paragraph.arabic.split(/\n+/).filter(Boolean);
 
                     return (
-                      <div className="mb-4 lg:mb-6">
+                      <div className="content-desc__arabic-wrapper">
                         <div className="arabic-text-block">
                           {lines.map((line, index) => {
                             const isCentered = /<center>/i.test(line);
@@ -307,7 +307,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
                             return (
                               <div key={index} className={isCentered ? 'text-center' : 'text-right'}>
                                 <p
-                                  className={`text-base lg:text-xl leading-loose text-[var(--color-ink)] font-taha whitespace-pre-wrap ${isCentered ? 'inline-block' : ''}`}
+                                  className={`content-desc__arabic-line ${isCentered ? 'content-desc__arabic-line--centered' : ''}`}
                                   dir="rtl"
                                 >
                                   {formatTextWithFootnotes(cleanedLine, allFootnotes, true, paragraph.number)}
@@ -327,7 +327,7 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
                     return (
                       <div className="english-text-block">
-                        <p className="text-sm lg:text-lg leading-relaxed text-[var(--color-charcoal)] font-brill whitespace-pre-wrap">
+                        <p className="content-desc__english-text">
                           {formatTextWithFootnotes(englishTranslation.text, allFootnotes, false, paragraph.number)}
                         </p>
                       </div>
@@ -341,8 +341,8 @@ const ContentDescription = ({ content, contentType, highlightRef, englishWord, a
 
         {/* Empty State */}
         {sortedParagraphs.length === 0 && !(content.title || mainTranslation) && (
-          <div className="text-center py-8 lg:py-12">
-            <p className="text-[var(--color-warm-gray)] font-body text-sm lg:text-base">No content available for this {contentType.slice(0, -1)}.</p>
+          <div className="content-desc__empty">
+            <p className="content-desc__empty-text">No content available for this {contentType.slice(0, -1)}.</p>
           </div>
         )}
       </div>

@@ -100,7 +100,7 @@ const MainCardsSection = () => {
             >
               {card.featured ? (
                 // Featured card with always-visible corner framing
-                <div className="relative">
+                <div className="relative-wrapper">
                   {/* Corner brackets for featured card */}
                   <div className="main-card-featured__bracket main-card-featured__bracket--tl" />
                   <div className="main-card-featured__bracket main-card-featured__bracket--br" />

@@ -44,10 +44,10 @@ export default function ContentListing({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -71,15 +71,15 @@ export default function ContentListing({
   });
 
   const renderListView = () => (
-    <div className="space-y-3 lg:space-y-4">
+    <div className="content-listing__list">
       {content.map((item, index) => (
         <div
           key={item.id || index}
           ref={index === content.length - 1 && isMobile ? lastElementRef : undefined}
         >
-          <ListViewItem 
-            item={item} 
-            contentType={contentType} 
+          <ListViewItem
+            item={item}
+            contentType={contentType}
             displayMode={displayMode}
             isExpanded={expandedItems.has(item.id)}
             onToggleExpand={() => toggleExpanded(item.id)}
@@ -90,22 +90,22 @@ export default function ContentListing({
   );
 
   const renderLoadingList = () => (
-    <div className="space-y-3 lg:space-y-4">
+    <div className="content-listing__list">
       {[...Array(6)].map((_, index) => (
-        <div 
-          key={index} 
-          className="content-listing-skeleton overflow-hidden animate-pulse"
+        <div
+          key={index}
+          className="content-listing-skeleton content-details__skeleton"
           style={{ animationDelay: `${index * 80}ms` }}
         >
-          <div className="flex items-center gap-0">
+          <div className="content-listing__skeleton-row">
             <div className="content-listing-skeleton__badge"></div>
-            <div className="flex-grow py-3 lg:py-5 pr-4 lg:pr-6 pl-3 lg:pl-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-grow">
-                  <div className="h-4 lg:h-5 bg-[var(--color-parchment)] mb-2 lg:mb-3 w-3/4"></div>
-                  <div className="flex gap-2">
-                    <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-12 lg:w-16"></div>
-                    <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-16 lg:w-20"></div>
+            <div className="content-listing__skeleton-body">
+              <div className="content-listing__skeleton-body-inner">
+                <div className="content-listing__skeleton-body-content">
+                  <div className="content-listing__skeleton-title"></div>
+                  <div className="content-listing__skeleton-tags">
+                    <div className="content-listing__skeleton-tag"></div>
+                    <div className="content-listing__skeleton-tag content-listing__skeleton-tag--wide"></div>
                   </div>
                 </div>
               </div>
@@ -117,15 +117,15 @@ export default function ContentListing({
   );
 
   return (
-    <div className="w-full relative">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-4 lg:mb-6 gap-3 lg:gap-4">
-        <p className="text-[var(--color-warm-gray)] font-body text-xs lg:text-sm whitespace-nowrap flex-shrink-0">
+    <div className="content-listing__wrapper">
+      <div className="content-listing__header">
+        <p className="content-listing__subtitle">
           {loading ? "Loading..." : (subtitle || `Showing ${content.length} of ${total} results`)}
         </p>
-        
+
         {/* Show pagination only on desktop at top */}
         {showTopPagination && totalPages > 1 && onPageChange && (
-          <div className="hidden lg:block w-full lg:w-auto">
+          <div className="content-listing__top-pagination">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -136,27 +136,27 @@ export default function ContentListing({
           </div>
         )}
       </div>
-      
+
       {loading ? (
         renderLoadingList()
       ) : (
         <>
           {renderListView()}
-          
+
           {/* Show loading indicator on mobile for infinite scroll */}
           {isInfiniteLoading && (
-            <div className="mt-4 lg:mt-6 lg:hidden">
-              <div className="animate-pulse">
-                <div className="bg-white border border-[var(--color-stone)] overflow-hidden">
-                  <div className="flex items-center gap-0">
-                    <div className="w-12 sm:w-14 lg:w-20 h-16 lg:h-20 bg-[var(--color-parchment)]"></div>
-                    <div className="flex-grow py-3 lg:py-5 pr-4 lg:pr-6 pl-3 lg:pl-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-grow">
-                          <div className="h-4 lg:h-5 bg-[var(--color-parchment)] mb-2 lg:mb-3 w-3/4"></div>
-                          <div className="flex gap-2">
-                            <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-12 lg:w-16"></div>
-                            <div className="h-3 lg:h-5 bg-[var(--color-parchment)] w-16 lg:w-20"></div>
+            <div className="content-listing__infinite-loader">
+              <div className="content-listing__infinite-skeleton">
+                <div className="content-listing__infinite-card">
+                  <div className="content-listing__infinite-row">
+                    <div className="content-listing__infinite-badge"></div>
+                    <div className="content-listing__skeleton-body">
+                      <div className="content-listing__skeleton-body-inner">
+                        <div className="content-listing__skeleton-body-content">
+                          <div className="content-listing__skeleton-title"></div>
+                          <div className="content-listing__skeleton-tags">
+                            <div className="content-listing__skeleton-tag"></div>
+                            <div className="content-listing__skeleton-tag content-listing__skeleton-tag--wide"></div>
                           </div>
                         </div>
                       </div>
@@ -166,10 +166,10 @@ export default function ContentListing({
               </div>
             </div>
           )}
-          
+
           {/* Show pagination at bottom on desktop only */}
           {totalPages > 1 && onPageChange && (
-            <div className="hidden lg:block mt-8 lg:mt-10">
+            <div className="content-listing__bottom-pagination">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

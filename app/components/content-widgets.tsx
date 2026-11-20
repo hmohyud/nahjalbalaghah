@@ -42,7 +42,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   defaultOpen
 }) => {
   const [isOpen, setIsOpen] = React.useState(true); // Always start expanded
-  
+
   // Get a preview of the content for the collapsed state
   const getPreview = () => {
     if (displayMode === 'arabic-only') {
@@ -53,59 +53,58 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
   return (
     <div
-      className="collapsible-section"
-      style={{ backgroundColor: isEven ? '#FFFFFF' : '#EDE8DF' }}
+      className={`collapsible-section ${isEven ? 'collapsible-section--even' : 'collapsible-section--odd'}`}
     >
       {/* Header - always visible, clickable */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="collapsible-section__header flex items-start gap-2 lg:gap-3 text-left"
+        className="collapsible-section__header"
       >
-        <div className="flex-shrink-0 mt-0.5 flex items-center gap-1">
+        <div className="collapsible-section__toggle-wrapper">
           {isOpen ? (
             <>
-              <ChevronUp className="w-3 h-3 lg:w-4 lg:h-4 text-[var(--color-primary)]" />
-              <span className="text-xs text-[var(--color-primary)] font-medium">Hide</span>
+              <ChevronUp className="w-3 h-3 lg:w-4 lg:h-4 collapsible-section__toggle-label--open" />
+              <span className="collapsible-section__toggle-label collapsible-section__toggle-label--open">Hide</span>
             </>
           ) : (
             <>
-              <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 text-[var(--color-warm-gray)]" />
-              <span className="text-xs text-[var(--color-warm-gray)] font-medium">Show</span>
+              <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 collapsible-section__toggle-label--closed" />
+              <span className="collapsible-section__toggle-label collapsible-section__toggle-label--closed">Show</span>
             </>
           )}
         </div>
-        <div className="flex-grow min-w-0">
-          <div className="flex items-center gap-2 lg:gap-3">
+        <div className="collapsible-section__content-wrapper">
+          <div className="collapsible-section__content-inner">
             {number && (
-              <span className="inline-flex items-center px-1.5 lg:px-2 py-0.5 text-[10px] lg:text-xs font-display text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
+              <span className="collapsible-section__number-badge">
                 {number}
               </span>
             )}
             {!isOpen && (
-              <span className="text-xs lg:text-sm text-[var(--color-warm-gray)] font-body truncate">
+              <span className="collapsible-section__preview-text">
                 {getPreview()}
               </span>
             )}
           </div>
         </div>
       </button>
-      
+
       {/* Content - shown when expanded */}
       {isOpen && (
         <div className="collapsible-section__body">
           {/* Arabic text */}
           {(displayMode === 'both' || displayMode === 'arabic-only') && arabic && (
-            <div className="collapsible-section__arabic-block mb-2 lg:mb-3">
-              <p className="text-[var(--color-ink)] font-taha text-base lg:text-lg leading-loose whitespace-pre-wrap" dir="rtl">
+            <div className="collapsible-section__arabic-block">
+              <p className="collapsible-section__arabic-text" dir="rtl">
                 {arabic}
               </p>
             </div>
           )}
-          
+
           {/* English text */}
           {(displayMode === 'both' || displayMode === 'english-only') && english && (
             <div className="collapsible-section__english-block">
-              <p className="text-[var(--color-charcoal)] font-body text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
+              <p className="collapsible-section__english-text">
                 {english}
               </p>
             </div>
@@ -124,8 +123,8 @@ interface ListViewItemProps {
   onToggleExpand?: () => void;
 }
 
-export const ListViewItem: React.FC<ListViewItemProps> = ({ 
-  item, 
+export const ListViewItem: React.FC<ListViewItemProps> = ({
+  item,
   contentType,
   displayMode = 'both',
   isExpanded = false,
@@ -156,8 +155,8 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
   };
 
   const displayNumber = getDisplayNumber();
-  
-  const contentTypeLabel = contentType === 'orations' ? 'Oration' : 
+
+  const contentTypeLabel = contentType === 'orations' ? 'Oration' :
                            contentType === 'letters' ? 'Letter' : 'Saying';
 
   // Get first translation text for preview
@@ -200,21 +199,21 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
   // Get interleaved paragraphs (Arabic + English together for each section)
   const getInterleavedParagraphs = (): { number: string; arabic: string; english: string }[] => {
     const results: { number: string; arabic: string; english: string }[] = [];
-    
+
     // First add item-level content if exists
-    const itemArabic = item.title 
+    const itemArabic = item.title
       ? item.title.replace(/<center>|<\/center>/gi, '').replace(/<span[^>]*>|<\/span>/gi, '').replace(/&nbsp;/gi, ' ').trim()
       : '';
     const itemEnglish = item.translations?.find(t => t.type === 'en')?.text || '';
-    
+
     if (itemArabic || itemEnglish) {
-      results.push({ 
-        number: item.sermonNumber || '', 
-        arabic: itemArabic, 
-        english: itemEnglish 
+      results.push({
+        number: item.sermonNumber || '',
+        arabic: itemArabic,
+        english: itemEnglish
       });
     }
-    
+
     // Then get paragraph content
     if (item.paragraphs && item.paragraphs.length > 0) {
       const sortedParagraphs = [...item.paragraphs].sort((a, b) => {
@@ -228,13 +227,13 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
         }
         return 0;
       });
-      
+
       for (const para of sortedParagraphs) {
-        const paraArabic = para.arabic 
+        const paraArabic = para.arabic
           ? para.arabic.replace(/<center>|<\/center>/gi, '').replace(/<span[^>]*>|<\/span>/gi, '').replace(/&nbsp;/gi, ' ').trim()
           : '';
         const paraEnglish = para.translations?.find((t: any) => t.type === 'en')?.text || '';
-        
+
         if (paraArabic || paraEnglish) {
           results.push({
             number: para.number || '',
@@ -244,26 +243,26 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
         }
       }
     }
-    
+
     return results;
   };
 
   const interleavedParagraphs = isExpanded ? getInterleavedParagraphs() : [];
 
   return (
-    <div 
+    <div
       id={displayNumber ? `listing-${displayNumber}` : undefined}
-      className="group block"
+      className="list-item__outer group"
     >
-      <div className="list-item relative">
+      <div className="list-item">
         {/* Corner accents on hover */}
         <div className="corner-accent-hover corner-accent-hover--top-left" />
         <div className="corner-accent-hover corner-accent-hover--bottom-right" />
 
-        <div className="flex">
+        <div className="list-item__flex-row">
           {/* Number Badge */}
           {displayNumber && (
-            <div className="list-item__number-badge flex items-center justify-center">
+            <div className="list-item__number-badge">
               <span className="list-item__number-text">
                 {displayNumber}
               </span>
@@ -271,9 +270,9 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
           )}
 
           {/* Content - Links to detail page */}
-          <Link 
+          <Link
             href={detailUrl}
-            className="list-item__content-link flex-grow min-w-0"
+            className="list-item__content-link"
           >
             {/* Heading */}
             <h3 className="list-item__heading line-clamp-2">
@@ -282,31 +281,31 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
 
             {/* English Preview */}
             {(displayMode === 'both' || displayMode === 'english-only') && englishPreview && (
-              <p className="font-body text-xs sm:text-sm text-[var(--color-charcoal)] mb-1 lg:mb-2 line-clamp-2">
+              <p className="list-item__english-preview">
                 {englishPreview}
               </p>
             )}
 
             {/* Arabic Preview */}
             {(displayMode === 'both' || displayMode === 'arabic-only') && arabicPreview && (
-              <p className="font-taha text-xs sm:text-sm text-[var(--color-warm-gray)] line-clamp-1 text-right" dir="rtl">
+              <p className="list-item__arabic-preview" dir="rtl">
                 {arabicPreview}
               </p>
             )}
 
             {/* Tags */}
             {item.tags && item.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 lg:gap-2 mt-2 lg:mt-3">
+              <div className="list-item__tags-wrapper">
                 {item.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag.id}
-                    className="inline-flex px-1.5 lg:px-2 py-0.5 text-[10px] lg:text-xs font-body text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20"
+                    className="list-item__tag"
                   >
                     {tag.name}
                   </span>
                 ))}
                 {item.tags.length > 3 && (
-                  <span className="text-[10px] lg:text-xs text-[var(--color-warm-gray)]">
+                  <span className="list-item__tags-overflow">
                     +{item.tags.length - 3}
                   </span>
                 )}
@@ -322,18 +321,18 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
                 e.stopPropagation();
                 onToggleExpand();
               }}
-              className="list-item__expand-button flex flex-col items-center justify-center gap-0.5"
+              className="list-item__expand-button"
               aria-label={isExpanded ? 'Hide content' : 'Show content'}
             >
               {isExpanded ? (
                 <>
-                  <ChevronUp className="w-4 h-4 lg:w-5 lg:h-5 text-[var(--color-primary)]" />
-                  <span className="text-[10px] lg:text-xs font-medium text-[var(--color-primary)]">Hide</span>
+                  <ChevronUp className="w-4 h-4 lg:w-5 lg:h-5 list-item__expand-icon--active" />
+                  <span className="list-item__expand-label list-item__expand-label--active">Hide</span>
                 </>
               ) : (
                 <>
-                  <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5 text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors" />
-                  <span className="text-[10px] lg:text-xs font-medium text-[var(--color-warm-gray)] group-hover:text-[var(--color-primary)] transition-colors">Show</span>
+                  <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5 list-item__expand-icon--inactive" />
+                  <span className="list-item__expand-label list-item__expand-label--inactive">Show</span>
                 </>
               )}
             </button>
@@ -341,12 +340,12 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
 
           {/* Arrow indicator (only show if no expand button) */}
           {!onToggleExpand && (
-            <div className="flex-shrink-0 flex items-center pr-3 lg:pr-6">
-              <div className="w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center text-[var(--color-stone)] group-hover:text-[var(--color-primary)] transition-colors duration-200">
-                <svg 
-                  className="w-4 h-4 lg:w-5 lg:h-5 transform group-hover:translate-x-1 transition-transform duration-200" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+            <div className="list-item__arrow-wrapper">
+              <div className="list-item__arrow-circle">
+                <svg
+                  className="list-item__arrow-svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
@@ -361,22 +360,22 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
           <div className="list-item__expanded-content">
             {/* English Summary */}
             {(displayMode === 'both' || displayMode === 'english-only') && item.TocEnglish && (
-              <div className="mb-4 lg:mb-6">
+              <div className="list-item__summary-wrapper">
                 <h4 className="list-item__summary-label">Summary</h4>
                 <div className="list-item__summary-box">
-                  <p className="text-[var(--color-charcoal)] font-body text-sm lg:text-base leading-relaxed">
+                  <p className="list-item__summary-text">
                     {item.TocEnglish}
                   </p>
                 </div>
               </div>
             )}
-            
+
             {/* Arabic Summary */}
             {(displayMode === 'both' || displayMode === 'arabic-only') && item.TocArabic && (
-              <div className="mb-4 lg:mb-6">
+              <div className="list-item__summary-wrapper">
                 <h4 className="list-item__summary-label">ملخص</h4>
                 <div className="list-item__arabic-summary-box">
-                  <p className="text-[var(--color-ink)] font-taha text-lg lg:text-xl leading-loose" dir="rtl">
+                  <p className="list-item__arabic-summary-text" dir="rtl">
                     {item.TocArabic}
                   </p>
                 </div>
@@ -385,24 +384,24 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
 
             {/* Full Text - Interleaved Arabic & English */}
             {interleavedParagraphs.length > 0 && (
-              <div className="mb-4 lg:mb-6">
+              <div className="list-item__paragraphs-wrapper">
                 {/* Single section (letters) - simpler display */}
                 {interleavedParagraphs.length === 1 ? (
-                  <div className="border border-[var(--color-stone)]">
-                    <div className="p-3 lg:p-5">
+                  <div className="list-item__single-section">
+                    <div className="list-item__single-section-inner">
                       {/* Arabic text */}
                       {(displayMode === 'both' || displayMode === 'arabic-only') && interleavedParagraphs[0].arabic && (
-                        <div className="mb-3 lg:mb-4 p-3 lg:p-4 bg-[var(--color-parchment)]/30 border-r-2 border-[var(--color-primary)]">
-                          <p className="text-[var(--color-ink)] font-taha text-base lg:text-lg leading-loose whitespace-pre-wrap" dir="rtl">
+                        <div className="list-item__single-arabic-block">
+                          <p className="list-item__single-arabic-text" dir="rtl">
                             {interleavedParagraphs[0].arabic}
                           </p>
                         </div>
                       )}
-                      
+
                       {/* English text */}
                       {(displayMode === 'both' || displayMode === 'english-only') && interleavedParagraphs[0].english && (
-                        <div className="p-3 lg:p-4 bg-[var(--color-cream)]/50 border border-[var(--color-stone)]/50">
-                          <p className="text-[var(--color-charcoal)] font-body text-sm lg:text-base leading-relaxed whitespace-pre-wrap">
+                        <div className="list-item__single-english-block">
+                          <p className="list-item__single-english-text">
                             {interleavedParagraphs[0].english}
                           </p>
                         </div>
@@ -411,7 +410,7 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
                   </div>
                 ) : (
                   /* Multi-section (orations) - collapsible sections with alternating colors */
-                  <div className="border border-[var(--color-stone)]">
+                  <div className="list-item__multi-section">
                     {interleavedParagraphs.map((para, idx) => (
                       <CollapsibleSection
                         key={idx}
@@ -427,12 +426,12 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
                 )}
               </div>
             )}
-            
+
             {/* Action Button - Only "Go to" button, TOC removed */}
-            <div className="flex flex-wrap gap-2 lg:gap-3 pt-3 lg:pt-4 border-t border-[var(--color-stone)]">
+            <div className="list-item__actions">
               <Link
                 href={detailUrl}
-                className="btn-primary text-xs sm:text-sm"
+                className="btn-primary list-item__action-btn"
               >
                 <BookOpen className="w-3 h-3 lg:w-4 lg:h-4" />
                 Go to {contentTypeLabel}
@@ -518,7 +517,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   const pages = getPageNumbers();
 
   return (
-    <div className="pagination flex flex-col items-center gap-4">
+    <div className="pagination">
       {/* Page info */}
       {showRange && (
         <p className="pagination__info">
@@ -527,12 +526,12 @@ export const Pagination: React.FC<PaginationProps> = ({
       )}
 
       {/* Pagination controls */}
-      <nav className="pagination__nav flex items-center gap-1">
+      <nav className="pagination__nav">
         {/* Previous Button */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1 || loading}
-          className={`pagination__button ${currentPage === 1 || loading ? 'cursor-not-allowed' : ''}`}
+          className={`pagination__button ${currentPage === 1 || loading ? 'pagination__button--disabled' : ''}`}
           aria-label="Previous page"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -555,7 +554,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               key={page}
               onClick={() => onPageChange(page)}
               disabled={loading}
-              className={`pagination__button ${isActive ? 'pagination__button--active' : ''} ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
+              className={`pagination__button ${isActive ? 'pagination__button--active' : ''} ${loading ? 'pagination__button--loading' : ''}`}
               aria-label={`Page ${page}`}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -568,7 +567,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages || loading}
-          className={`pagination__button ${currentPage === totalPages || loading ? 'cursor-not-allowed' : ''}`}
+          className={`pagination__button ${currentPage === totalPages || loading ? 'pagination__button--disabled' : ''}`}
           aria-label="Next page"
         >
           <ChevronRight className="w-4 h-4" />
@@ -624,18 +623,16 @@ export function RangeSlider({
   const maxPos = ((maxValue - min) / (max - min)) * 100;
 
   return (
-    <div className={`relative h-12 w-full ${className}`}>
-      <div className="absolute top-1/2 h-1.5 w-full bg-gray-200 rounded-full -translate-y-1/2" />
+    <div className={`range-slider ${className}`}>
+      <div className="range-slider__track" />
       <motion.div
-        className="absolute top-1/2 h-1.5 bg-[#43896B] rounded-full -translate-y-1/2"
+        className="range-slider__fill"
         initial={{ left: `${minPos}%`, right: `${100 - maxPos}%` }}
         animate={{ left: `${minPos}%`, right: `${100 - maxPos}%` }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       />
       <motion.div
-        className={`absolute top-1/2 w-5 h-5 bg-[#43896B] rounded-full shadow-md -translate-y-1/2 -translate-x-1/2 cursor-pointer ${
-          isDragging === 'min' ? 'ring-2 ring-[#43896B] ring-opacity-50 scale-110' : ''
-        }`}
+        className={`range-slider__thumb ${isDragging === 'min' ? 'range-slider__thumb--active' : ''}`}
         style={{ left: `${minPos}%` }}
         drag="x"
         dragConstraints={{ left: 0, right: maxPos }}
@@ -657,9 +654,7 @@ export function RangeSlider({
         whileHover={{ scale: 1.1 }}
       />
       <motion.div
-        className={`absolute top-1/2 w-5 h-5 bg-[#43896B] rounded-full shadow-md -translate-y-1/2 -translate-x-1/2 cursor-pointer ${
-          isDragging === 'max' ? 'ring-2 ring-[#43896B] ring-opacity-50 scale-110' : ''
-        }`}
+        className={`range-slider__thumb ${isDragging === 'max' ? 'range-slider__thumb--active' : ''}`}
         style={{ left: `${maxPos}%` }}
         drag="x"
         dragConstraints={{ left: minPos, right: 100 }}
@@ -687,7 +682,7 @@ export function RangeSlider({
         step={step}
         value={minValue}
         onChange={handleMinChange}
-        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+        className="range-slider__input-hidden"
       />
       <input
         type="range"
@@ -696,11 +691,11 @@ export function RangeSlider({
         step={step}
         value={maxValue}
         onChange={handleMaxChange}
-        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+        className="range-slider__input-hidden"
       />
       {isDragging === 'min' && (
         <motion.div
-          className="absolute px-2 py-1 bg-[#43896B] text-white text-xs rounded -translate-y-8 -translate-x-1/2"
+          className="range-slider__tooltip"
           style={{ left: `${minPos}%` }}
           initial={{ y: -5, opacity: 0 }}
           animate={{ y: -8, opacity: 1 }}
@@ -711,7 +706,7 @@ export function RangeSlider({
       )}
       {isDragging === 'max' && (
         <motion.div
-          className="absolute px-2 py-1 bg-[#43896B] text-white text-xs rounded -translate-y-8 -translate-x-1/2"
+          className="range-slider__tooltip"
           style={{ left: `${maxPos}%` }}
           initial={{ y: -5, opacity: 0 }}
           animate={{ y: -8, opacity: 1 }}
@@ -739,7 +734,7 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
   const [selectedItem, setSelectedItem] = useState<Post | null>(null);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
   const timelineRef = useRef<HTMLDivElement>(null);
-  
+
   const contentTypeLabel = contentType === 'orations' ? 'Oration' : 'Letter';
   const Icon = contentType === 'orations' ? BookOpen : FileText;
 
@@ -751,7 +746,7 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
   };
 
   // Sort items by their number
-  const sortedItems = [...items].sort((a, b) => 
+  const sortedItems = [...items].sort((a, b) =>
     getDisplayNumber(a.sermonNumber) - getDisplayNumber(b.sermonNumber)
   );
 
@@ -801,94 +796,93 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)] mx-auto mb-3" />
-          <p className="text-[var(--color-warm-gray)] font-body">Loading timeline...</p>
+      <div className="timeline__loading">
+        <div className="timeline__loading-inner">
+          <Loader2 className="w-8 h-8 animate-spin timeline__loading-spinner" />
+          <p className="timeline__loading-text">Loading timeline...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative">
+    <div className="timeline">
       {/* Timeline Header */}
-      <div className="flex items-center justify-between mb-6 lg:mb-8">
+      <div className="timeline__header">
         <div>
-          <h2 className="font-display text-xl lg:text-2xl text-[var(--color-ink)]">{title}</h2>
-          <p className="text-sm text-[var(--color-warm-gray)] mt-1">
+          <h2 className="timeline__title">{title}</h2>
+          <p className="timeline__subtitle">
             {sortedItems.length} {contentType} • Click on a point to see details
           </p>
         </div>
-        
+
         {/* Navigation Arrows */}
-        <div className="flex items-center gap-2">
+        <div className="timeline__nav">
           <button
             onClick={() => handleScroll('left')}
             disabled={visibleRange.start === 0}
-            className="p-2 border border-[var(--color-stone)] bg-white hover:bg-[var(--color-cream)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="timeline__nav-button"
             aria-label="Scroll left"
           >
-            <ChevronLeft className="w-5 h-5 text-[var(--color-charcoal)]" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => handleScroll('right')}
             disabled={visibleRange.end >= sortedItems.length}
-            className="p-2 border border-[var(--color-stone)] bg-white hover:bg-[var(--color-cream)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="timeline__nav-button"
             aria-label="Scroll right"
           >
-            <ChevronRight className="w-5 h-5 text-[var(--color-charcoal)]" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {/* Range Indicator */}
-      <div className="mb-4 text-xs text-[var(--color-warm-gray)] font-body">
+      <div className="timeline__range-indicator">
         Showing {contentTypeLabel}s {visibleRange.start + 1} - {Math.min(visibleRange.end, sortedItems.length)} of {sortedItems.length}
       </div>
 
       {/* Timeline Track */}
-      <div className="relative" ref={timelineRef}>
+      <div className="timeline__track-wrapper" ref={timelineRef}>
         {/* Timeline Line */}
-        <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-gradient-to-r from-[var(--color-stone)] via-[var(--color-primary)] to-[var(--color-stone)] transform -translate-y-1/2" />
-        
+        <div className="timeline__line" />
+
         {/* Timeline Points */}
-        <div className="relative flex justify-between items-center py-8 overflow-x-auto">
+        <div className="timeline__points">
           {visibleItems.map((item, index) => {
             const displayNum = getDisplayNumber(item.sermonNumber);
             const isSelected = selectedItem?.id === item.id;
-            
+
             return (
-              <div 
+              <div
                 key={item.id}
-                className="flex flex-col items-center flex-shrink-0 px-2 lg:px-3"
-                style={{ minWidth: '60px' }}
+                className="timeline__point-wrapper timeline-item"
               >
                 {/* Number Label (top) */}
-                <div className={`mb-3 text-xs lg:text-sm font-display transition-colors ${
-                  isSelected ? 'text-[var(--color-primary)] font-semibold' : 'text-[var(--color-warm-gray)]'
+                <div className={`timeline__point-label ${
+                  isSelected ? 'timeline__point-label--selected' : 'timeline__point-label--default'
                 }`}>
                   {displayNum}
                 </div>
-                
+
                 {/* Timeline Point */}
                 <button
                   onClick={() => handleItemClick(item)}
-                  className={`relative w-4 h-4 lg:w-5 lg:h-5 rounded-full border-2 transition-all duration-300 ${
-                    isSelected 
-                      ? 'bg-[var(--color-primary)] border-[var(--color-primary)] scale-125 shadow-lg' 
-                      : 'bg-white border-[var(--color-stone)] hover:border-[var(--color-primary)] hover:scale-110'
+                  className={`timeline__point-button ${
+                    isSelected
+                      ? 'timeline__point-button--selected'
+                      : 'timeline__point-button--default'
                   }`}
                   aria-label={`View ${contentTypeLabel} ${displayNum}`}
                 >
                   {isSelected && (
-                    <div className="absolute inset-0 rounded-full bg-[var(--color-primary)] animate-ping opacity-30" />
+                    <div className="timeline__point-ping" />
                   )}
                 </button>
-                
+
                 {/* Connector Line (bottom) */}
-                <div className={`mt-3 w-[1px] h-4 transition-colors ${
-                  isSelected ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-stone)]'
+                <div className={`timeline__point-connector ${
+                  isSelected ? 'timeline__point-connector--selected' : 'timeline__point-connector--default'
                 }`} />
               </div>
             );
@@ -898,56 +892,56 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
 
       {/* Selected Item Details */}
       {selectedItem && (
-        <div className="mt-6 lg:mt-8 relative">
+        <div className="timeline__details">
           {/* Corner accents */}
-          <div className="absolute top-0 left-0 w-4 h-4 lg:w-6 lg:h-6 border-l-2 border-t-2 border-[var(--color-accent)]" />
-          <div className="absolute bottom-0 right-0 w-4 h-4 lg:w-6 lg:h-6 border-r-2 border-b-2 border-[var(--color-accent)]" />
-          
-          <div className="bg-white border border-[var(--color-stone)] p-4 lg:p-6">
+          <div className="timeline__details-corner timeline__details-corner--tl" />
+          <div className="timeline__details-corner timeline__details-corner--br" />
+
+          <div className="timeline__details-card">
             {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--color-primary)] flex items-center justify-center">
-                  <span className="font-display text-lg lg:text-xl text-white">
+            <div className="timeline__details-header">
+              <div className="timeline__details-header-left">
+                <div className="timeline__details-number-box">
+                  <span className="timeline__details-number">
                     {getDisplayNumber(selectedItem.sermonNumber)}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-display text-lg lg:text-xl text-[var(--color-ink)]">
+                  <h3 className="timeline__details-title">
                     {selectedItem.heading || `${contentTypeLabel} ${getDisplayNumber(selectedItem.sermonNumber)}`}
                   </h3>
                   {selectedItem.sermonNumber && (
-                    <p className="text-xs lg:text-sm text-[var(--color-warm-gray)]">
+                    <p className="timeline__details-section">
                       Section {selectedItem.sermonNumber}
                     </p>
                   )}
                 </div>
               </div>
-              
+
               <Link
                 href={`/${contentType}/details/${selectedItem.id}`}
-                className="btn-primary text-xs lg:text-sm flex-shrink-0"
+                className="btn-primary timeline__details-link"
               >
                 <Icon className="w-4 h-4" />
-                Go to {contentTypeLabel}
+                <span className="timeline__details-link-text">Go to {contentTypeLabel}</span>
               </Link>
             </div>
 
             {/* Content Preview */}
-            <div className="space-y-4">
+            <div className="timeline__details-content">
               {/* Arabic Preview */}
               {getArabicPreview(selectedItem) && (
-                <div className="bg-[var(--color-parchment)] p-3 lg:p-4 border-r-4 border-[var(--color-accent)]">
-                  <p className="font-taha text-base lg:text-lg leading-loose text-[var(--color-ink)]" dir="rtl">
+                <div className="timeline__details-arabic-block">
+                  <p className="timeline__details-arabic-text" dir="rtl">
                     {getArabicPreview(selectedItem)}
                   </p>
                 </div>
               )}
-              
+
               {/* English Preview */}
               {getEnglishPreview(selectedItem) && (
-                <div className="bg-[var(--color-cream)] p-3 lg:p-4 border border-[var(--color-stone)]">
-                  <p className="font-body text-sm lg:text-base leading-relaxed text-[var(--color-charcoal)]">
+                <div className="timeline__details-english-block">
+                  <p className="timeline__details-english-text">
                     {getEnglishPreview(selectedItem)}
                   </p>
                 </div>
@@ -956,11 +950,11 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
 
             {/* Tags */}
             {selectedItem.tags && selectedItem.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[var(--color-stone)]">
+              <div className="timeline__details-tags">
                 {selectedItem.tags.map(tag => (
                   <span
                     key={tag.id}
-                    className="inline-flex px-2 py-0.5 text-xs font-body text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20"
+                    className="timeline__tag"
                   >
                     {tag.name}
                   </span>
@@ -972,14 +966,14 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
       )}
 
       {/* Jump to Number Input */}
-      <div className="mt-6 lg:mt-8 flex items-center gap-3">
-        <label className="text-sm text-[var(--color-warm-gray)] font-body">Jump to {contentTypeLabel}:</label>
+      <div className="timeline__jump">
+        <label className="timeline__jump-label">Jump to {contentTypeLabel}:</label>
         <input
           type="number"
           min="1"
           max={sortedItems.length}
           placeholder="#"
-          className="w-20 px-3 py-2 text-sm border border-[var(--color-stone)] bg-white focus:outline-none focus:border-[var(--color-primary)]"
+          className="timeline__jump-input"
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               const target = parseInt((e.target as HTMLInputElement).value, 10);
@@ -995,7 +989,7 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
             }
           }}
         />
-        <span className="text-xs text-[var(--color-warm-gray)]">Press Enter</span>
+        <span className="timeline__jump-hint">Press Enter</span>
       </div>
     </div>
   );
@@ -1021,12 +1015,12 @@ export function AlphabetChips({ selectedLetter, onSelectLetter, language }: Alph
     const letters = language === 'English' ? ENGLISH_ALPHABET : ARABIC_ALPHABET;
 
     return (
-        <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-6 justify-center px-2 sm:px-0" dir={language === 'Arabic' ? 'rtl' : 'ltr'}>
+        <div className="alphabet-chips" dir={language === 'Arabic' ? 'rtl' : 'ltr'}>
             <button
                 onClick={() => onSelectLetter('')}
-                className={`h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs font-semibold transition-all border flex items-center justify-center ${!selectedLetter
-                        ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                        : "bg-[var(--color-cream)] text-[var(--color-charcoal)] border-[var(--color-stone)] hover:bg-[var(--color-stone)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                className={`alphabet-chip alphabet-chip--all ${!selectedLetter
+                        ? "alphabet-chip--active"
+                        : "alphabet-chip--inactive"
                     }`}
             >
                 All
@@ -1035,9 +1029,9 @@ export function AlphabetChips({ selectedLetter, onSelectLetter, language }: Alph
                 <button
                     key={letter}
                     onClick={() => onSelectLetter(letter)}
-                    className={`w-7 h-7 sm:w-8 sm:h-8 text-[10px] sm:text-xs font-semibold transition-all border flex items-center justify-center ${selectedLetter === letter
-                            ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)] scale-105"
-                            : "bg-[var(--color-cream)] text-[var(--color-charcoal)] border-[var(--color-stone)] hover:bg-[var(--color-stone)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                    className={`alphabet-chip alphabet-chip--letter ${selectedLetter === letter
+                            ? "alphabet-chip--active"
+                            : "alphabet-chip--inactive"
                         }`}
                 >
                     {letter}
@@ -1060,9 +1054,9 @@ interface FootnoteTooltipProps {
 
 let tooltipZIndexCounter = 2147483600;
 
-export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({ 
-  children, 
-  footnote, 
+export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
+  children,
+  footnote,
   className = '',
   matchedLanguage = 'english'
 }) => {
@@ -1086,7 +1080,7 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
   const updatePosition = () => {
     if (triggerRef.current) {
       const triggerRect = triggerRef.current.getBoundingClientRect();
-      
+
       console.log(`Footnote ${footnote.number} positioning debug:`, {
         triggerRect: {
           top: triggerRect.top,
@@ -1106,32 +1100,32 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
         },
         word: footnote.english_word
       });
-      
+
       if (triggerRect.width === 0 && triggerRect.height === 0) {
         console.warn(`Footnote ${footnote.number}: Invalid triggerRect`);
         return;
       }
-      
+
       let top = triggerRect.bottom + 8;
       let left = triggerRect.left;
-      
+
       const tooltipWidth = 300;
       const tooltipHeight = 150;
-      
+
       if (left + tooltipWidth > window.innerWidth) {
         left = window.innerWidth - tooltipWidth - 16;
       }
       if (left < 16) {
         left = 16;
       }
-      
+
       if (top + tooltipHeight > window.innerHeight) {
         top = triggerRect.top - tooltipHeight - 8;
       }
       if (top < 16) {
         top = 16;
       }
-      
+
       console.log(`Footnote ${footnote.number} final viewport position:`, { top, left });
       setPosition({ top, left });
     }
@@ -1143,23 +1137,23 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
-    
+
     if (mounted && isVisible) {
       const timer = setTimeout(() => {
         updatePosition();
-        
+
         const handleScroll = () => updatePosition();
         const handleResize = () => updatePosition();
-        
+
         window.addEventListener('scroll', handleScroll);
         window.addEventListener('resize', handleResize);
-        
+
         cleanup = () => {
           window.removeEventListener('scroll', handleScroll);
           window.removeEventListener('resize', handleResize);
         };
       }, 50);
-      
+
       return () => {
         clearTimeout(timer);
         if (cleanup) {
@@ -1215,10 +1209,10 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
   }
 
   const shouldShowTooltip = mounted && isVisible && position.top > 0 && position.left >= 0;
-  
+
   const tooltipContent = shouldShowTooltip ? (
     <div
-      className="fixed bg-white border border-gray-300 rounded-lg shadow-xl p-4 max-w-sm"
+      className="footnote-tooltip"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
@@ -1229,16 +1223,16 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
       onMouseEnter={handleTooltipMouseEnter}
       onMouseLeave={handleTooltipMouseLeave}
     >
-      <div className="text-xs mb-2 font-semibold text-[#43896B] border-b border-gray-200 pb-2">
+      <div className="footnote-tooltip__header">
         Footnote {footnote.number}
       </div>
       {matchedLanguage === 'english' && footnote.english_translation && (
-        <div className="text-sm mb-2 leading-relaxed text-gray-800">
+        <div className="footnote-tooltip__text">
           {footnote.english_translation}
         </div>
       )}
       {matchedLanguage === 'arabic' && footnote.arabic_interpretation && (
-        <div className="text-sm text-right mb-2 leading-relaxed text-gray-800" dir="rtl">
+        <div className="footnote-tooltip__text footnote-tooltip__text--rtl" dir="rtl">
           {footnote.arabic_interpretation}
         </div>
       )}
@@ -1249,10 +1243,9 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
     <>
       <span
         ref={triggerRef}
-        className={`footnote-marker cursor-help transition-colors ${className}`}
+        className={`footnote-marker footnote-trigger ${className}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        style={{ position: 'relative' }}
       >
         {children}
       </span>
@@ -1278,31 +1271,31 @@ export const IndexListing: React.FC<IndexListingProps> = ({ items, categorySlug 
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div className="index-listing">
+      <div className="index-listing__grid">
         {sortedItems.map((item, index) => (
-          <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-[#43896B]/30 hover:bg-gray-50/50 transition-all duration-300 overflow-hidden group">
-            <div className="flex gap-0">
-              <div className="shrink-0 relative">
-                <div className="shrink-0 h-full relative flex items-center justify-center">
-                  <div className="w-14 h-full bg-linear-to-br from-[#43896B] via-[#43896B]/90 to-[#367556] rounded-br-2xl rounded-r-none flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-300">
-                    <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-50"></div>
-                    <span className="text-lg font-black text-white drop-shadow-sm relative z-10">
+          <div key={index} className="index-listing__card">
+            <div className="index-listing__card-inner">
+              <div className="index-listing__letter-wrapper">
+                <div className="index-listing__letter-inner">
+                  <div className="index-listing__letter-box">
+                    <div className="index-listing__letter-overlay"></div>
+                    <span className="index-listing__letter">
                       {getFirstLetter(item.word)}
                     </span>
-                    <div className="absolute -right-2 top-0 w-4 h-full bg-linear-to-r from-[#367556] to-transparent transform skew-x-12"></div>
+                    <div className="index-listing__letter-skew"></div>
                   </div>
                 </div>
               </div>
 
-              <div className="grow min-w-0 py-6 pr-6 pl-8">
-                <div className="flex flex-col lg:flex-row items-end gap-4 lg:items-start justify-between">
-                  <div className="grow min-w-0">
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#43896B] transition-colors duration-300 leading-normal">
+              <div className="index-listing__content">
+                <div className="index-listing__content-layout">
+                  <div className="index-listing__content-text">
+                    <h3 className="index-listing__title">
                       {item.word}
                     </h3>
                     {item.references.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="index-listing__refs">
                         {item.references.slice(0, 5).map((ref, refIndex) => {
                           const [prefix] = ref.split('.');
                           let linkHref = '';
@@ -1326,7 +1319,7 @@ export const IndexListing: React.FC<IndexListingProps> = ({ items, categorySlug 
                             <Link
                               key={refIndex}
                               href={linkHref}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-linear-to-r from-[#43896B]/10 to-[#43896B]/5 text-[#43896B] rounded-full border border-[#43896B]/20 hover:from-[#43896B]/20 hover:to-[#43896B]/10 transition-all duration-300"
+                              className="index-listing__ref-chip"
                             >
                               <Hash className="w-3.5 h-3.5" />
                               {ref}
@@ -1334,7 +1327,7 @@ export const IndexListing: React.FC<IndexListingProps> = ({ items, categorySlug 
                           );
                         })}
                         {item.references.length > 5 && (
-                          <span className="inline-flex items-center px-3 py-1.5 text-xs font-semibold bg-gray-100 text-gray-600 rounded-full border border-gray-200">
+                          <span className="index-listing__overflow-chip">
                             +{item.references.length - 5}
                           </span>
                         )}
@@ -1386,7 +1379,7 @@ export function TextRefChip({
   if (!parsed) {
     // Fallback if reference cannot be parsed
     return (
-      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+      <span className="text-ref-chip--fallback">
         {showIcon && <Book className="w-3 h-3" />}
         {textRef}
       </span>
@@ -1411,7 +1404,7 @@ export function TextRefChip({
       // Build query parameters
       const queryParams = new URLSearchParams();
       queryParams.set('highlightRef', parsed.number);
-      
+
       if (englishWord) {
         queryParams.set('word', englishWord);
       }
@@ -1428,7 +1421,7 @@ export function TextRefChip({
       // Try different sermon/paragraph number formats
       // Format 1: Just the first part (26 from 26.1)
       let sermonNumber = parsed.sectionNumber.split('.')[0];
-      
+
       // Fetch the post by sermon number to get its ID
       let post = null;
       switch (parsed.type) {
@@ -1518,7 +1511,7 @@ export function TextRefChip({
       <button
         onClick={handleClick}
         disabled={isLoading}
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 ${colorClass} text-xs font-semibold rounded transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer disabled:opacity-50 disabled:cursor-wait`}
+        className={`text-ref-chip text-ref-chip--inline ${colorClass}`}
         title={`Go to ${contentTypeName}`}
       >
         {isLoading ? (
@@ -1535,7 +1528,7 @@ export function TextRefChip({
     <button
       onClick={handleClick}
       disabled={isLoading}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 ${colorClass} text-xs font-medium rounded-full transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer disabled:opacity-50 disabled:cursor-wait`}
+      className={`text-ref-chip text-ref-chip--default ${colorClass}`}
       title={`Navigate to ${contentTypeName} - ${parsed.sectionNumber}`}
     >
       {isLoading ? (
@@ -1544,7 +1537,7 @@ export function TextRefChip({
         showIcon && <Book className="w-3 h-3" />
       )}
       {textRef}
-      {showLabel && <span className="hidden sm:inline text-xs opacity-75">({contentTypeName})</span>}
+      {showLabel && <span className="text-ref-chip__label">({contentTypeName})</span>}
     </button>
   );
 }
@@ -1582,47 +1575,47 @@ export function TOCDisplay({
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+    <div className="toc-display">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-[#43896B]" />
-          <h4 className="text-xs font-semibold text-[#43896B] uppercase tracking-wide">
+      <div className="toc-display__header">
+        <div className="toc-display__title-group">
+          <FileText className="w-4 h-4 toc-display__icon" />
+          <h4 className="toc-display__title">
             Table of Contents
           </h4>
         </div>
         <Link
           href={`/${contentType}/details/${contentId}/toc`}
-          className="text-xs text-[#43896B] hover:underline font-medium"
+          className="toc-display__link"
         >
           View Full TOC
         </Link>
       </div>
 
       {/* Content */}
-      <div className="space-y-2">
+      <div className="toc-display__content">
         {heading && (
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Heading:</p>
-            <p className="text-sm font-semibold text-gray-800 leading-snug">
+          <div className="toc-display__content-section">
+            <p className="toc-display__label">Heading:</p>
+            <p className="toc-display__heading-text">
               {truncateText(heading, 100)}
             </p>
           </div>
         )}
 
         {TocEnglish && (
-          <div>
-            <p className="text-xs text-gray-500 mb-1">English:</p>
-            <p className="text-sm text-gray-700 leading-snug font-brill">
+          <div className="toc-display__content-section">
+            <p className="toc-display__label">English:</p>
+            <p className="toc-display__english-text font-brill">
               {truncateText(TocEnglish, 120)}
             </p>
           </div>
         )}
 
         {TocArabic && (
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Arabic:</p>
-            <p className="text-sm text-gray-800 leading-snug font-taha" dir="rtl">
+          <div className="toc-display__content-section">
+            <p className="toc-display__label">Arabic:</p>
+            <p className="toc-display__arabic-text font-taha" dir="rtl">
               {truncateText(TocArabic, 120)}
             </p>
           </div>
@@ -1630,10 +1623,10 @@ export function TOCDisplay({
       </div>
 
       {/* Footer Link */}
-      <div className="pt-2 border-t border-gray-200">
+      <div className="toc-display__footer">
         <Link
           href={`/${contentType}/details/${contentId}/toc`}
-          className="inline-flex items-center gap-1.5 text-xs text-[#43896B] hover:text-[#43896B]/80 font-medium transition-colors"
+          className="toc-display__footer-link"
         >
           <BookOpen className="w-3.5 h-3.5" />
           Read with Manuscripts
