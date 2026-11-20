@@ -4,7 +4,8 @@ import { ArrowRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { orationsApi, lettersApi, sayingsApi } from '@/api'
-import TitleImage from '@/app/assets/images/title.png'
+// Full title-page calligraphy (public/calligraphy/web/title.png)
+import TitleCalligraphy from '@/public/calligraphy/web/title.png'
 import EditionPicker from '@/app/components/edition-picker'
 
 const HeroSection = () => {
@@ -49,6 +50,7 @@ const HeroSection = () => {
   const contentTypes = [
     {
       arabic: "الخطب",
+      calligraphy: "orations",
       label: "Orations",
       count: isLoading ? "..." : counts.orations.toString(),
       href: "/orations",
@@ -56,6 +58,7 @@ const HeroSection = () => {
     },
     {
       arabic: "الكتب",
+      calligraphy: "letters",
       label: "Letters",
       count: isLoading ? "..." : counts.letters.toString(),
       href: "/letters",
@@ -63,6 +66,7 @@ const HeroSection = () => {
     },
     {
       arabic: "الحِكَم",
+      calligraphy: "sayings",
       label: "Sayings",
       count: isLoading ? "..." : counts.sayings.toString(),
       href: "/sayings",
@@ -92,8 +96,8 @@ const HeroSection = () => {
             {/* Arabic Title Image */}
             <div className="hero-title-image-wrapper">
               <Image
-                src={TitleImage}
-                alt="نهج البلاغة"
+                src={TitleCalligraphy}
+                alt="نهج البلاغة من كلام أمير المؤمنين علي بن أبي طالب صلوات الله عليه للشريف الرضي محمد بن الحسين بن موسى"
                 className="hero-title-image"
                 priority
               />
@@ -149,9 +153,11 @@ const HeroSection = () => {
                 >
                   <div className="hero-content-card">
                     {/* Arabic */}
-                    <div className="hero-content-card-arabic">
-                      {content.arabic}
-                    </div>
+                    <span
+                      className={`calligraphy-mark calligraphy-mark--${content.calligraphy} hero-content-card-calligraphy`}
+                      role="img"
+                      aria-label={content.arabic}
+                    />
 
                     {/* English */}
                     <h3 className="hero-content-card-title">

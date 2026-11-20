@@ -132,16 +132,8 @@ const Header = () => {
         <div className="header__container">
           <div className="header__inner">
             <Link href="/" className="header__logo">
-              <div className="header__logo-icon">
-                <div className="header__logo-inner">
-                  <div className="header__logo-corner header__logo-corner--tl" />
-                  <div className="header__logo-corner header__logo-corner--br" />
-                  <div className="logo-text-tight">
-                    <div className="header__logo-arabic">&#x0646;&#x0647;&#x062C;</div>
-                    <div className="header__logo-arabic-sub">&#x0627;&#x0644;&#x0628;&#x0644;&#x0627;&#x063A;&#x0629;</div>
-                  </div>
-                </div>
-              </div>
+              {/* Calligraphy logo (public/calligraphy/web), drawn in our theme colour via CSS mask */}
+              <span className="calligraphy-mark calligraphy-mark--logo header__logo-mark" role="img" aria-label="نهج البلاغة" />
               <div className="header__logo-text">
                 <h1 className="header__logo-title">
                   Nahj al-Balaghah

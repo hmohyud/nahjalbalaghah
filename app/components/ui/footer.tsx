@@ -35,19 +35,8 @@ const Footer = () => {
           {/* Brand Column - Now clickable */}
           <div>
             <Link href="/" className="group footer__brand-link">
-              {/* Logo with inner frame */}
-              <div className="footer__logo-box">
-                <div className="footer__logo-inner">
-                  {/* Inner corners on hover */}
-                  <div className="footer__logo-corner footer__logo-corner--tl" />
-                  <div className="footer__logo-corner footer__logo-corner--br" />
-
-                  <div className="logo-text-tight">
-                    <div className="footer__logo-arabic">نهج</div>
-                    <div className="footer__logo-arabic-sub">البلاغة</div>
-                  </div>
-                </div>
-              </div>
+              {/* Calligraphy logo (public/calligraphy/web), drawn in our theme colour via CSS mask */}
+              <span className="calligraphy-mark calligraphy-mark--logo footer__logo-mark" role="img" aria-label="نهج البلاغة" />
               <div>
                 <h2 className="footer__brand-title">
                   Nahj al-Balaghah

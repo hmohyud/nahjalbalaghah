@@ -859,20 +859,20 @@ h6 {
 }
 
 .hero-title-image {
-  height: 5rem;
+  height: 12rem;
   width: auto;
   margin: 0 auto;
 }
 
 @media (min-width: 640px) {
   .hero-title-image {
-    height: 6rem;
+    height: 15rem;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-title-image {
-    height: 8rem;
+    height: 18rem;
   }
 }
 
@@ -3374,7 +3374,7 @@ h6 {
 .header__inner {
   display: flex;
   align-items: center;
-  justify-content: between;
+  justify-content: space-between;
   height: 5rem;
 }
 
@@ -20379,4 +20379,82 @@ ul.about-prose__body {
 }
 @keyframes merge-content-spin {
   to { transform: rotate(360deg); }
+}
+
+/* ================================================================
+   CALLIGRAPHY - logo and section artwork from public/calligraphy/web,
+   drawn through a CSS mask so it takes our theme colours (color: ...)
+   ================================================================ */
+.calligraphy-mark {
+  display: block;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  transition: color 0.3s ease;
+}
+
+.calligraphy-mark--logo {
+  -webkit-mask-image: url('../public/calligraphy/web/logo-white.png');
+  mask-image: url('../public/calligraphy/web/logo-white.png');
+  aspect-ratio: 120 / 192;
+}
+
+.calligraphy-mark--orations {
+  -webkit-mask-image: url('../public/calligraphy/web/orations.png');
+  mask-image: url('../public/calligraphy/web/orations.png');
+  aspect-ratio: 600 / 438;
+}
+
+.calligraphy-mark--letters {
+  -webkit-mask-image: url('../public/calligraphy/web/letters.png');
+  mask-image: url('../public/calligraphy/web/letters.png');
+  aspect-ratio: 600 / 467;
+}
+
+.calligraphy-mark--sayings {
+  -webkit-mask-image: url('../public/calligraphy/web/sayings.png');
+  mask-image: url('../public/calligraphy/web/sayings.png');
+  aspect-ratio: 600 / 582;
+}
+
+/* Header logo */
+.header__logo-mark {
+  height: 3.75rem;
+  color: var(--color-primary);
+}
+
+@media (min-width: 1024px) {
+  .header__logo-mark {
+    height: 4.75rem;
+  }
+}
+
+.header__logo:hover .header__logo-mark {
+  color: var(--color-primary-dark);
+}
+
+/* Footer logo: the hairlines need ~96px of height to stay visible on the dark green */
+.footer__logo-mark {
+  height: 6rem;
+  color: white;
+}
+
+.footer__brand-link:hover .footer__logo-mark {
+  color: var(--color-accent);
+}
+
+/* Home hero content-type cards */
+.hero-content-card-calligraphy {
+  height: 4.5rem;
+  margin: 0 auto 1rem;
+  color: var(--color-primary);
+}
+
+.group:hover .hero-content-card-calligraphy {
+  color: var(--color-primary-dark);
 }
