@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import PDFViewer from '../components/pdf-viewer'
 
 export const metadata: Metadata = {
-  title: "Scholarly Notes on Edition and Translation | Nahj al-Balaghah",
+  title: "Scholarly Notes on Edition and Translation",
   description: "Explore detailed scholarly notes on Tahera Qutbuddin's edition and translation of Nahj al-Balaghah, providing valuable insights into the academic work behind this timeless collection.",
   openGraph: {
     title: "Scholarly Notes on Edition and Translation | Nahj al-Balaghah",

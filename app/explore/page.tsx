@@ -5,7 +5,7 @@ import ServicesSection from "@/app/sections/services";
 import ExploreHero from "./sections/hero";
 
 export const metadata = {
-  title: "Home | Nahj al-Balaghah",
+  title: "Home",
   description: "Discover the wisdom and eloquence of Imam Ali (AS) through Nahj al-Balaghah. Explore sermons, letters, and sayings with translations and commentary.",
   openGraph: {
     title: "Home | Nahj al-Balaghah",

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Languages, Bookmark, Scale, ArrowRight, BookOpen, Search } from 'lucide-react';
+import { MapPin, Languages, Bookmark, Scale, ArrowRight, BookOpen, BookA, Search } from 'lucide-react';
 import Link from 'next/link';
 
 export default function IndexesPage() {
@@ -11,7 +11,7 @@ export default function IndexesPage() {
     setIsVisible(true);
   }, []);
 
-  const indexes = [
+  const indexes: { icon: React.ElementType; title: string; description: string; href: string; count?: string }[] = [
     {
       icon: MapPin,
       title: "Index of Names and Places",
@@ -37,8 +37,14 @@ export default function IndexesPage() {
       icon: Scale,
       title: "Religious & Ethical Concepts",
       description: "Explore core values and concepts like justice, piety, and ethics as emphasized by Imam Ali. Navigate by theme to find relevant passages.",
-      href: "/indexes/concepts",
+      href: "/indexes/religious-concepts",
       count: "150+"
+    },
+    {
+      icon: BookA,
+      title: "Glossary",
+      description: "Explore the descriptions and meanings of the terms, names, and places that appear throughout Nahj al-Balaghah.",
+      href: "/indexes/glossary"
     }
   ];
 
@@ -94,9 +100,11 @@ export default function IndexesPage() {
               >
                 <div className="indexes-page__card">
                   {/* Count badge */}
-                  <div className="indexes-page__card-count">
-                    {index.count} entries
-                  </div>
+                  {index.count && (
+                    <div className="indexes-page__card-count">
+                      {index.count} entries
+                    </div>
+                  )}
 
                   {/* Icon */}
                   <div className="indexes-page__card-icon-box">

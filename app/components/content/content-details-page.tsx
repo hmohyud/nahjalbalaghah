@@ -1,12 +1,16 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { type Post, orationsApi, lettersApi, sayingsApi } from '@/api/posts';
+import { type Post, postsApi } from '@/api/posts';
+import { audioApi } from '@/api/audio';
 import ContentDescription from './content-description';
-import { ArrowLeft, Book, GitCompare, ChevronLeft, ChevronRight } from 'lucide-react';
+import ParallelView from './parallel-view';
+import { ArrowLeft, Book, GitCompare, ChevronLeft, ChevronRight, ScrollText, Split } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '../ui';
+import { Button, Select } from '../ui';
 import { ManuscriptComparisonModal } from '../manuscripts';
+import AudioPlayer from './audio-player';
+import { getPostEditionTitles, postHasEdition } from '@/app/utils/preferences';
 
 interface ContentDetailsPageProps {
   contentType: 'orations' | 'letters' | 'sayings';
@@ -14,21 +18,48 @@ interface ContentDetailsPageProps {
   api: {
     getContentById: (id: number) => Promise<Post | null>;
   };
+  id?: number;
 }
 
-export default function ContentDetailsPage({ contentType, title, api }: ContentDetailsPageProps) {
+export default function ContentDetailsPage({ contentType, title, api, id: propId }: ContentDetailsPageProps) {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const id = parseInt(params.id as string);
+
+  // Try to get id from prop first, then from params.id, then from catch-all params
+  const id = propId || (() => {
+    if (params.id) return parseInt(params.id as string);
+    if (params.params && Array.isArray(params.params) && params.params.length >= 2) {
+      return parseInt(params.params[1]);
+    }
+    return NaN;
+  })();
   const returnPage = searchParams.get('returnPage');
   const returnSort = searchParams.get('returnSort');
   const returnSearch = searchParams.get('returnSearch');
+  const editionParam = searchParams.get('edition');
+  const display = searchParams.get('display');
   const highlightRef = searchParams.get('highlightRef');
   const englishWord = searchParams.get('word');
   const arabicWord = searchParams.get('arabicWord');
 
   const [content, setContent] = useState<Post | null>(null);
+
+  // The edition of the post being viewed; navigation stays within it
+  const contentEditionTitle = getPostEditionTitles(content)[0] || '';
+  const currentEditionTitle = contentEditionTitle || editionParam || '';
+
+  const buildDetailsUrl = (postId: number | string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentEditionTitle) params.set('edition', currentEditionTitle);
+    // Paragraph/word highlights belong to the current post only
+    params.delete('highlightRef');
+    params.delete('word');
+    params.delete('arabicWord');
+    const qs = params.toString();
+    return qs ? `/content/details/${contentType}/${postId}?${qs}` : `/content/details/${contentType}/${postId}`;
+  };
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
@@ -37,12 +68,126 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
     next: null
   });
   const [adjacentLoading, setAdjacentLoading] = useState(false);
+  const [allItemNumbers, setAllItemNumbers] = useState<{ id: number; number: string }[]>([]);
+  const [navigationPosts, setNavigationPosts] = useState<Post[]>([]);
+  const [audioTracks, setAudioTracks] = useState<{ arabic?: string; english?: string }>({});
+  const [isParallelViewActive, setIsParallelViewActive] = useState(false);
+  const [availablePosts, setAvailablePosts] = useState<Post[]>([]);
+
+  const getDisplayNumber = (sermonNumber?: string | null) => {
+    if (!sermonNumber) return '';
+    if (sermonNumber.includes('.')) {
+      return sermonNumber.split('.').pop() || sermonNumber;
+    }
+    return sermonNumber;
+  };
+
+  const getEditionPrefix = (sermonNumber?: string | null) => {
+    if (!sermonNumber || !sermonNumber.includes('.')) return '';
+    return sermonNumber.split('.')[0] || '';
+  };
+
+  const sortPostsByDisplayNumber = (posts: Post[]) => {
+    return [...posts].sort((a, b) => {
+      const aNum = parseInt(getDisplayNumber(a.sermonNumber), 10);
+      const bNum = parseInt(getDisplayNumber(b.sermonNumber), 10);
+      if (isNaN(aNum) || isNaN(bNum)) {
+        return getDisplayNumber(a.sermonNumber).localeCompare(getDisplayNumber(b.sermonNumber));
+      }
+      return aNum - bNum;
+    });
+  };
+
+  useEffect(() => {
+    const fetchAllNumbers = async () => {
+      try {
+        let allPosts: any[] = [];
+        let currentPage = 1;
+        let hasMore = true;
+        const pageSize = 100;
+
+        const typeMapping = {
+          'orations': 'Oration',
+          'letters': 'Letter',
+          'sayings': 'Saying'
+        };
+
+        const editionTitle = contentEditionTitle || undefined;
+        const editionPrefix = !editionTitle ? getEditionPrefix(content?.sermonNumber) : '';
+
+        while (hasMore) {
+          const response = await postsApi.getPosts({
+            page: currentPage,
+            pageSize: pageSize,
+            filters: { type: typeMapping[contentType], ...(editionTitle ? { editionTitle } : {}) },
+            fields: ['id', 'sermonNumber'],
+            populate: [], // Optimize: we only need ID and number for the dropdown
+            sort: 'id:asc'
+          });
+
+          if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
+            allPosts.push(...response.data);
+            const totalPages = response.meta?.pagination?.pageCount || 1;
+            hasMore = currentPage < totalPages;
+            currentPage++;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        if (allPosts.length > 0) {
+          // A post-base holds every edition of an item, so the API filter alone
+          // returns posts from other editions too; keep only the current one.
+          const scopedPosts = editionTitle
+            ? allPosts.filter((post) => postHasEdition(post, editionTitle))
+            : editionPrefix
+              ? allPosts.filter((post) => getEditionPrefix(post?.sermonNumber) === editionPrefix)
+              : allPosts;
+          const sortedPosts = sortPostsByDisplayNumber(
+            scopedPosts.filter((post): post is Post => !!post?.id)
+          );
+          setNavigationPosts(sortedPosts);
+
+          const numbers = sortedPosts
+            .map(p => {
+              const numStr = getDisplayNumber(p.sermonNumber);
+              return {
+                id: p.id,
+                number: numStr || p.id.toString()
+              };
+            })
+            .filter(item => item.number)
+            .filter((item, index, arr) => arr.findIndex(x => x.number === item.number) === index)
+            .sort((a, b) => {
+              const numA = parseInt(a.number);
+              const numB = parseInt(b.number);
+              if (isNaN(numA) || isNaN(numB)) return a.number.localeCompare(b.number);
+              return numA - numB;
+            });
+          setAllItemNumbers(numbers);
+        } else {
+          setNavigationPosts([]);
+          setAllItemNumbers([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch item numbers:', error);
+        setNavigationPosts([]);
+        setAllItemNumbers([]);
+      }
+    };
+    if (!content) return;
+    fetchAllNumbers();
+    // Only refetch when the edition scope changes, not on every item change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentEditionTitle, contentEditionTitle ? '' : getEditionPrefix(content?.sermonNumber), contentType, !!content]);
 
   const getBackUrl = () => {
     const urlParams = new URLSearchParams();
     if (returnPage) urlParams.set('page', returnPage);
     if (returnSort) urlParams.set('sort', returnSort);
     if (returnSearch) urlParams.set('search', returnSearch);
+    if (currentEditionTitle) urlParams.set('edition', currentEditionTitle);
+    if (display) urlParams.set('display', display);
 
     const queryString = urlParams.toString();
     return queryString ? `/${contentType}?${queryString}` : `/${contentType}`;
@@ -50,12 +195,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
   const handleBackNavigation = (e: React.MouseEvent) => {
     e.preventDefault();
-
-    if (window.history.length > 1 && (returnPage || returnSort || returnSearch)) {
-      router.back();
-    } else {
-      router.push(getBackUrl());
-    }
+    router.push(getBackUrl());
   };
 
   useEffect(() => {
@@ -65,27 +205,9 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
         setAdjacentLoading(true);
         setError(null);
 
-        const contentPromise = api.getContentById(id);
-
-        let adjacentPromise: Promise<{ previous: Post | null; next: Post | null }>;
-        switch (contentType) {
-          case 'orations':
-            adjacentPromise = orationsApi.getAdjacentOrations(id);
-            break;
-          case 'letters':
-            adjacentPromise = lettersApi.getAdjacentLetters(id);
-            break;
-          case 'sayings':
-            adjacentPromise = sayingsApi.getAdjacentSayings(id);
-            break;
-          default:
-            adjacentPromise = Promise.resolve({ previous: null, next: null });
-        }
-
-        const [contentData, adjacentData] = await Promise.all([contentPromise, adjacentPromise]);
+        const contentData = await api.getContentById(id);
 
         setContent(contentData);
-        setAdjacentPosts(adjacentData);
       } catch (err) {
         setError(`Failed to load ${contentType.slice(0, -1)} details. Please try again.`);
         console.error(`Error loading ${contentType.slice(0, -1)}:`, err);
@@ -99,6 +221,120 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
       loadData();
     }
   }, [id, api, contentType]);
+
+  useEffect(() => {
+    if (!content || navigationPosts.length === 0) {
+      setAdjacentPosts({ previous: null, next: null });
+      setAdjacentLoading(false);
+      return;
+    }
+
+    const currentNumber = getDisplayNumber(content.sermonNumber);
+    let currentIndex = navigationPosts.findIndex((post) => post.id === content.id);
+    if (currentIndex === -1 && currentNumber !== '') {
+      currentIndex = navigationPosts.findIndex((post) => getDisplayNumber(post.sermonNumber) === currentNumber);
+    }
+
+    if (currentIndex === -1) {
+      setAdjacentPosts({ previous: null, next: null });
+      setAdjacentLoading(false);
+      return;
+    }
+
+    setAdjacentPosts({
+      previous: currentIndex > 0 ? navigationPosts[currentIndex - 1] : null,
+      next: currentIndex < navigationPosts.length - 1 ? navigationPosts[currentIndex + 1] : null,
+    });
+    setAdjacentLoading(false);
+  }, [content, navigationPosts]);
+
+  useEffect(() => {
+    const fetchAudio = async () => {
+      if (content?.sermonNumber) {
+        const audio = await audioApi.getAudioBySermonNumber(content.sermonNumber);
+        setAudioTracks({
+          arabic: audio?.audioTracks?.arabic?.url,
+          english: audio?.audioTracks?.english?.url,
+        });
+      } else {
+        setAudioTracks({});
+      }
+    };
+    fetchAudio();
+  }, [content]);
+
+  useEffect(() => {
+    const fetchAvailablePosts = async () => {
+      if (!content) return;
+
+      try {
+        const typeMapping: Record<string, string> = {
+          'orations': 'Oration',
+          'letters': 'Letter',
+          'sayings': 'Saying'
+        };
+
+        const uniqueById = (posts: Post[]) => {
+          const seen = new Set<number>();
+          return posts.filter(post => {
+            if (seen.has(post.id)) return false;
+            seen.add(post.id);
+            return true;
+          });
+        };
+
+        // Prefer sermonNumber for grouping editions as they can be split across post-bases
+        // and use different prefixes (e.g., 1.1 vs 4.1 for Oration 1)
+        if (content.sermonNumber) {
+          const itemNumber = content.sermonNumber.includes('.')
+            ? content.sermonNumber.split('.').pop()
+            : content.sermonNumber;
+
+          const responseByNumber = await postsApi.getPosts({
+            filters: {
+              $or: [
+                { sermonNumber: itemNumber },
+                { sermonNumber: content.sermonNumber },
+                { sermonNumberEndsWith: `.${itemNumber}` }
+              ],
+              type: typeMapping[contentType]
+            },
+            pageSize: 50 // Ensure we get all editions
+          });
+
+          let responseByBase: Post[] = [];
+          if (content.post_base_documentId) {
+            const byBase = await postsApi.getPostsByPostBaseDocumentId(content.post_base_documentId);
+            responseByBase = byBase.data || [];
+          }
+
+          const combinedResults = uniqueById([
+            ...(responseByNumber.data || []),
+            ...responseByBase,
+            content
+          ]).filter(post => post.type === typeMapping[contentType]);
+
+          // Filter for exact item number match to avoid matching e.g. ".11" when searching for ".1"
+          // and also include the current post and any results with no sermonNumber
+          const matchedPosts = combinedResults.filter(p => {
+            if (!p.sermonNumber) return true;
+            const pNum = p.sermonNumber?.split('.').pop();
+            return pNum === itemNumber;
+          });
+
+          setAvailablePosts(matchedPosts.length > 0 ? matchedPosts : combinedResults);
+        } else if (content.post_base_documentId) {
+          // Fallback to post_base_documentId if sermonNumber is not available
+          const response = await postsApi.getPostsByPostBaseDocumentId(content.post_base_documentId);
+          setAvailablePosts(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch available editions:', error);
+      }
+    };
+
+    fetchAvailablePosts();
+  }, [content?.sermonNumber, content?.post_base_documentId, contentType]);
 
   const getContentTypeLabel = () => {
     switch (contentType) {
@@ -120,7 +356,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
   };
 
   const navigateToPost = (post: Post) => {
-    router.push(`/${contentType}/details/${post.id}`);
+    router.push(buildDetailsUrl(post.id));
   };
 
   if (loading) {
@@ -196,7 +432,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
             Back to {title}
           </button>
 
-          {/* Action buttons - scrollable on mobile */}
+          {/* Prev / jump-to / Next */}
           <div className="content-details__actions">
             <Button
               variant='outlined'
@@ -207,6 +443,14 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
             >
               Prev
             </Button>
+            <div className="content-details__jump-select">
+              <Select
+                value={id.toString()}
+                onChange={(value: string) => router.push(buildDetailsUrl(value))}
+                options={allItemNumbers.map(item => ({ value: item.id.toString(), label: `${getContentTypeLabel()} ${item.number}` }))}
+                placeholder="Go to #"
+              />
+            </div>
             <Button
               variant='outlined'
               disabled={!adjacentPosts.next}
@@ -218,6 +462,22 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
                 <ChevronRight className='w-4 h-4' />
               </div>
             </Button>
+          </div>
+        </div>
+
+        {/* Audio + view / manuscript actions */}
+        <div className="content-details__toolbar">
+          <AudioPlayer tracks={audioTracks} />
+
+          <div className="content-details__actions">
+            <Button
+              variant={isParallelViewActive ? 'solid' : 'outlined'}
+              icon={<Split className='w-4 h-4' />}
+              onClick={() => setIsParallelViewActive(!isParallelViewActive)}
+              className="content-details__action-btn"
+            >
+              Parallel View
+            </Button>
             <Button
               variant='outlined'
               icon={<GitCompare className='w-4 h-4' />}
@@ -226,7 +486,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
             >
               Compare
             </Button>
-            <Link href={content?.sermonNumber ? `/manuscripts?section=${content.sermonNumber}` : '/manuscripts'}>
+            <Link href={content?.sermonNumber ? `/manuscripts/view?section=${content.sermonNumber}` : '/manuscripts'}>
               <Button variant='outlined' icon={<Book className='w-4 h-4' />} className="content-details__action-btn">
                 Manuscripts
               </Button>
@@ -235,13 +495,25 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
         </div>
 
         {/* Main content */}
-        <ContentDescription
-          content={content}
-          contentType={contentType}
-          highlightRef={highlightRef}
-          englishWord={englishWord}
-          arabicWord={arabicWord}
-        />
+        {isParallelViewActive ? (
+          <ParallelView
+            key={content.id}
+            initialPost={content}
+            availablePosts={availablePosts}
+            contentType={contentType}
+            highlightRef={highlightRef}
+            englishWord={englishWord}
+            arabicWord={arabicWord}
+          />
+        ) : (
+          <ContentDescription
+            content={content}
+            contentType={contentType}
+            highlightRef={highlightRef}
+            englishWord={englishWord}
+            arabicWord={arabicWord}
+          />
+        )}
 
         {/* Next/Previous Navigation */}
         <div className="adjacent-post-nav">
@@ -263,7 +535,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
                   {/* Heading/Title */}
                   <div className="adjacent-post-heading">
-                    {truncateText(adjacentPosts.previous.heading, 60)}
+                    {truncateText(adjacentPosts.previous.heading, 60) || `${getContentTypeLabel()} ${getDisplayNumber(adjacentPosts.previous.sermonNumber)}`}
                   </div>
 
                   {/* English Summary (TocEnglish) */}
@@ -315,7 +587,7 @@ export default function ContentDetailsPage({ contentType, title, api }: ContentD
 
                   {/* Heading/Title */}
                   <div className="adjacent-post-heading">
-                    {truncateText(adjacentPosts.next.heading, 60)}
+                    {truncateText(adjacentPosts.next.heading, 60) || `${getContentTypeLabel()} ${getDisplayNumber(adjacentPosts.next.sermonNumber)}`}
                   </div>
 
                   {/* English Summary (TocEnglish) */}

@@ -32,7 +32,7 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
   const getCardLink = () => {
     if (oration) {
       const currentPage = searchParams.get('page');
-      const baseUrl = `/${contentType}/details/${oration.id}`;
+      const baseUrl = `/content/details/${contentType}/${oration.id}`;
       return currentPage ? `${baseUrl}?returnPage=${currentPage}` : baseUrl;
     } else if (sermon) {
       return `/listings/details/${sermon.id}`;
@@ -108,7 +108,7 @@ export default function ListingCard({ sermon, oration, onClick, contentType = 'o
                 )}
               </div>
             ) : (
-              <h3 className={`listing-grid-card__title ${typeof displayTitle === 'string' && isArabicText(displayTitle) ? 'font-taha' : ''}`}>
+              <h3 className={`listing-grid-card__title ${typeof displayTitle === 'string' && isArabicText(displayTitle) ? 'font-taha' : ''}`} dir={typeof displayTitle === 'string' && isArabicText(displayTitle) ? 'rtl' : undefined}>
                 {typeof displayTitle === 'string'
                   ? formatTextWithFootnotes(truncateText(displayTitle, 120), (oration?.footnotes || []), isArabicText(displayTitle), oration?.sermonNumber || undefined)
                   : truncateText(displayTitle, 120)

@@ -18,6 +18,21 @@ export default function AboutNahjPage() {
     { title: "Social Responsibility", description: "The importance of compassion, charity, and community welfare" }
   ];
 
+  const resourceLinks = [
+    {
+      label: "\"Introduction\" to Nahj al-Balāghah: The Wisdom and Eloquence of ʿAlī, edited by Tahera Qutbuddin",
+      href: "/pdfs/TQ-Introduction-to-Nahj-al-Balaghah.pdf"
+    },
+    {
+      label: "\"Nahj al-Balagha\", Qutbuddin, Tahera — Encyclopaedia of Islam, THREE",
+      href: "/pdfs/Qutbuddin_Nahj al-Balagha_EI3.pdf"
+    },
+    {
+      label: "\"Nahdj al-Balāgha\", Mukhtar Djebli — Encyclopaedia of Islam, Second Edition",
+      href: "/pdfs/Nahdj al-Balagha_Djebli_EI2.pdf"
+    }
+  ];
+
   return (
     <div className="static-page static-page--padded">
       {/* Hero Section */}
@@ -61,7 +76,7 @@ export default function AboutNahjPage() {
           >
             <Link
               href="/pdfs/TQ-Introduction-to-Nahj-al-Balaghah.pdf"
-              target="_blank"
+              download
               className="static-page__cta-wrapper"
             >
               <button className="static-page__cta-btn--outline">
@@ -84,7 +99,7 @@ export default function AboutNahjPage() {
             <div className="static-page__panel-inner">
               <div className="static-page__body-text">
                 <p className="static-page__body-text--lg">
-                  <span className="static-page__text-highlight static-page__text-highlight--xl">Nahj al-Balaghah</span> (&#1606;&#1614;&#1607;&#1618;&#1580; &#1575;&#1604;&#1576;&#1614;&#1604;&#1614;&#1575;&#1594;&#1577;, "The Way of Eloquence") is a collection of sermons, letters, and sayings attributed to Imam Ali ibn Abi Talib (AS), the cousin and son-in-law of Prophet Muhammad (PBUH), and the fourth caliph in Sunni Islam and the first Imam in Shia Islam.
+                  <span className="static-page__text-highlight static-page__text-highlight--xl">Nahj al-Balaghah</span> (<span className="font-taha" dir="rtl" lang="ar">&#1606;&#1614;&#1607;&#1618;&#1580; &#1575;&#1604;&#1576;&#1614;&#1604;&#1614;&#1575;&#1594;&#1577;</span>, "The Way of Eloquence") is a collection of sermons, letters, and sayings attributed to Imam Ali ibn Abi Talib (AS), the cousin and son-in-law of Prophet Muhammad (PBUH), and the fourth caliph in Sunni Islam and the first Imam in Shia Islam.
                 </p>
 
                 <p>
@@ -147,6 +162,24 @@ export default function AboutNahjPage() {
       </section>
 
       {/* CTA Section */}
+      {/* Scholarly Resources */}
+      <section className="static-page__main">
+        <div className="static-page__main-inner">
+          <h2 className="static-page__themes-title about-resources__title">Scholarly Resources</h2>
+          <div className="about-resources__list">
+            {resourceLinks.map((link) => (
+              <div key={link.href} className="about-resources__item">
+                <span className="about-resources__label">{link.label}</span>
+                <a href={link.href} download className="about-resources__download">
+                  <Download className="w-4 h-4" />
+                  <span>Download</span>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="static-page__nav-section">
         <div className="static-page__nav-inner">
           <h2 className="static-page__nav-title static-page__nav-title--lg">

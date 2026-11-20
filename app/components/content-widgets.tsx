@@ -17,7 +17,7 @@ import {
   getContentTypeName,
   getTextRefTypeColor,
 } from '@/app/utils/text-reference';
-import { orationsApi, lettersApi, sayingsApi } from '@/api/posts';
+import { orationsApi, lettersApi, sayingsApi, conclusionsApi } from '@/api/posts';
 
 // ============================================================================
 // 1. ListViewItem (from app/components/list-view-item/index.tsx)
@@ -121,6 +121,13 @@ interface ListViewItemProps {
   displayMode?: 'both' | 'english-only' | 'arabic-only';
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  listingParams?: {
+    page?: string;
+    search?: string;
+    sort?: string;
+    edition?: string;
+    display?: string;
+  };
 }
 
 export const ListViewItem: React.FC<ListViewItemProps> = ({
@@ -128,12 +135,15 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
   contentType,
   displayMode = 'both',
   isExpanded = false,
-  onToggleExpand
+  onToggleExpand,
+  listingParams
 }) => {
   const searchParams = useSearchParams();
-  const currentPage = searchParams.get('page');
-  const currentSort = searchParams.get('sort');
-  const currentSearch = searchParams.get('search');
+  const currentPage = listingParams?.page ?? searchParams.get('page');
+  const currentSort = listingParams?.sort ?? searchParams.get('sort');
+  const currentSearch = listingParams?.search ?? searchParams.get('search');
+  const currentEdition = listingParams?.edition ?? searchParams.get('edition');
+  const currentDisplay = listingParams?.display ?? searchParams.get('display');
 
   // Build return URL params
   const buildReturnParams = () => {
@@ -141,11 +151,13 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
     if (currentPage) params.set('returnPage', currentPage);
     if (currentSort) params.set('returnSort', currentSort);
     if (currentSearch) params.set('returnSearch', currentSearch);
+    if (currentEdition) params.set('edition', currentEdition);
+    if (currentDisplay && currentDisplay !== 'both') params.set('display', currentDisplay);
     return params.toString();
   };
 
   const returnParams = buildReturnParams();
-  const detailUrl = `/${contentType}/details/${item.id}${returnParams ? `?${returnParams}` : ''}`;
+  const detailUrl = `/content/details/${contentType}/${item.id}${returnParams ? `?${returnParams}` : ''}`;
 
   // Extract display number from sermon number (e.g., "1.5" -> 5)
   const getDisplayNumber = () => {
@@ -193,8 +205,15 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
     return null;
   };
 
-  const englishPreview = getEnglishPreview();
-  const arabicPreview = getArabicPreview();
+  // Arabic-only editions (e.g. Attar) have the Arabic heading in `heading` -- show it once, as Arabic
+  const rawHeading = item.heading || item.TocEnglish || '';
+  const headingIsArabic = !!rawHeading && /[؀-ۿ]/.test(rawHeading) && !/[A-Za-z]/.test(rawHeading);
+  const englishHeading = headingIsArabic ? '' : rawHeading;
+
+  const englishPreview = item.TocEnglish && item.TocEnglish !== englishHeading
+    ? item.TocEnglish.replace(/\[\d+\]/g, '').replace(/\n/g, ' ').trim()
+    : getEnglishPreview();
+  const arabicPreview = item.TocArabic || (headingIsArabic ? rawHeading : '') || getArabicPreview();
 
   // Get interleaved paragraphs (Arabic + English together for each section)
   const getInterleavedParagraphs = (): { number: string; arabic: string; english: string }[] => {
@@ -276,7 +295,7 @@ export const ListViewItem: React.FC<ListViewItemProps> = ({
           >
             {/* Heading */}
             <h3 className="list-item__heading line-clamp-2">
-              {item.heading || 'Untitled'}
+              {englishHeading || (headingIsArabic ? '' : 'Untitled')}
             </h3>
 
             {/* English Preview */}
@@ -919,7 +938,7 @@ export const Timeline: React.FC<TimelineProps> = ({ contentType, title, items, l
               </div>
 
               <Link
-                href={`/${contentType}/details/${selectedItem.id}`}
+                href={`/content/details/${contentType}/${selectedItem.id}`}
                 className="btn-primary timeline__details-link"
               >
                 <Icon className="w-4 h-4" />
@@ -1029,7 +1048,7 @@ export function AlphabetChips({ selectedLetter, onSelectLetter, language }: Alph
                 <button
                     key={letter}
                     onClick={() => onSelectLetter(letter)}
-                    className={`alphabet-chip alphabet-chip--letter ${selectedLetter === letter
+                    className={`alphabet-chip alphabet-chip--letter ${language === 'Arabic' ? 'text-sm font-taha' : ''} ${selectedLetter === letter
                             ? "alphabet-chip--active"
                             : "alphabet-chip--inactive"
                         }`}
@@ -1232,7 +1251,7 @@ export const FootnoteTooltip: React.FC<FootnoteTooltipProps> = ({
         </div>
       )}
       {matchedLanguage === 'arabic' && footnote.arabic_interpretation && (
-        <div className="footnote-tooltip__text footnote-tooltip__text--rtl" dir="rtl">
+        <div className="footnote-tooltip__text footnote-tooltip__text--rtl font-taha" dir="rtl">
           {footnote.arabic_interpretation}
         </div>
       )}
@@ -1291,30 +1310,20 @@ export const IndexListing: React.FC<IndexListingProps> = ({ items, categorySlug 
               <div className="index-listing__content">
                 <div className="index-listing__content-layout">
                   <div className="index-listing__content-text">
-                    <h3 className="index-listing__title">
-                      {item.word}
-                    </h3>
+                    <Link href={`/indexes/${categorySlug}/${encodeURIComponent(item.word)}`}>
+                      <h3 className="index-listing__title">
+                        {item.word}
+                      </h3>
+                    </Link>
                     {item.references.length > 0 && (
                       <div className="index-listing__refs">
                         {item.references.slice(0, 5).map((ref, refIndex) => {
                           const [prefix] = ref.split('.');
-                          let linkHref = '';
-                          switch (prefix) {
-                            case '0':
-                              linkHref = `/introduction#${ref}`;
-                              break;
-                            case '1':
-                              linkHref = `/orations#${ref}`;
-                              break;
-                            case '2':
-                              linkHref = `/letters#${ref}`;
-                              break;
-                            case '3':
-                              linkHref = `/sayings#${ref}`;
-                              break;
-                            default:
-                              linkHref = `/#${ref}`;
-                          }
+                          // Introduction refs jump to Radi's introduction; everything else opens the
+                          // index entry's detail page (/indexes/[slug]/[term]), which lists every reference.
+                          const linkHref = prefix === '0'
+                            ? `/radis?highlightRef=${ref}`
+                            : `/indexes/${categorySlug}/${encodeURIComponent(item.word)}`;
                           return (
                             <Link
                               key={refIndex}
@@ -1437,6 +1446,18 @@ export function TextRefChip({
       }
 
       // If not found, try with the full sectionNumber (26.1)
+      // For conclusion refs, route to the conclusions page.
+      if (parsed.type === 'conclusion') {
+        const conclusion = await conclusionsApi.getConclusionByNumber(parsed.sectionNumber);
+        if (!conclusion) {
+          console.error(`Could not find conclusion with text reference ${parsed.number}`);
+          return;
+        }
+        queryParams.set('highlightRef', parsed.sectionNumber);
+        router.push(`/conclusions?${queryParams.toString()}`);
+        return;
+      }
+
       if (!post && parsed.sectionNumber !== sermonNumber) {
         sermonNumber = parsed.sectionNumber;
         switch (parsed.type) {
@@ -1494,10 +1515,11 @@ export function TextRefChip({
         letter: 'letters',
         saying: 'sayings',
         introduction: 'radis',
+        conclusion: 'conclusions',
       };
 
       router.push(
-        `/${contentTypeMap[parsed.type]}/details/${post.id}?${queryParams.toString()}`
+        `/content/details/${contentTypeMap[parsed.type]}/${post.id}?${queryParams.toString()}`
       );
     } catch (error) {
       console.error('Error navigating to text reference:', error);
@@ -1585,7 +1607,7 @@ export function TOCDisplay({
           </h4>
         </div>
         <Link
-          href={`/${contentType}/details/${contentId}/toc`}
+          href={`/content/details/${contentType}/${contentId}/toc`}
           className="toc-display__link"
         >
           View Full TOC
@@ -1625,7 +1647,7 @@ export function TOCDisplay({
       {/* Footer Link */}
       <div className="toc-display__footer">
         <Link
-          href={`/${contentType}/details/${contentId}/toc`}
+          href={`/content/details/${contentType}/${contentId}/toc`}
           className="toc-display__footer-link"
         >
           <BookOpen className="w-3.5 h-3.5" />

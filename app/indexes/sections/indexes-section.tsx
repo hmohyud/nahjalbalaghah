@@ -47,7 +47,7 @@ const IndexesSection = () => {
       icon: Scale,
       title: "Religious Concepts",
       description: "Explore core values like justice, piety, and ethics",
-      href: "/indexes/concepts"
+      href: "/indexes/religious-concepts"
     }
   ]
 

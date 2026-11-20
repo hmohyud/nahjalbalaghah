@@ -1,133 +1,341 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { Bookmark, ArrowRight, Quote } from 'lucide-react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { conclusionsApi, Conclusion } from '@/api/posts';
+import { Search, GitCompare, Book } from 'lucide-react';
+import { Button, Input } from '@/app/components/ui';
+import { useTextRefHighlight } from '@/app/hooks/useTextRefHighlight';
+import { ManuscriptComparisonModal } from '@/app/components/manuscripts';
 import Link from 'next/link';
 
-export default function ConclusionsPage() {
-  const [isVisible, setIsVisible] = useState(false);
+function ConclusionsContent() {
+  const [conclusions, setConclusions] = useState<Conclusion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [isComparisonModalOpen, setIsComparisonModalOpen] = useState(false);
+  const [selectedConclusionForComparison, setSelectedConclusionForComparison] = useState<Conclusion | null>(null);
+
+  const { scrollToAndHighlight } = useTextRefHighlight({
+    onHighlight: (ref) => {
+      console.log('Highlighting ref:', ref);
+    }
+  });
 
   useEffect(() => {
-    setIsVisible(true);
+    fetchConclusions();
   }, []);
 
+  const fetchConclusions = async () => {
+    try {
+      setLoading(true);
+      const response = await conclusionsApi.getConclusions();
+      setConclusions(response.data);
+      setError(null);
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const highlightRef = urlParams.get('highlightRef');
+      const word = urlParams.get('word');
+
+      if (highlightRef) {
+        setTimeout(() => {
+          scrollToAndHighlight(highlightRef);
+          if (word) {
+            const element = document.querySelector(`[data-text-ref="${highlightRef}"]`);
+            if (element) {
+              const translationContainer = element.querySelector('.font-brill');
+              if (translationContainer) {
+                highlightWordInElement(translationContainer, word);
+              }
+            }
+          }
+        }, 500);
+      }
+    } catch (err) {
+      console.error('Error fetching conclusions:', err);
+      setError("Failed to load conclusions. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      fetchConclusions();
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await conclusionsApi.searchConclusions(searchQuery);
+      setConclusions(response.data);
+    } catch (err) {
+      console.error('Error searching conclusions:', err);
+      setError('Search failed. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    fetchConclusions();
+  };
+
+  const highlightWordInElement = (element: Element, word: string) => {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+    const nodesToReplace: Array<{ node: Text; matches: Array<{ start: number; end: number }> }> = [];
+    let textNode;
+    const wordRegex = new RegExp(word, 'gi');
+
+    while (textNode = walker.nextNode() as Text | null) {
+      let match;
+      const matches: Array<{ start: number; end: number }> = [];
+      wordRegex.lastIndex = 0;
+
+      while ((match = wordRegex.exec(textNode.textContent || '')) !== null) {
+        matches.push({ start: match.index, end: wordRegex.lastIndex });
+      }
+
+      if (matches.length > 0) {
+        nodesToReplace.push({ node: textNode, matches });
+      }
+    }
+
+    for (const { node, matches } of nodesToReplace.reverse()) {
+      for (const match of matches.reverse()) {
+        const before = node.textContent?.substring(0, match.start) || '';
+        const highlighted = node.textContent?.substring(match.start, match.end) || '';
+        const after = node.textContent?.substring(match.end) || '';
+
+        const span = document.createElement('span');
+        span.className = 'highlight-word';
+        span.textContent = highlighted;
+
+        if (after) {
+          const afterNode = document.createTextNode(after);
+          node.parentNode?.insertBefore(span, node.nextSibling);
+          node.parentNode?.insertBefore(afterNode, span.nextSibling);
+        } else {
+          node.parentNode?.insertBefore(span, node.nextSibling);
+        }
+        node.textContent = before;
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="static-page">
+        <div className="static-page__loading">
+          <div className="static-page__loading-inner">
+            <div className="static-page__spinner"></div>
+            <p className="static-page__loading-text">Loading conclusions...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="static-page">
+        <div className="static-page__loading">
+          <div className="static-page__loading-inner">
+            <p className="static-page__error-text">{error}</p>
+            <Button onClick={fetchConclusions}>Try Again</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="static-page static-page--padded">
+    <div className="static-page">
       {/* Hero Section */}
-      <section className="static-page__hero--light">
-        <div className="static-page__hero-light-inner">
-          {/* Icon */}
-          <div
-            className={`static-page__icon-box-wrapper fade-in-up ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
-          >
-            <div className="static-page__icon-box">
-              <Bookmark className="icon--md icon--white" />
-            </div>
+      <div className="static-page__hero">
+        {/* Decorative corners */}
+        <div className="static-page__hero-corner static-page__hero-corner--tl" />
+        <div className="static-page__hero-corner static-page__hero-corner--tr" />
+        <div className="static-page__hero-corner static-page__hero-corner--bl" />
+        <div className="static-page__hero-corner static-page__hero-corner--br" />
+
+        <div className="static-page__hero-inner">
+          {/* Arabic Title */}
+          <div className="static-page__arabic-title" dir="rtl">
+            خاتمة
           </div>
 
-          {/* Title */}
-          <h1
-            className={`static-page__title static-page__title--ink fade-in-up fade-delay-100 ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
-          >
-            Radi's Conclusion
-          </h1>
-
-          {/* Decorative ornament */}
-          <div
-            className={`static-page__ornament fade-in-up fade-delay-200 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`}
-          >
+          {/* Decorative Ornament */}
+          <div className="static-page__ornament">
             <div className="static-page__ornament-line--right" />
             <div className="static-page__ornament-diamond" />
             <div className="static-page__ornament-line--left" />
           </div>
 
-          <p
-            className={`static-page__subtitle static-page__subtitle--muted fade-in-up fade-delay-300 ${isVisible ? 'fade-in-up--visible' : 'fade-in-up--hidden'}`}
-          >
-            Reflections on the completion of this monumental work and its enduring legacy.
+          <h1 className="static-page__title">
+            Conclusion
+          </h1>
+
+          <p className="static-page__subtitle static-page__subtitle--white">
+            Al-Sharīf al-Raḍī's closing words to his compilation of Nahj al-Balaghah.
           </p>
         </div>
-      </section>
+      </div>
 
-      {/* Main Content */}
-      <section className="static-page__main">
-        <div className="static-page__main-inner">
-          <div className="static-page__panel">
-            {/* Corner accents */}
-            <div className="static-page__panel-corner--tl" />
-            <div className="static-page__panel-corner--br" />
+      {/* Search Section */}
+      <div className="static-page__search">
+        <form onSubmit={handleSearch} className="static-page__search-form">
+          <div className="static-page__search-input">
+            <Input
+              type="text"
+              placeholder="Search in Arabic or English..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={<Search className="w-5 h-5" />}
+            />
+          </div>
+          <Button type="submit" disabled={isSearching} icon={<Search size={16} />}>
+            {isSearching ? 'Searching...' : 'Search'}
+          </Button>
+          {searchQuery && (
+            <Button type="button" variant="outline" onClick={clearSearch}>
+              Clear
+            </Button>
+          )}
+        </form>
+      </div>
 
-            <div className="static-page__panel-inner">
-              {/* Quote Block */}
-              <div className="static-page__quote-block">
-                <Quote className="icon--lg static-page__quote-icon" strokeWidth={1} />
-                <blockquote className="static-page__blockquote">
-                  "The worth of every person is in their attainments."
-                </blockquote>
-                <div className="static-page__quote-attribution">
-                  <div className="static-page__quote-line" />
-                  <p className="static-page__quote-author">
-                    Imam Ali ibn Abi Talib (AS)
-                  </p>
+      {/* Content Section */}
+      <div className="static-page__content">
+        {conclusions.length === 0 ? (
+          <div className="static-page__content-empty">
+            <p className="static-page__content-empty-text">
+              {searchQuery ? 'No results found for your search.' : 'No conclusions available.'}
+            </p>
+          </div>
+        ) : (
+          <div className="static-page__content-list">
+            {conclusions.map((conclusion) => (
+              <div
+                key={conclusion.id}
+                id={`conclusion-${conclusion.number}`}
+                data-text-ref={conclusion.number}
+                className="group static-page__card"
+              >
+                {/* Corner accents on hover */}
+                <div className="static-page__card-corner static-page__card-corner--tl" />
+                <div className="static-page__card-corner static-page__card-corner--br" />
+
+                <div className="static-page__card-inner">
+                  {/* Header */}
+                  <div className="static-page__card-header">
+                    <div className="static-page__card-title-group">
+                      <div className="static-page__card-number">
+                        {conclusion.number}
+                      </div>
+                      <h3 className="static-page__card-title">
+                        Conclusion {conclusion.number}
+                      </h3>
+                    </div>
+                    <div className="static-page__card-actions">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<GitCompare className="w-4 h-4" />}
+                        onClick={() => {
+                          setSelectedConclusionForComparison(conclusion);
+                          setIsComparisonModalOpen(true);
+                        }}
+                      >
+                        Compare Manuscripts
+                      </Button>
+                      <Link href={`/manuscripts/view?section=${conclusion.number.startsWith('0.') ? conclusion.number : `0.${conclusion.number}`}`}>
+                        <Button variant="outline" size="sm" icon={<Book className="w-4 h-4" />}>
+                          View Manuscripts
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Arabic Text */}
+                  <div className="static-page__card-arabic">
+                    <div
+                      className="static-page__card-arabic-text"
+                      dir="rtl"
+                    >
+                      {conclusion.arabic.split('\n').map((line, idx) => (
+                        <div key={idx} className={idx > 0 ? 'static-page__card-paragraph' : ''}>
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Translation */}
+                  {conclusion.translation && (
+                    <div className="static-page__card-translation">
+                      <div className="static-page__card-translation-text">
+                        {conclusion.translation.split('\n').map((line, idx) => {
+                          // Closing invocation lines are rendered with a hanging indent
+                          const isIndentedText = line.includes('I seek my direction from God') ||
+                            line.includes('I write this in the month of Rajab');
+                          return (
+                            <div
+                              key={idx}
+                              className={idx > 0 ? 'static-page__card-paragraph' : ''}
+                              style={isIndentedText ? { marginLeft: '2rem', textIndent: '-2rem' } : undefined}
+                            >
+                              {line}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Divider */}
-              <div className="static-page__divider">
-                <div className="static-page__divider-line" />
-                <div className="static-page__divider-diamond" />
-                <div className="static-page__divider-line" />
-              </div>
-
-              <div className="static-page__body-text">
-                <p className="static-page__body-text--lg">
-                  The compilation of <span className="static-page__text-highlight">Nahj al-Balaghah</span> represents one of the most significant achievements in Islamic literary history. Through the dedicated efforts of al-Sharif al-Radi, the profound wisdom of Imam Ali has been preserved for generations of seekers.
-                </p>
-
-                <p>
-                  This collection stands as a testament to the eloquence of the Arabic language and the depth of Islamic spiritual and ethical thought. Each sermon, letter, and saying contained within these pages offers guidance that remains as relevant today as it was over a millennium ago.
-                </p>
-
-                <p>
-                  We hope that this digital platform serves as a humble contribution to making these timeless teachings accessible to seekers of knowledge worldwide. May the wisdom contained within Nahj al-Balaghah continue to illuminate hearts and minds for generations to come.
-                </p>
-              </div>
-
-              {/* Arabic Closing */}
-              <div className="static-page__arabic-closing">
-                <p className="static-page__arabic-closing-text" dir="rtl">
-                  وَالحَمْدُ لِلّٰهِ رَبِّ العَالَمِينَ
-                </p>
-                <p className="static-page__arabic-closing-translation">
-                  All praise is due to Allah, Lord of all the worlds.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </section>
+        )}
+      </div>
 
-      {/* Navigation Section */}
-      <section className="static-page__nav-section">
-        <div className="static-page__nav-inner">
-          <h2 className="static-page__nav-title">
-            Continue Exploring
-          </h2>
-          <div className="static-page__nav-links">
-            <Link href="/orations" className="btn-outline">
-              <span>Orations</span>
-              <ArrowRight className="icon--sm" />
-            </Link>
-            <Link href="/letters" className="btn-outline">
-              <span>Letters</span>
-              <ArrowRight className="icon--sm" />
-            </Link>
-            <Link href="/sayings" className="btn-outline">
-              <span>Sayings</span>
-              <ArrowRight className="icon--sm" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Manuscript Comparison Modal */}
+      {selectedConclusionForComparison && (
+        <ManuscriptComparisonModal
+          isOpen={isComparisonModalOpen}
+          onClose={() => {
+            setIsComparisonModalOpen(false);
+            setSelectedConclusionForComparison(null);
+          }}
+          content={{
+            id: selectedConclusionForComparison.id,
+            number: selectedConclusionForComparison.number,
+            arabic: selectedConclusionForComparison.arabic,
+            translation: selectedConclusionForComparison.translation,
+            heading: `Conclusion ${selectedConclusionForComparison.number}`,
+            sermonNumber: `0.${selectedConclusionForComparison.number}`,
+            paragraphs: [],
+            title: undefined,
+            translations: undefined,
+            footnotes: []
+          }}
+          contentType="conclusion"
+        />
+      )}
     </div>
+  );
+}
+
+export default function ConclusionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="static-page__fallback">
+        <div className="static-page__spinner"></div>
+      </div>
+    }>
+      <ConclusionsContent />
+    </Suspense>
   );
 }

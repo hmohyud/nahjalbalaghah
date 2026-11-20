@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { orationsApi, lettersApi, sayingsApi } from '@/api'
 import TitleImage from '@/app/assets/images/title.png'
+import EditionPicker from '@/app/components/edition-picker'
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false)
@@ -61,7 +62,7 @@ const HeroSection = () => {
       description: "Epistles & correspondence"
     },
     {
-      arabic: "الحكم",
+      arabic: "الحِكَم",
       label: "Sayings",
       count: isLoading ? "..." : counts.sayings.toString(),
       href: "/sayings",
@@ -136,6 +137,8 @@ const HeroSection = () => {
         {/* Content Type Cards */}
         <div className="hero-cards-section hero-content-cards">
           <div className="hero-cards-container">
+            {/* Edition used across listing & details pages (saved as a preference) */}
+            <EditionPicker className={`hero-edition-picker fade-in-up--slow fade-delay-700 ${isVisible ? 'fade-in--visible' : 'fade-in--hidden'}`} />
             <div className="hero-cards-grid">
               {contentTypes.map((content, index) => (
                 <Link

@@ -496,7 +496,7 @@ export default function TimelinePage() {
 
               {/* Action Button */}
               <Link
-                href={`/${selectedItem.type === 'oration' ? 'orations' : 'letters'}/details/${selectedItem.id}`}
+                href={`/content/details/${selectedItem.type === 'oration' ? 'orations' : 'letters'}/${selectedItem.id}`}
                 className="timeline-page__action-link"
               >
                 <BookOpen className="w-4 h-4" />

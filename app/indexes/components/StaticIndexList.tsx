@@ -6,6 +6,7 @@ import { Search, X, Book, ArrowRight } from 'lucide-react';
 import { Button, Input } from '@/app/components/ui';
 import { Pagination, AlphabetChips } from '@/app/components/content-widgets';
 import { IndexCategory } from '@/app/data/indexes';
+import { normalizeForSort } from '@/app/utils/text-formatting';
 
 interface StaticIndexListProps {
     category: IndexCategory;
@@ -34,9 +35,9 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
 
         // Alphabet Filter
         if (startLetter) {
-            items = items.filter(item =>
-                item.word.toLowerCase().startsWith(startLetter.toLowerCase())
-            );
+            items = items.filter(item => {
+                return normalizeForSort(item.word).startsWith(startLetter.toLowerCase());
+            });
         }
 
         // Search Filter
@@ -48,7 +49,9 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
         }
 
         // Sort Alphabetically
-        items.sort((a, b) => a.word.localeCompare(b.word));
+        items.sort((a, b) => {
+            return normalizeForSort(a.word).localeCompare(normalizeForSort(b.word));
+        });
 
         return items;
     }, [category.items, startLetter, searchQuery]);
@@ -159,6 +162,14 @@ export default function StaticIndexList({ category }: StaticIndexListProps) {
                                 <p className="static-index-list__results-text">
                                     Showing <span className="static-index-list__results-bold">{(page - 1) * pageSize + 1}</span>-<span className="static-index-list__results-bold">{Math.min(page * pageSize, total)}</span> of <span className="static-index-list__results-bold">{total}</span>
                                 </p>
+                                {totalPages > 1 && (
+                                    <Pagination
+                                        currentPage={page}
+                                        totalPages={totalPages}
+                                        onPageChange={handlePageChange}
+                                        loading={false}
+                                    />
+                                )}
                             </div>
 
                             {/* Desktop Table */}

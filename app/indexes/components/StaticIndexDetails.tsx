@@ -6,7 +6,9 @@ import {
     postsApi,
     radisApi,
     Post,
-    RadisIntroduction
+    RadisIntroduction,
+    conclusionsApi,
+    Conclusion
 } from '@/api';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/app/components/ui';
@@ -14,7 +16,7 @@ import { parseTextReference } from '@/app/utils/text-reference';
 import { getCategoryBySlug } from '@/app/data/indexes';
 
 interface CombinedResult {
-    type: 'Post' | 'Paragraph' | 'Radis';
+    type: 'Post' | 'Paragraph' | 'Radis' | 'Conclusion';
     data: any;
     reference: string;
     sourceType?: 'Oration' | 'Letter' | 'Saying';
@@ -131,6 +133,12 @@ export default function StaticIndexDetails({ categorySlug, termSlug }: StaticInd
                                 if (radisRes.data && radisRes.data.length > 0) {
                                     const item = radisRes.data[0];
                                     return { type: 'Radis', data: item, reference: refValue };
+                                }
+                            } else if (type === 'conclusion') {
+                                const conclusionRes = await conclusionsApi.getConclusionsByNumbers([sectionNumber]);
+                                if (conclusionRes.data && conclusionRes.data.length > 0) {
+                                    const item = conclusionRes.data[0];
+                                    return { type: 'Conclusion', data: item, reference: refValue };
                                 }
                             } else {
                                 // Posts: "1.94.2" -> Query Sermon "1.94"
@@ -314,6 +322,27 @@ function ContentCard({ item, term }: { item: CombinedResult; term: string }) {
 
                 <div>
                     <HighlightText text={radis.translation} term={term} />
+                </div>
+            </div>
+        );
+    }
+
+    if (type === 'Conclusion') {
+        const conclusion = data as Conclusion;
+
+        return (
+            <div className="static-index-details__card">
+                <div className="static-index-details__card-header">
+                    <div className="static-index-details__card-badges">
+                        <span className="static-index-details__card-type-badge--conclusion">
+                            Conclusion
+                        </span>
+                        <span className="static-index-details__card-number">#{conclusion.number}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <HighlightText text={conclusion.translation} term={term} />
                 </div>
             </div>
         );

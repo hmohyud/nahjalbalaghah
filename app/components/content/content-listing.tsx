@@ -17,7 +17,15 @@ interface ContentListingProps {
   contentType: 'orations' | 'letters' | 'sayings';
   hasNextPage?: boolean;
   isInfiniteLoading?: boolean;
+  isTransitioning?: boolean;
   displayMode?: 'both' | 'english-only' | 'arabic-only';
+  listingParams?: {
+    page?: string;
+    search?: string;
+    sort?: string;
+    edition?: string;
+    display?: string;
+  };
   showTopPagination?: boolean;
 }
 
@@ -34,7 +42,9 @@ export default function ContentListing({
   contentType,
   hasNextPage = false,
   isInfiniteLoading = false,
+  isTransitioning = false,
   displayMode = 'both',
+  listingParams,
   showTopPagination = false
 }: ContentListingProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -83,6 +93,7 @@ export default function ContentListing({
             displayMode={displayMode}
             isExpanded={expandedItems.has(item.id)}
             onToggleExpand={() => toggleExpanded(item.id)}
+            listingParams={listingParams}
           />
         </div>
       ))}
@@ -116,11 +127,14 @@ export default function ContentListing({
     </div>
   );
 
+  const showInitialSkeleton = loading && content.length === 0;
+  const showTransitionOverlay = isTransitioning && content.length > 0;
+
   return (
     <div className="content-listing__wrapper">
       <div className="content-listing__header">
         <p className="content-listing__subtitle">
-          {loading ? "Loading..." : (subtitle || `Showing ${content.length} of ${total} results`)}
+          {showInitialSkeleton ? "Loading..." : (subtitle || `Showing ${content.length} of ${total} results`)}
         </p>
 
         {/* Show pagination only on desktop at top */}
@@ -137,10 +151,18 @@ export default function ContentListing({
         )}
       </div>
 
-      {loading ? (
+      {showInitialSkeleton ? (
         renderLoadingList()
       ) : (
-        <>
+        <div className="content-listing__results">
+          {showTransitionOverlay && (
+            <div className="content-listing__transition-overlay">
+              <div className="content-listing__transition-badge">
+                <span className="content-listing__transition-dot" />
+                Updating results...
+              </div>
+            </div>
+          )}
           {renderListView()}
 
           {/* Show loading indicator on mobile for infinite scroll */}
@@ -179,7 +201,7 @@ export default function ContentListing({
               />
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

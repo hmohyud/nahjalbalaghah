@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Nahj al-Balaghah",
+  title: "Privacy Policy",
   description: "Privacy policy for the Nahj al-Balaghah digital archive.",
 };
 

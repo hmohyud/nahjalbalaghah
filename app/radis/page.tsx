@@ -163,7 +163,7 @@ function RadisContent() {
 
         <div className="static-page__hero-inner">
           {/* Arabic Title */}
-          <div className="static-page__arabic-title">
+          <div className="static-page__arabic-title" dir="rtl">
             مقدمة الرضي
           </div>
 
@@ -175,11 +175,11 @@ function RadisContent() {
           </div>
 
           <h1 className="static-page__title">
-            Radi's Introduction
+            Raḍī's Introduction
           </h1>
 
           <p className="static-page__subtitle static-page__subtitle--white">
-            The enlightening introduction by al-Sharif al-Radi, compiler of Nahj al-Balaghah,
+            The enlightening introduction by al-Sharīf al-Raḍī, compiler of Nahj al-Balaghah,
             explaining his methodology and the profound wisdom contained within.
           </p>
         </div>
@@ -240,24 +240,27 @@ function RadisContent() {
                         Introduction {radis.number}
                       </h3>
                     </div>
-                    <div className="static-page__card-actions">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        icon={<GitCompare className="w-4 h-4" />}
-                        onClick={() => {
-                          setSelectedRadisForComparison(radis);
-                          setIsComparisonModalOpen(true);
-                        }}
-                      >
-                        Compare Manuscripts
-                      </Button>
-                      <Link href={`/manuscripts?section=${radis.number.startsWith('0.') ? radis.number : `0.${radis.number}`}`}>
-                        <Button variant="outline" size="sm" icon={<Book className="w-4 h-4" />}>
-                          View Manuscripts
+                    {/* Manuscript buttons only on the first section of the introduction */}
+                    {(radis.number.startsWith('0.') ? radis.number : `0.${radis.number}`) === '0.1' && (
+                      <div className="static-page__card-actions">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          icon={<GitCompare className="w-4 h-4" />}
+                          onClick={() => {
+                            setSelectedRadisForComparison(radis);
+                            setIsComparisonModalOpen(true);
+                          }}
+                        >
+                          Compare Manuscripts
                         </Button>
-                      </Link>
-                    </div>
+                        <Link href="/manuscripts/view?section=0.1">
+                          <Button variant="outline" size="sm" icon={<Book className="w-4 h-4" />}>
+                            View Manuscripts
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
                   {/* Arabic Text */}

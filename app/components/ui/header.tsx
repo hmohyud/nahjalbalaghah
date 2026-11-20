@@ -102,7 +102,8 @@ const Header = () => {
     { name: 'Names & Places', href: '/indexes/names-places' },
     { name: 'Terms', href: '/indexes/terms' },
     { name: 'Qur\'an, Hadith & Poetry', href: '/indexes/quran-hadith' },
-    { name: 'Religious & Ethical Concepts', href: '/indexes/concepts' },
+    { name: 'Religious & Ethical Concepts', href: '/indexes/religious-concepts' },
+    { name: 'Glossary', href: '/indexes/glossary' },
   ]
 
   const isActive = (href: string) => {

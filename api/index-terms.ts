@@ -5,6 +5,11 @@ export interface TextNumber {
   value: string;
 }
 
+export interface LinkedFootnote {
+  id: number;
+  text: string;
+}
+
 export interface IndexTerm {
   id: number;
   documentId: string;
@@ -15,6 +20,7 @@ export interface IndexTerm {
   updatedAt: string;
   publishedAt: string;
   text_numbers: TextNumber[];
+  LinkFootnote?: LinkedFootnote[];
 }
 
 export interface IndexTermsApiResponse {
@@ -83,6 +89,33 @@ export const indexTermsApi = {
       return response.data;
     } catch (error) {
       console.error('Error fetching index terms:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch all results by following pagination
+   */
+  async getAllIndexTerms(): Promise<IndexTerm[]> {
+    try {
+      const firstPage = await this.getIndexTerms(1, 100);
+      let allData = firstPage.data || [];
+      const pageCount = firstPage.meta.pagination.pageCount;
+
+      if (pageCount > 1) {
+        const promises = [];
+        for (let i = 2; i <= pageCount; i++) {
+          promises.push(this.getIndexTerms(i, 100));
+        }
+        const responses = await Promise.all(promises);
+        responses.forEach(res => {
+          if (res.data) allData = [...allData, ...res.data];
+        });
+      }
+
+      return allData;
+    } catch (error) {
+      console.error('Error fetching all index terms:', error);
       throw error;
     }
   },
