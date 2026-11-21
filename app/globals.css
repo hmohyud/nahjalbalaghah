@@ -17942,7 +17942,7 @@ ul.about-prose__body {
   to { transform: rotate(360deg); }
 }
 
-/* ── Top bar: mode, section, compare view ── */
+/* ── Top bar: mode, section, Compare's Details toggle ── */
 .mss-bar {
   display: flex;
   flex-wrap: wrap;
@@ -17997,7 +17997,7 @@ ul.about-prose__body {
   gap: 0.5rem;
 }
 
-/* Segmented controls (modes, Pages/Details, language) */
+/* Segmented controls (modes, language) */
 .mss-seg {
   display: inline-flex;
   flex-shrink: 0;
@@ -18551,6 +18551,7 @@ ul.about-prose__body {
 @media (max-width: 1023px) {
   .mss-tabs {
     display: flex;
+    flex: none;
     gap: 0.25rem;
     margin-bottom: 0.5rem;
     overflow-x: auto;
@@ -18976,18 +18977,45 @@ ul.about-prose__body {
   margin-top: 1.25rem;
 }
 
-/* ── Details: comparison table ── */
+/* ── Details: comparison table (Compare, expanded above the pages) ── */
+.mss-compare-drawer {
+  flex: none;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 0.75rem;
+}
+
+/* On the page (not in full screen, where the site header isn't shown), clear the site's fixed header */
+.mss--page:not(.mss--fullscreen) .mss-compare-drawer {
+  scroll-margin-top: 6.5rem;
+}
+
+/* Short screens: a smaller thumbnail keeps the table's sticky header from crowding out its rows */
+@media (max-height: 540px) {
+  .mss-table .mss-table__thumb {
+    flex-basis: 2rem;
+    height: 2.5rem;
+  }
+}
+
+.mss-compare-drawer__empty {
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-warm-gray);
+  background: #ffffff;
+  border: 1px dashed var(--color-stone);
+}
+
 .mss-compare-details {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  max-height: min(28rem, max(55svh, 20rem));
   background: #ffffff;
   border: 1px solid var(--color-stone);
 }
 
 .mss-compare-details__scroll {
-  flex: 1;
+  flex: 0 1 auto;
   min-height: 0;
   overflow: auto;
 }
@@ -19272,22 +19300,9 @@ ul.about-prose__body {
   gap: 1.25rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 768px) {
   .ms-hub-ways__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1120px) {
-  .ms-hub-ways__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  /* Titles take two lines' room, so the descriptions line up across the row */
-  .ms-hub-ways__grid .ms-hub-way__title {
-    min-height: 2.5em;
-    font-size: 1.3125rem;
-    line-height: 1.25;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -19414,41 +19429,6 @@ ul.about-prose__body {
   transform: rotate(4deg) translateX(3px);
 }
 
-/* A catalogue record beside a page: label and value lines */
-.ms-hub-way__record {
-  display: grid;
-  grid-template-columns: 1rem 1fr;
-  align-content: center;
-  gap: 0.5rem 0.375rem;
-  width: 5.25rem;
-  padding: 0.5rem 0.5rem;
-  background: #ffffff;
-  border: 1px solid var(--color-stone);
-  box-shadow: 0 3px 8px rgba(26, 24, 22, 0.12);
-  transition: transform 0.3s ease;
-}
-
-.ms-hub-way__record i,
-.ms-hub-way__record b {
-  display: block;
-  height: 2px;
-}
-
-.ms-hub-way__record i {
-  background: var(--color-accent);
-}
-
-.ms-hub-way__record b {
-  background: rgba(26, 24, 22, 0.45);
-}
-
-.ms-hub-way__record b:nth-of-type(2n) {
-  width: 65%;
-}
-
-.ms-hub-way:hover .ms-hub-way__art--details .ms-hub-way__record {
-  transform: translateY(-3px);
-}
 
 /* Collection */
 .ms-hub-collection {
@@ -19490,10 +19470,15 @@ ul.about-prose__body {
 .ms-hub-collection__more svg {
   width: 1rem;
   height: 1rem;
+  transition: transform 0.3s ease;
 }
 
 .ms-hub-collection__more:hover {
   color: var(--color-primary-dark);
+}
+
+.ms-hub-collection__more:hover svg {
+  transform: translateY(2px);
 }
 
 .ms-hub-collection__grid {
@@ -19669,10 +19654,6 @@ ul.about-prose__body {
 
   .mss-text {
     max-height: 70svh;
-  }
-
-  .mss-compare-details {
-    max-height: 75svh;
   }
 
   .mss-empty--panel {
@@ -19911,6 +19892,7 @@ ul.about-prose__body {
 }
 
 .mss--modal {
+  flex-shrink: 0;
   height: auto;
   min-height: 100%;
 }
@@ -19920,8 +19902,7 @@ ul.about-prose__body {
 }
 
 .mss-pane,
-.mss-info,
-.mss-compare-details {
+.mss-info {
   min-height: var(--mss-panel-min);
 }
 
@@ -19938,11 +19919,10 @@ ul.about-prose__body {
   }
 }
 
-/* Scrolling contents (edition text, details, the details table) never set the viewer's height;
+/* Scrolling contents (edition text, details) never set the viewer's height;
    only the screen and the minimum above do, and they scroll inside their panel */
 .mss-text,
-.mss-info,
-.mss-compare-details__scroll {
+.mss-info {
   contain: size;
 }
 
@@ -19973,8 +19953,8 @@ ul.about-prose__body {
   }
 }
 
-/* The pane's Details button (Single, and Manuscript + text) */
-.mss-pane__details-btn {
+/* Details buttons: each manuscript's (Single, Manuscript + text) and Compare's in the top bar */
+.mss-details-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
@@ -19990,16 +19970,130 @@ ul.about-prose__body {
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.mss-pane__details-btn svg {
+.mss-details-btn svg {
   width: 0.875rem;
   height: 0.875rem;
 }
 
-.mss-pane__details-btn:hover {
+.mss-details-btn:hover {
   border-color: var(--color-primary);
 }
 
-.mss-pane__details-btn--active {
+.mss-details-btn--active {
   background: rgba(45, 90, 71, 0.08);
   border-color: var(--color-primary);
+}
+
+/* In the top bar (Compare), the Details button matches the bar's other controls */
+.mss-bar .mss-details-btn {
+  height: 2.25rem;
+}
+
+/* ── Landing page: manuscript information, folded away until asked for ── */
+.ms-hub-details {
+  margin-top: 2.5rem;
+  background: #ffffff;
+  border: 1px solid var(--color-stone);
+  scroll-margin-top: 7rem;
+}
+
+.ms-hub-details__heading {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+.ms-hub-details__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: 100%;
+  padding: 1.125rem 1.5rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ms-hub-details__toggle:hover {
+  background: var(--color-parchment);
+}
+
+.ms-hub-details__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.ms-hub-details__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ms-hub-details__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.ms-hub-details__desc {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-warm-gray);
+}
+
+.ms-hub-details__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.ms-hub-details__action svg {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.ms-hub-details--open .ms-hub-details__action svg {
+  transform: rotate(180deg);
+}
+
+.ms-hub-details__panel {
+  padding: 1.5rem;
+  background: var(--color-parchment);
+  border-top: 1px solid var(--color-stone);
+}
+
+@media (max-width: 639px) {
+  .ms-hub-details__toggle {
+    padding: 1rem 1.125rem;
+  }
+
+  .ms-hub-details__title {
+    font-size: 1.125rem;
+  }
+
+  .ms-hub-details__panel {
+    padding: 1rem;
+  }
+}
+
+/* The catalogue embedded in that section (the full page wraps it in .ms-info) */
+.ms-info__embedded--centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 10rem;
+}
+
+.ms-info__embedded .ms-info__error {
+  padding: 2rem 0;
 }

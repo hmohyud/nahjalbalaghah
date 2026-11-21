@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   ZoomIn, ZoomOut, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, X, Loader2, Check,
   Maximize2, Minimize2, Expand, Shrink, Search, Image as ImageIcon, BookOpenText, Columns2,
-  Images, Table2, Info, RotateCcw, Plus, Minus,
+  Info, RotateCcw, Plus, Minus,
 } from 'lucide-react';
 import {
   manuscriptCatalogApi,
@@ -30,7 +30,6 @@ import { getPreference, getPostEditionTitles } from '@/app/utils/preferences';
 // ============================================================================
 
 export type StudyMode = 'single' | 'edition' | 'compare';
-export type CompareView = 'pages' | 'details';
 
 const MODE_META: Record<StudyMode, { label: string; icon: React.ElementType }> = {
   single: { label: 'Single', icon: ImageIcon },
@@ -603,7 +602,7 @@ const ManuscriptPane: React.FC<ManuscriptPaneProps> = ({
           {onToggleInfo && (
             <button
               type="button"
-              className={`mss-pane__details-btn ${infoOpen ? 'mss-pane__details-btn--active' : ''}`}
+              className={`mss-details-btn ${infoOpen ? 'mss-details-btn--active' : ''}`}
               onClick={onToggleInfo}
               aria-expanded={!!infoOpen}
               aria-controls={infoOpen ? infoId : undefined}
@@ -814,7 +813,8 @@ const DetailsPanel: React.FC<{
   id: string;
   panelRef: React.Ref<HTMLElement>;
   entry: ManuscriptCatalogEntry;
-  pages: number;
+  /** null while the section's pages are loading */
+  pages: number | null;
   sectionText: string;
   onClose: () => void;
 }> = ({ id, panelRef, entry, pages, sectionText, onClose }) => {
@@ -835,13 +835,13 @@ const DetailsPanel: React.FC<{
         ))}
         <div className="mss-info__row">
           <dt>Pages for {sectionText}</dt>
-          <dd>{pages}</dd>
+          <dd>{pages === null ? 'Loading…' : pages}</dd>
         </div>
       </dl>
       {!hasCatalogueDetails(entry) && (
         <p className="mss-info__note">Catalogue details for this manuscript haven’t been added yet.</p>
       )}
-      <Link href="/manuscripts/information" className="mss-text-btn mss-info__link">
+      <Link href="/manuscripts#manuscript-information" className="mss-text-btn mss-info__link">
         All manuscript details <ChevronRight />
       </Link>
     </aside>
@@ -852,7 +852,9 @@ const DetailsComparison: React.FC<{
   columns: { entry: ManuscriptCatalogEntry; item: SectionManuscript | undefined; order: number }[];
   sectionText: string;
   note?: string;
-}> = ({ columns, sectionText, note }) => {
+  /** The section's pages are still loading, so page counts aren't known yet */
+  loading?: boolean;
+}> = ({ columns, sectionText, note, loading = false }) => {
   const rows = DETAIL_FIELDS.filter(field => columns.some(col => field.value(col.entry)));
   const withoutDetails = columns.filter(col => !hasCatalogueDetails(col.entry)).map(col => col.entry.name);
 
@@ -900,7 +902,9 @@ const DetailsComparison: React.FC<{
             <tr>
               <th scope="row">Pages for {sectionText}</th>
               {columns.map(({ entry, item }) => (
-                <td key={entry.id}>{item ? pageCountLabel(item.pages.length) : 'None'}</td>
+                <td key={entry.id} className={loading ? 'mss-table__empty' : undefined}>
+                  {loading ? 'Loading…' : item ? pageCountLabel(item.pages.length) : 'None'}
+                </td>
               ))}
             </tr>
           </tbody>
@@ -1236,7 +1240,8 @@ export interface StudioState {
   edition: string;
   /** Compare columns, as slot keys ("ms:<id>", "ed:<edition>") */
   compare: string[];
-  compareView: CompareView;
+  /** The compared manuscripts' catalogue details are expanded above the pages */
+  compareDetails: boolean;
 }
 
 interface ManuscriptStudioProps {
@@ -1255,7 +1260,7 @@ interface ManuscriptStudioProps {
   initialCompare?: string[];
   /** Shown first when present in the section (older ?library= links) */
   preferredManuscript?: string;
-  initialCompareView?: CompareView;
+  initialCompareDetails?: boolean;
   onStateChange?: (state: StudioState) => void;
   /** Text supplied by the caller. Used for 0.x sections (introduction paragraphs, conclusions). */
   textSource?: EditionTextSource | null;
@@ -1287,7 +1292,7 @@ export function ManuscriptStudio({
   initialEdition,
   initialCompare,
   preferredManuscript,
-  initialCompareView = 'pages',
+  initialCompareDetails = false,
   onStateChange,
   textSource,
   title,
@@ -1309,7 +1314,7 @@ export function ManuscriptStudio({
   const [compareKeys, setCompareKeys] = useState<string[]>(
     () => uniqueKeys((initialCompare || []).filter(key => keyKind(key) && keyId(key))).slice(0, MAX_COMPARE)
   );
-  const [compareView, setCompareView] = useState<CompareView>(initialCompareView);
+  const [compareDetails, setCompareDetails] = useState(initialCompareDetails);
   const [pageBy, setPageBy] = useState<Record<string, number>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<string | null>(null);
@@ -1323,6 +1328,10 @@ export function ManuscriptStudio({
   const catalogRef = useRef<ManuscriptCatalogEntry[] | null>(null);
   const infoRef = useRef<HTMLElement | null>(null);
   const infoId = React.useId();
+  const compareDetailsId = React.useId();
+  const compareDetailsRef = useRef<HTMLElement | null>(null);
+  // Set when the Details button opened the Compare details, so they scroll into view if out of sight
+  const revealCompareDetailsRef = useRef(false);
   // Set when the Details button opened the panel under the pages (narrow screens), so it scrolls into view
   const revealInfoRef = useRef(false);
   const defaultsApplied = useRef(!!initialManuscript || (initialCompare?.length ?? 0) > 0);
@@ -1583,9 +1592,9 @@ export function ManuscriptStudio({
 
   // ---- Report state (the page keeps it in the URL) ----
   useEffect(() => {
-    onStateChange?.({ mode, manuscript: viewMs, edition: viewEd, compare: compareKeys, compareView });
+    onStateChange?.({ mode, manuscript: viewMs, edition: viewEd, compare: compareKeys, compareDetails });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, viewMs, viewEd, compareKeys, compareView]);
+  }, [mode, viewMs, viewEd, compareKeys, compareDetails]);
 
   // ---- Fullscreen (viewer page) ----
   useEffect(() => {
@@ -1727,7 +1736,7 @@ export function ManuscriptStudio({
   const infoMode = mode === 'single' || mode === 'edition' ? mode : null;
   const infoOpen = !!infoMode && infoPrefs[infoMode];
   const showInfo = infoOpen && !!primaryEntry;
-  const showDetailsTable = mode === 'compare' && compareView === 'details';
+  const showCompareDetails = mode === 'compare' && compareDetails && !loadError;
 
   const setInfoOpen = (open: boolean) => {
     if (infoMode) setInfoPrefs(prev => ({ ...prev, [infoMode]: open }));
@@ -1752,6 +1761,17 @@ export function ManuscriptStudio({
     revealInfoRef.current = false;
     infoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [showInfo]);
+
+  // Opened from the top bar while the picker fills the screen (phones): bring the details into sight
+  useEffect(() => {
+    if (!showCompareDetails || !revealCompareDetailsRef.current) return;
+    revealCompareDetailsRef.current = false;
+    const drawer = compareDetailsRef.current;
+    if (drawer && drawer.getBoundingClientRect().top > window.innerHeight * 0.75) {
+      drawer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showCompareDetails]);
+
   const columnLabel = (column: Column) => (column.kind === 'ed' ? textLabelFor(column.edition) : column.entry.name);
 
   const renderColumn = (column: Column, index: number) => {
@@ -1794,6 +1814,37 @@ export function ManuscriptStudio({
     );
   };
 
+  // Compare: the manuscripts' catalogue details, expanded above the pages (never instead of them)
+  const compareDetailsSection = () => {
+    const detailColumns = columns.flatMap((c, i) =>
+      c.kind === 'ms' ? [{ entry: c.entry, item: itemById.get(c.entry.id), order: i + 1 }] : []
+    );
+    return (
+      <section
+        id={compareDetailsId}
+        ref={compareDetailsRef}
+        className="mss-compare-drawer"
+        aria-label="Details of the compared manuscripts"
+        aria-busy={!catalog || !ready}
+      >
+        {!catalog ? (
+          <p className="mss-compare-drawer__empty">Loading the manuscripts’ details…</p>
+        ) : detailColumns.length === 0 ? (
+          <p className="mss-compare-drawer__empty">
+            Details compare the manuscripts’ catalogue records. Use + on a manuscript above to add one.
+          </p>
+        ) : (
+          <DetailsComparison
+            columns={detailColumns}
+            sectionText={sectionText}
+            loading={!ready}
+            note={columns.some(c => c.kind === 'ed') ? 'Edition texts aren’t part of the catalogue comparison.' : undefined}
+          />
+        )}
+      </section>
+    );
+  };
+
   const stageBody = () => {
     if (loadError) {
       return (
@@ -1815,26 +1866,6 @@ export function ManuscriptStudio({
             <button type="button" className="mss-text-btn" onClick={() => continueTo(1)}>{continuation.next} <ChevronRight /></button>
           )}
         </div>
-      );
-    }
-    if (showDetailsTable) {
-      const detailColumns = columns.flatMap((c, i) =>
-        c.kind === 'ms' ? [{ entry: c.entry, item: itemById.get(c.entry.id), order: i + 1 }] : []
-      );
-      if (detailColumns.length === 0) {
-        return (
-          <div className="mss-empty mss-empty--panel">
-            <p className="mss-empty__title">Add a manuscript</p>
-            <p className="mss-empty__text">Details compare the manuscripts’ catalogue records. Use + on a manuscript above to add it.</p>
-          </div>
-        );
-      }
-      return (
-        <DetailsComparison
-          columns={detailColumns}
-          sectionText={sectionText}
-          note={columns.some(c => c.kind === 'ed') ? 'Edition texts aren’t part of the catalogue comparison.' : undefined}
-        />
       );
     }
     if (columns.length === 0) {
@@ -1950,24 +1981,19 @@ export function ManuscriptStudio({
 
         <div className="mss-bar__end">
           {mode === 'compare' && (
-            <div className="mss-seg" role="group" aria-label="Compare">
-              <button
-                type="button"
-                className={compareView === 'pages' ? 'mss-seg__btn mss-seg__btn--active' : 'mss-seg__btn'}
-                aria-pressed={compareView === 'pages'}
-                onClick={() => setCompareView('pages')}
-              >
-                <Images /><span>Pages</span>
-              </button>
-              <button
-                type="button"
-                className={compareView === 'details' ? 'mss-seg__btn mss-seg__btn--active' : 'mss-seg__btn'}
-                aria-pressed={compareView === 'details'}
-                onClick={() => setCompareView('details')}
-              >
-                <Table2 /><span>Details</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              className={`mss-details-btn ${compareDetails ? 'mss-details-btn--active' : ''}`}
+              onClick={() => {
+                if (!compareDetails) revealCompareDetailsRef.current = true;
+                setCompareDetails(!compareDetails);
+              }}
+              aria-expanded={compareDetails}
+              aria-controls={showCompareDetails ? compareDetailsId : undefined}
+              title="The compared manuscripts’ catalogue details, side by side"
+            >
+              <Info /><span>Details</span>{compareDetails ? <ChevronUp /> : <ChevronDown />}
+            </button>
           )}
           {variant === 'page' && (
             <button type="button" className="mss-icon-btn mss-icon-btn--bordered" onClick={toggleFullscreen} title={isFullscreen ? 'Exit full screen' : 'Full screen'}>
@@ -1997,13 +2023,16 @@ export function ManuscriptStudio({
       />
 
       <div className={`mss-stage ${showInfo ? 'mss-stage--with-info' : ''}`}>
-        <div className="mss-stage__main">{stageBody()}</div>
+        <div className="mss-stage__main">
+          {showCompareDetails && compareDetailsSection()}
+          {stageBody()}
+        </div>
         {showInfo && primaryEntry && (
           <DetailsPanel
             id={infoId}
             panelRef={infoRef}
             entry={primaryEntry}
-            pages={itemById.get(primaryEntry.id)?.pages.length ?? 0}
+            pages={ready ? itemById.get(primaryEntry.id)?.pages.length ?? 0 : null}
             sectionText={sectionText}
             onClose={() => setInfoOpen(false)}
           />

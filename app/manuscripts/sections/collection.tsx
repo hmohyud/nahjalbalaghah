@@ -41,12 +41,12 @@ export default function ManuscriptCollection() {
   }, []);
 
   if (error) {
-    return <p className="ms-hub-collection__status">The collection couldn’t be loaded. Please try again later.</p>;
+    return <p className="ms-hub-collection__status" data-collection="settled">The collection couldn’t be loaded. Please try again later.</p>;
   }
 
   if (!items) {
     return (
-      <div className="ms-hub-collection__grid" aria-busy="true">
+      <div className="ms-hub-collection__grid" aria-busy="true" data-collection="loading">
         {Array.from({ length: 8 }, (_, i) => (
           <div key={i} className="ms-col-card ms-col-card--skeleton">
             <span className="ms-col-card__cover" />
@@ -62,7 +62,7 @@ export default function ManuscriptCollection() {
 
   return (
     <>
-      <div className="ms-hub-collection__grid">
+      <div className="ms-hub-collection__grid" data-collection="settled">
         {digitized.map(({ entry, opening }) => {
           const facts = [entry.date, [entry.city, entry.country].filter(Boolean).join(', ')].filter(Boolean);
           return (

@@ -2,8 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight } from 'lucide-react';
 import ManuscriptCollection from './sections/collection';
+import ManuscriptInformationSection from './sections/information-section';
 
 export const metadata: Metadata = {
   title: "Historical Manuscripts",
@@ -37,22 +38,14 @@ const ways = [
     href: '/manuscripts/view?section=1.1&mode=compare',
     action: 'Compare manuscripts',
   },
-  {
-    key: 'details',
-    title: 'Manuscript information',
-    description: 'Details of each manuscript: holding library, date, sigla, catalogue number, scribe and completeness.',
-    href: '/manuscripts/information',
-    action: 'View the details',
-  },
 ] as const;
 
-/** Small page diagrams for each way of studying */
+/** Small page diagrams for the three ways of studying */
 const WayIllustration = ({ kind }: { kind: typeof ways[number]['key'] }) => (
   <span className={`ms-hub-way__art ms-hub-way__art--${kind}`} aria-hidden="true">
     <span className="ms-hub-way__page"><i /><i /><i /><i /><i /></span>
     {kind === 'edition' && <span className="ms-hub-way__text"><i /><i /><i /><i /></span>}
     {kind === 'compare' && <span className="ms-hub-way__page"><i /><i /><i /><i /><i /></span>}
-    {kind === 'details' && <span className="ms-hub-way__record"><i /><b /><i /><b /><i /><b /><i /><b /></span>}
   </span>
 );
 
@@ -110,11 +103,12 @@ export default async function ManuscriptsPage({ searchParams }: { searchParams: 
               <h2 id="ms-collection-heading" className="ms-hub-collection__title">The collection</h2>
               <p className="ms-hub-collection__lead">Each manuscript, shown at the opening of Oration 1. Select one to read it.</p>
             </div>
-            <Link href="/manuscripts/information" className="ms-hub-collection__more">
-              Catalogue details <ArrowRight />
-            </Link>
+            <a href="#manuscript-information" className="ms-hub-collection__more">
+              Manuscript information <ArrowDown aria-hidden="true" />
+            </a>
           </div>
           <ManuscriptCollection />
+          <ManuscriptInformationSection />
         </div>
       </section>
     </div>

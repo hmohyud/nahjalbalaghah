@@ -1,7 +1,7 @@
 'use client';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ManuscriptStudio, type CompareView, type StudioState, type StudyMode } from '@/app/components/manuscripts';
+import { ManuscriptStudio, type StudioState, type StudyMode } from '@/app/components/manuscripts';
 
 const SECTION_PATTERN = /^\d+\.\d+$/;
 const SLOT_PATTERN = /^(ms|ed):.+/;
@@ -9,8 +9,8 @@ const SLOT_PATTERN = /^(ms|ed):.+/;
 /**
  * /manuscripts/view. The URL keeps the view shareable:
  *   ?section=1.12                                   one manuscript
- *   ?section=1.12&mode=edition&ms=<id>&ed=Attar     a manuscript beside an edition's text
- *   ?section=1.12&mode=compare&cols=ms:<id>,ed:Qutbuddin,ms:<id>&view=details
+ *   ?section=1.12&mode=edition&ms=<id>&ed=Qutbuddin a manuscript beside an edition's text
+ *   ?section=1.12&mode=compare&cols=ms:<id>,ed:Qutbuddin,ms:<id>&view=details   (details expanded)
  * Older links still work: mode=single|reading|comparison, ms=<id>,<id> and library=<id>.
  */
 const ManuscriptsContent = () => {
@@ -37,7 +37,7 @@ const ManuscriptsContent = () => {
       edition: searchParams.get('ed') || undefined,
       compare,
       preferred: searchParams.get('library') || undefined,
-      compareView: (searchParams.get('view') === 'details' ? 'details' : 'pages') as CompareView,
+      compareDetails: searchParams.get('view') === 'details',
     };
   });
 
@@ -52,7 +52,7 @@ const ManuscriptsContent = () => {
       if (state.manuscript) params.set('ms', state.manuscript);
       if (state.mode === 'edition') params.set('ed', state.edition);
       if (state.mode === 'compare' && state.compare.length) params.set('cols', state.compare.join(','));
-      if (state.mode === 'compare' && state.compareView === 'details') params.set('view', 'details');
+      if (state.mode === 'compare' && state.compareDetails) params.set('view', 'details');
     }
     window.history.replaceState(window.history.state, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
@@ -76,7 +76,7 @@ const ManuscriptsContent = () => {
       initialEdition={initial.edition}
       initialCompare={initial.compare}
       preferredManuscript={initial.preferred}
-      initialCompareView={initial.compareView}
+      initialCompareDetails={initial.compareDetails}
       onStateChange={handleStateChange}
     />
   );
